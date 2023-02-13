@@ -209,6 +209,7 @@ jobs:
       - name: Link action
         shell: sh
         run: |
+          ls "./platform/.github/actions/deploy-${{ inputs.deploy_service }}"
           ln -sfn "./platform/.github/actions/deploy-${{ inputs.deploy_service }}" ./platform/.github/actions/deploy
           ls ./platform/.github/actions/deploy
 
