@@ -207,7 +207,7 @@ jobs:
           ref: ${{ inputs.platform_version }}
 
       - name: Link action
-        shell: sh
+        shell: bash
         run: |
           ls "./platform/.github/actions/deploy-${{ inputs.deploy_service }}"
           ln -sfn "./platform/.github/actions/deploy-${{ inputs.deploy_service }}" ./platform/.github/actions/deploy
