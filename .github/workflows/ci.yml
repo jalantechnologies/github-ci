@@ -191,7 +191,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    #    needs: build
     if: inputs.deploy_service != '' && (inputs.steps == '' || contains(join(inputs.steps), 'deploy'))
     outputs:
       url: ${{ steps.deploy.outputs.url }}
