@@ -96,7 +96,7 @@ jobs:
       - name: Checkout (action)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/platform-github
+          repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ inputs.platform_version }}
 
@@ -118,7 +118,7 @@ jobs:
       - name: Checkout (action)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/platform-github
+          repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ inputs.platform_version }}
 
@@ -140,7 +140,7 @@ jobs:
       - name: Checkout (action)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/platform-github
+          repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ inputs.platform_version }}
 
@@ -160,7 +160,7 @@ jobs:
       - name: Checkout (action)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/platform-github
+          repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ inputs.platform_version }}
 
@@ -180,7 +180,7 @@ jobs:
       - name: Checkout (action)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/platform-github
+          repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ inputs.platform_version }}
 
