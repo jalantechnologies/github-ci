@@ -193,6 +193,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: inputs.deploy_service != '' && (inputs.steps == '' || contains(join(inputs.steps), 'deploy'))
+    strategy:
+      matrix:
+        services: [ inputs.deploy_service ]
     outputs:
       url: ${{ steps.deploy.outputs.url }}
     steps:
@@ -208,7 +211,7 @@ jobs:
 
       - name: Deploy application
         id: deploy
-        uses: ./platform/.github/actions/deploy-${{ inputs.deploy_service }}
+        uses: ./platform/.github/actions/deploy-${{ matrix.deploy_service }}
         env:
           DOCKER_REGISTRY: ${{ secrets.docker_registry }}
           DOCKER_USERNAME: ${{ secrets.docker_username }}
