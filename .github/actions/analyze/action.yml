@@ -1,0 +1,54 @@
+name: 'analyze'
+description: 'Run code analyzer using SonarQube'
+inputs:
+  sonar_host_url:
+    required: true
+    description: 'SonarQube server URL'
+  sonar_token:
+    required: true
+    description: 'The authentication token or login of a SonarQube user'
+  branch:
+    required: true
+    description: 'Branch from which this workflow was run'
+  branch_base:
+    required: false
+    description: 'This refers to the base branch against with sonarqube will run code analysis'
+  pull_request_number:
+    required: false
+    description: 'Pull request number running the workflow against a pull request'
+runs:
+  using: composite
+  steps:
+    - name: Extract branch name
+      id: extract_branch
+      shell: bash
+      run: |
+        BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
+        BRANCH_BASE_NAME=$(echo ${{ inputs.branch_base }} | sed -e 's/^refs\/heads\///g')
+
+        echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
+        echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
+
+    - name: sonarqube-scan-pullrequest
+      uses: sonarsource/sonarqube-scan-action@master
+      if: inputs.branch_base
+      env:
+        SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+      with:
+        args: >
+          -Dsonar.pullrequest.key=${{ inputs.pull_request_number }}
+          -Dsonar.pullrequest.branch=${{ steps.extract_branch.outputs.branch }}
+          -Dsonar.pullrequest.base=${{ steps.extract_branch.outputs.branch_base }}
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=1000
+
+    - name: sonarqube-scan-branch
+      uses: sonarsource/sonarqube-scan-action@master
+      if: inputs.branch_base == ''
+      env:
+        SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+      with:
+        args: >
+          -Dsonar.branch.name=${{ steps.extract_branch.outputs.branch }}

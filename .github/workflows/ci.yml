@@ -1,0 +1,248 @@
+name: ci
+
+on:
+  workflow_call:
+    inputs:
+      analyze_base:
+        required: false
+        type: string
+        description: "If analyze is enabled, this refers to the base branch against with sonarqube will run code analysis"
+      app_name:
+        required: true
+        type: string
+        description: "Application name based on which docker repository, doppler project and kube namespace would be selected"
+      app_env:
+        required: true
+        type: string
+        description: "Application environment based on which doppler configuration, kube namespace and kube spec files would be selected"
+      app_hostname:
+        required: true
+        type: string
+        description: "Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch"
+      branch:
+        required: true
+        type: string
+        description: "Branch from which this workflow was run"
+      build_args:
+        required: false
+        type: string
+        description: "Build arguments provided to the docker daemon when building the image"
+      build_context:
+        required: false
+        type: string
+        description: "Build context to use with docker. Default to checked out Git directory."
+        default: .
+      deploy_root:
+        required: false
+        type: string
+        description: "Directory where deployment specification files are. This is dependent on the chosen deployment service."
+      deploy_service:
+        required: false
+        type: string
+        description: "Service to use for deployment. If nothing was provided, deployment will be skipped."
+      deploy_annotate_pr:
+        required: false
+        type: boolean
+        description: "Enable pull request annotation with deployment URL"
+        default: true
+      pull_request_number:
+        required: false
+        type: number
+        description: "Pull request number running the workflow against a pull request"
+      steps:
+        required: false
+        type: string
+        description: "If provided, only specified steps would be run by the workflow. Value to be provided in CSV format."
+      platform_version:
+        required: false
+        type: string
+        description: "Branch from which platform will be checked out to use actions"
+        default: "v1.0"
+    secrets:
+      docker_registry:
+        required: false
+      docker_username:
+        required: false
+      docker_password:
+        required: false
+      do_access_token:
+        required: false
+      do_cluster_id:
+        required: false
+      doppler_token:
+        required: false
+      sonar_host_url:
+        required: false
+      sonar_token:
+        required: false
+      render_token:
+        required: false
+    outputs:
+      deploy_url:
+        description: "Deployment URL"
+        value: ${{ jobs.deploy.outputs.url }}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    if: inputs.steps == '' || contains(join(inputs.steps), 'analyze')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # important - for analyze to work, it needs a deep clone of the repository
+          fetch-depth: 0
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/platform-github
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Analyze application
+        uses: ./platform/.github/actions/analyze
+        with:
+          sonar_host_url: ${{ secrets.sonar_host_url }}
+          sonar_token: ${{ secrets.sonar_token }}
+          branch: ${{ inputs.branch }}
+          branch_base: ${{ inputs.analyze_base }}
+          pull_request_number: ${{ inputs.pull_request_number }}
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (source)
+        uses: actions/checkout@v3
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/platform-github
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Build application
+        uses: ./platform/.github/actions/build
+        with:
+          tag: ${{ inputs.app_name }}
+          build-args: ${{ inputs.build_args }}
+          context: ${{ inputs.build_context }}
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+    if: inputs.steps == '' || contains(join(inputs.steps), 'lint')
+    steps:
+      - name: Checkout (source)
+        uses: actions/checkout@v3
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/platform-github
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Run lint checks
+        uses: ./platform/.github/actions/lint
+        with:
+          tag: ${{ inputs.app_name }}
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    if: inputs.steps == '' || contains(join(inputs.steps), 'test')
+    steps:
+      - name: Checkout (source)
+        uses: actions/checkout@v3
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/platform-github
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Run automated test cases
+        uses: ./platform/.github/actions/test
+        with:
+          tag: ${{ inputs.app_name }}
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: build
+    if: inputs.steps == '' || contains(join(inputs.steps), 'e2e')
+    steps:
+      - name: Checkout (source)
+        uses: actions/checkout@v3
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/platform-github
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Run automated e2e test cases
+        uses: ./platform/.github/actions/e2e
+        with:
+          tag: ${{ inputs.app_name }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: inputs.deploy_service != '' && (inputs.steps == '' || contains(join(inputs.steps), 'deploy'))
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout (source)
+        uses: actions/checkout@v3
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Deploy application
+        id: deploy
+        uses: ./platform/.github/actions/deploy-${{ inputs.deploy_service }}
+        env:
+          DOCKER_REGISTRY: ${{ secrets.docker_registry }}
+          DOCKER_USERNAME: ${{ secrets.docker_username }}
+          DOCKER_PASSWORD: ${{ secrets.docker_password }}
+          DO_ACCESS_TOKEN: ${{ secrets.do_access_token }}
+          DO_CLUSTER_ID: ${{ secrets.do_cluster_id }}
+          DOPPLER_TOKEN: ${{ secrets.doppler_token }}
+          RENDER_TOKEN: ${{ secrets.render_token }}
+        with:
+          app_name: ${{ inputs.app_name }}
+          app_env: ${{ inputs.app_env }}
+          app_hostname: ${{ inputs.app_hostname }}
+          branch: ${{ inputs.branch }}
+          deploy_root: ${{ inputs.deploy_root }}
+          deploy_tags: gh/workflow-version=${{ inputs.platform_version }}
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        # only run this step if enabled and pull request number was provided
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+        with:
+          header: ${{ inputs.app_name }}
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+          number: ${{ inputs.pull_request_number }}
+          message: |
+            Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
+
+  clean:
+    runs-on: ubuntu-latest
+    if: ${{ always() && !cancelled() }}
+    # list all jobs after which clean up should be performed
+    needs: [ "lint", "test", "deploy", "e2e" ]
+    steps:
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: image-artifact-${{ inputs.app_name }}
+          failOnError: false

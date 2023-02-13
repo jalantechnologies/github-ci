@@ -1,0 +1,125 @@
+name: 'deploy-digitalocean-kube'
+description: 'Deploy application to Kubernetes on DigitalOcean'
+inputs:
+  app_name:
+    required: true
+    description: 'Application name based on which docker repository, doppler project and kube namespace would be selected'
+  app_env:
+    required: true
+    description: 'Application environment based on which doppler configuration, kube namespace and kube spec files would be selected'
+  app_hostname:
+    required: true
+    description: 'Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch'
+  branch:
+    required: true
+    description: 'Branch from which this action was run'
+  deploy_root:
+    required: false
+    description: "Directory where kube deployment would look for kubernetes specification files"
+    default: "lib/kube"
+  deploy_tags:
+    required: false
+    description: "Can be used for tagging resources created during deployment process"
+# TODO: Add support for dynamic inputs
+#  docker_registry:
+#    required: true
+#    description: 'Docker registry where build images would be pushed and pulled from'
+#  docker_username:
+#    required: true
+#    description: 'Username for authenticating with provided docker registry'
+#  docker_password:
+#    required: true
+#    description: 'Password for authenticating with provided docker registry'
+#  do_access_token:
+#    required: true
+#    description: 'DigitalOcean access token'
+#  do_cluster_id:
+#    required: true
+#    description: 'Kubernetes cluster ID on DigitalOcean'
+#  doppler_token:
+#    required: false
+#    description: 'Doppler token for accessing environment variables'
+outputs:
+  url:
+    description: 'URL where application has been deployed'
+    value: ${{ steps.deploy.outputs.url }}
+runs:
+  using: composite
+  steps:
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ inputs.do_access_token }}
+
+    - name: Setup Kubernetes
+      shell: bash
+      env:
+        DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+      run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
+
+    - name: Install doppler
+      env:
+        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
+      if: "${{ env.DOPPLER_TOKEN != '' }}"
+      uses: dopplerhq/cli-action@v1
+
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: image-artifact-${{ inputs.app_name }}
+        path: /tmp
+
+    - name: Extract branch name
+      id: extract_branch
+      shell: bash
+      run: |
+        BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
+        BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
+
+        echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
+        echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+        echo "##[set-output name=branch_commit_hash;]$(echo $GITHUB_SHA)"
+        echo "##[set-output name=branch_actor;]$(echo $GITHUB_ACTOR)"
+
+    - name: Push docker image
+      shell: bash
+      id: docker_image
+      env:
+        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_REPOSITORY: ${{ inputs.app_name }}
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
+        DOCKER_PASSWORD: ${{ inputs.docker_password }}
+      run: |
+        IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_REPOSITORY:${{ steps.extract_branch.outputs.branch_hash }}
+
+        docker login $DOCKER_REGISTRY --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+        docker load --input /tmp/image-${{ inputs.app_name }}.tar
+        docker tag ${{ inputs.app_name }} $IMAGE_NAME
+        docker push $IMAGE_NAME
+
+        IMAGE_HASH=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
+
+        echo "##[set-output name=hash;]$(echo $IMAGE_HASH)"
+
+    - name: Deploy to kubernetes
+      shell: bash
+      id: deploy
+      # kube configurations can use following environment variables along with the default ones provided by GitHub action
+      # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+      env:
+        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
+        DOCKER_PASSWORD: ${{ inputs.docker_password }}
+        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
+        DOPPLER_TOKEN_SECRET_NAME: doppler-${{ inputs.app_name }}-${{ inputs.app_env }}-token-secret
+        DOPPLER_MANAGED_SECRET_NAME: doppler-${{ inputs.app_name }}-${{ inputs.app_env }}-managed-secret
+        KUBE_ROOT: ${{ inputs.deploy_root }}
+        KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
+        KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
+        KUBE_ENV: ${{ inputs.app_env }}
+        KUBE_DEPLOYMENT_IMAGE: ${{ steps.docker_image.outputs.hash }}
+        KUBE_INGRESS_HOSTNAME: ${{ format(inputs.app_hostname, inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
+        KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_tags }}
+      run: |
+        source platform/src/scripts/deploy-digitalocean-kube.sh
+        echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"

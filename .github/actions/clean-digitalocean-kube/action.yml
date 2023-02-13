@@ -1,0 +1,79 @@
+name: 'clean-digitalocean-kube'
+description: 'Clean up resources from Kubernetes on DigitalOcean'
+inputs:
+  app_name:
+    required: true
+    description: 'Application name based on which docker repository, doppler project and kube namespace would be selected'
+  app_env:
+    required: true
+    description: 'Application environment based on which doppler configuration, kube namespace and kube spec files would be selected'
+  branch:
+    required: true
+    description: 'Branch from which this action was run'
+  deploy_root:
+    required: false
+    description: "Directory where kube deployment would look for kubernetes specification files"
+    default: "lib/kube"
+# TODO: Add support for dynamic inputs
+#  docker_registry:
+#    required: true
+#    description: 'Docker registry where build images would be pushed and pulled from'
+#  docker_username:
+#    required: true
+#    description: 'Username for authenticating with provided docker registry'
+#  docker_password:
+#    required: true
+#    description: 'Password for authenticating with provided docker registry'
+#  do_access_token:
+#    required: true
+#    description: 'DigitalOcean access token'
+#  do_cluster_id:
+#    required: true
+#    description: 'Kubernetes cluster ID on DigitalOcean'
+runs:
+  using: composite
+  steps:
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ inputs.do_access_token }}
+
+    - name: Setup Kubernetes
+      env:
+        DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+      shell: bash
+      run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
+
+    - name: Extract branch name
+      id: extract_branch
+      shell: bash
+      run: |
+        BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
+        BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
+
+        echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
+        echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+
+    - name: Clean up - Kube
+      env:
+        KUBE_ROOT: ${{ inputs.deploy_root }}
+        KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
+        KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
+        KUBE_ENV: ${{ inputs.app_env }}
+      shell: bash
+      run: |
+        source platform/src/scripts/clean-digitalocean-kube.sh
+
+    - name: Clean up - Docker
+      env:
+        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_REPOSITORY: ${{ inputs.app_name }}
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
+        DOCKER_PASSWORD: ${{ inputs.docker_password }}
+      if: env.DOCKER_REGISTRY != null && env.DOCKER_USERNAME != null && env.DOCKER_PASSWORD != null
+      shell: bash
+      run: |
+        IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_REPOSITORY:${{ steps.extract_branch.outputs.branch_hash }}
+
+        docker login $DOCKER_REGISTRY --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+        docker image rm $IMAGE_NAME || true

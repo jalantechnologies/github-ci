@@ -1,0 +1,66 @@
+name: clean
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        description: "Application name using which cleanup would be performed"
+      app_env:
+        required: true
+        description: "Application environment from which cleanup needs to be performed"
+      branch:
+        required: true
+        description: "Branch for which cleanup needs to be performed"
+      deploy_root:
+        required: false
+        description: "Directory where deployment specification files are. This is dependent on the chosen deployment service."
+      deploy_service:
+        required: true
+        description: "Service from where deployment cleanup needs to be performed"
+      platform_version:
+        required: false
+        description: "Branch from which platform will be checked out to use actions"
+        default: "v1.0"
+    secrets:
+      docker_registry:
+        required: false
+      docker_username:
+        required: false
+      docker_password:
+        required: false
+      do_access_token:
+        required: false
+      do_cluster_id:
+        required: false
+      render_token:
+        required: false
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (source)
+        uses: actions/checkout@v3
+
+      - name: Checkout (action)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.platform_version }}
+
+      - name: Clean
+        uses: ./platform/.github/actions/clean-${{ inputs.deploy_service }}
+        env:
+          DOCKER_REGISTRY: ${{ secrets.docker_registry }}
+          DOCKER_USERNAME: ${{ secrets.docker_username }}
+          DOCKER_PASSWORD: ${{ secrets.docker_password }}
+          DO_ACCESS_TOKEN: ${{ secrets.do_access_token }}
+          DO_CLUSTER_ID: ${{ secrets.do_cluster_id }}
+          RENDER_TOKEN: ${{ secrets.render_token }}
+        with:
+          app_name: ${{ inputs.app_name }}
+          app_env: ${{ inputs.app_env }}
+          branch: ${{ inputs.branch }}
+          deploy_root: ${{ inputs.deploy_root }}
