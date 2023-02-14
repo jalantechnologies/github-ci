@@ -23,6 +23,11 @@ on:
         required: true
         type: string
         description: 'Branch from which this workflow was run'
+      build_disabled:
+        required: false
+        type: boolean
+        description: 'Enabling building application. If disabled, dependent steps might fail.'
+        default: false
       build_args:
         required: false
         type: string
@@ -113,6 +118,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    if: inputs.build_disabled != true
     steps:
       - name: Checkout (source)
         uses: actions/checkout@v3
@@ -193,9 +199,12 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    # TODO: Add back
-    #    needs: build
-    if: inputs.deploy_service != '' && (inputs.steps == '' || contains(join(inputs.steps), 'deploy'))
+    needs: build
+    if: |
+      always() &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped') &&
+      inputs.deploy_service != '' &&
+      (inputs.steps == '' || contains(join(inputs.steps), 'deploy'))
     outputs:
       url: ${{ steps.deploy.outputs.url }}
     steps:
