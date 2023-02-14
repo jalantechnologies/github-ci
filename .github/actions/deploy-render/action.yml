@@ -1,0 +1,30 @@
+name: 'deploy-render'
+description: 'Deploy application on Render'
+inputs:
+  app_name:
+    required: false
+  app_env:
+    required: false
+  app_hostname:
+    required: false
+  branch:
+    required: false
+  deploy_root:
+    required: false
+  deploy_tags:
+    required: false
+outputs:
+  url:
+    description: 'URL where application has been deployed'
+    value: ${{ steps.deploy.outputs.url }}
+runs:
+  using: composite
+  steps:
+    - name: Deploy to render
+      shell: bash
+      id: deploy
+      env:
+        RENDER_TOKEN: ${{ env.RENDER_TOKEN }}
+        RENDER_DEPLOY_URL: ${{ env.RENDER_DEPLOY_URL }}
+      run:
+        source platform/src/scripts/deploy-render.sh

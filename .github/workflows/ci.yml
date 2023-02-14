@@ -77,6 +77,8 @@ on:
         required: false
       render_token:
         required: false
+      render_deploy_url:
+        required: false
     outputs:
       deploy_url:
         description: 'Deployment URL'
@@ -191,7 +193,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    # TODO: Add back
+    #    needs: build
     if: inputs.deploy_service != '' && (inputs.steps == '' || contains(join(inputs.steps), 'deploy'))
     outputs:
       url: ${{ steps.deploy.outputs.url }}
@@ -222,6 +225,7 @@ jobs:
           DO_CLUSTER_ID: ${{ secrets.do_cluster_id }}
           DOPPLER_TOKEN: ${{ secrets.doppler_token }}
           RENDER_TOKEN: ${{ secrets.render_token }}
+          RENDER_DEPLOY_URL: ${{ secrets.render_deploy_url }}
         with:
           app_name: ${{ inputs.app_name }}
           app_env: ${{ inputs.app_env }}
