@@ -36,3 +36,5 @@ runs:
         service_url=$(echo "$service" | jq -r '.serviceDetails.url')
 
         echo "##[set-output name=url;]$(echo $service_url)"
+
+        echo "deployed to - $service_url"
