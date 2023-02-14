@@ -20,6 +20,7 @@ inputs:
   deploy_tags:
     required: false
     description: "Can be used for tagging resources created during deployment process"
+
 # TODO: Add support for dynamic inputs
 #  docker_registry:
 #    required: true
@@ -49,7 +50,7 @@ runs:
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
       with:
-        token: ${{ inputs.do_access_token }}
+        token: ${{ env.DO_ACCESS_TOKEN }}
 
     - name: Setup Kubernetes
       shell: bash
