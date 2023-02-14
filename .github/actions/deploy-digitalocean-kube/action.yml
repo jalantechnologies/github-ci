@@ -20,27 +20,6 @@ inputs:
   deploy_tags:
     required: false
     description: "Can be used for tagging resources created during deployment process"
-
-# TODO: Add support for dynamic inputs
-#  docker_registry:
-#    required: true
-#    description: 'Docker registry where build images would be pushed and pulled from'
-#  docker_username:
-#    required: true
-#    description: 'Username for authenticating with provided docker registry'
-#  docker_password:
-#    required: true
-#    description: 'Password for authenticating with provided docker registry'
-#  do_access_token:
-#    required: true
-#    description: 'DigitalOcean access token'
-#  do_cluster_id:
-#    required: true
-#    description: 'Kubernetes cluster ID on DigitalOcean'
-#  doppler_token:
-#    required: false
-#    description: 'Doppler token for accessing environment variables'
-
 outputs:
   url:
     description: 'URL where application has been deployed'
@@ -48,6 +27,32 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check env params
+      shell: bash
+      env:
+        DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+        DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+        DO_ACCESS_TOKEN: ${{ env.DO_ACCESS_TOKEN }}
+        DO_CLUSTER_ID: ${{ env.DO_CLUSTER_ID }}
+      run:
+        if [ "$DOCKER_REGISTRY" == "" ]; then
+        echo "DOCKER_REGISTRY was not provided"
+        exit 1
+        elif [ "$DOCKER_USERNAME" == "" ]; then
+        echo "DOCKER_USERNAME was not provided"
+        exit 1
+        elif [ "$DOCKER_PASSWORD" == "" ]; then
+        echo "DOCKER_PASSWORD was not provided"
+        exit 1
+        elif [ "$DO_ACCESS_TOKEN" == "" ]; then
+        echo "DO_ACCESS_TOKEN was not provided"
+        exit 1
+        elif [ "$DO_CLUSTER_ID" == "" ]; then
+        echo "DO_CLUSTER_ID was not provided"
+        exit 1
+        fi
+
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
       with:
