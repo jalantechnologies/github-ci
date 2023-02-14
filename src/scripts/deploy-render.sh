@@ -18,7 +18,7 @@ check_deployment () {
   echo "checked deployment status - $deploy_status"
 
   # exit if deployment was deactivated, build_failed, update_failed or canceled
-  if [ "$deploy_status" = "deactivated" ] || [ "$deploy_status" = "build_failed" ] || [ "$deploy_status" = "update_failed" ] || "$deploy_status" = "canceled"; then
+  if [ "$deploy_status" = "deactivated" ] || [ "$deploy_status" = "build_failed" ] || [ "$deploy_status" = "update_failed" ] || [ "$deploy_status" = "canceled" ]; then
       exit 1
   fi
 
@@ -49,4 +49,3 @@ do
 done
 
 echo "deployment went live in $SECONDS seconds"
-echo "$service_url"
