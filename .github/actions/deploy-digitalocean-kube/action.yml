@@ -16,7 +16,6 @@ inputs:
   deploy_root:
     required: false
     description: 'Directory where kube deployment would look for kubernetes specification files'
-    default: 'lib/kube'
   deploy_tags:
     required: false
     description: 'Can be used for tagging resources created during deployment process'

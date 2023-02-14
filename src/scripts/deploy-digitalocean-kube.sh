@@ -5,7 +5,11 @@
 # requires - DOCKER_REGISTRY, DOCKER_USERNAME, DOCKER_PASSWORD
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
+# set defaults
+KUBE_ROOT="${KUBE_ROOT:-lib/kube}"
+
 echo "deploying to k8"
+echo "kube root - $KUBE_ROOT"
 echo "kube namespace - $KUBE_NS"
 echo "kube app - $KUBE_APP"
 echo "kube env - $KUBE_ENV"
@@ -16,7 +20,9 @@ kube_pre_deploy_script="$KUBE_ROOT/scripts/pre-deploy.sh"
 kube_post_deploy_script="$KUBE_ROOT/scripts/post-deploy.sh"
 
 if [ -f "$kube_pre_deploy_script" ]; then
-    source "$kube_pre_deploy_script"
+  echo "running pre-deploy script from - $kube_pre_deploy_script"
+  source "$kube_pre_deploy_script"
+  echo "finished running pre-deploy script"
 fi
 
 # setup kube namespace for the app
@@ -26,9 +32,9 @@ if [[ -n "$DOPPLER_TOKEN" ]]; then
     # create secrets which will be consumed by the deployment using environment variables
     # see - https://docs.doppler.com/docs/kubernetes-operator
 
-    kubectl create secret generic "$DOPPLER_TOKEN_SECRET_NAME" \
-        --namespace doppler-operator-system \
-        --from-literal=serviceToken="$DOPPLER_TOKEN" || true
+  kubectl create secret generic "$DOPPLER_TOKEN_SECRET_NAME" \
+      --namespace doppler-operator-system \
+      --from-literal=serviceToken="$DOPPLER_TOKEN" || true
 fi
 
 # create secret for accessing docker images from configured docker registry
@@ -43,37 +49,44 @@ kube_shared_dir="$KUBE_ROOT/shared"
 kube_env_dir="$KUBE_ROOT/$KUBE_ENV"
 
 if [ -d "$kube_core_dir" ]; then
-    for file in "$kube_core_dir"/*; do
-        envsubst <"$file" | kubectl apply -f -
+  echo "applying core specifications from - $kube_core_dir"
 
-        if [ -n "$KUBE_LABELS" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
-        fi
-    done
+  for file in "$kube_core_dir"/*; do
+    envsubst <"$file" | kubectl apply -f -
+    if [ -n "$KUBE_LABELS" ]; then
+      envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
+    fi
+  done
 fi
 
 if [ -d "$kube_shared_dir" ]; then
-    for file in "$kube_shared_dir"/*; do
-        envsubst <"$file" | kubectl apply -f -
+  echo "applying shared specifications from - $kube_shared_dir"
 
-        if [ -n "$KUBE_LABELS" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
-        fi
-    done
+  for file in "$kube_shared_dir"/*; do
+    envsubst <"$file" | kubectl apply -f -
+
+    if [ -n "$KUBE_LABELS" ]; then
+      envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
+    fi
+  done
 fi
 
 if [ -d "$kube_env_dir" ]; then
-    for file in "$kube_env_dir"/*; do
-        envsubst <"$file" | kubectl apply -f -
+  echo "applying env specifications from - $kube_env_dir"
 
-        if [ -n "$KUBE_LABELS" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
-        fi
-    done
+  for file in "$kube_env_dir"/*; do
+    envsubst <"$file" | kubectl apply -f -
+
+    if [ -n "$KUBE_LABELS" ]; then
+      envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
+    fi
+  done
 fi
 
 if [ -f "$kube_post_deploy_script" ]; then
-    source "$kube_post_deploy_script"
+  echo "running post-deploy script from - $kube_post_deploy_script"
+  source "$kube_post_deploy_script"
+  echo "finished running post-deploy script"
 fi
 
 echo "deployed to - https://$KUBE_INGRESS_HOSTNAME"
