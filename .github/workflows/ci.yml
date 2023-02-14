@@ -214,7 +214,7 @@ jobs:
       - name: Link action
         shell: bash
         run: |
-          cp -a /platform/.github/actions/deploy-${{ inputs.deploy_service }} platform/.github/actions/deploy
+          cp -a platform/.github/actions/deploy-${{ inputs.deploy_service }} platform/.github/actions/deploy
           echo "YO"
           ls platform/.github/actions/deploy
 
