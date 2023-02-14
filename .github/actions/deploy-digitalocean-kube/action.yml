@@ -40,6 +40,7 @@ inputs:
 #  doppler_token:
 #    required: false
 #    description: 'Doppler token for accessing environment variables'
+
 outputs:
   url:
     description: 'URL where application has been deployed'
@@ -55,12 +56,10 @@ runs:
     - name: Setup Kubernetes
       shell: bash
       env:
-        DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+        DO_CLUSTER_ID: ${{ env.DO_CLUSTER_ID }}
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
     - name: Install doppler
-      env:
-        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
       if: "${{ env.DOPPLER_TOKEN != '' }}"
       uses: dopplerhq/cli-action@v1
 
@@ -86,10 +85,10 @@ runs:
       shell: bash
       id: docker_image
       env:
-        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+        DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
         DOCKER_REPOSITORY: ${{ inputs.app_name }}
-        DOCKER_USERNAME: ${{ inputs.docker_username }}
-        DOCKER_PASSWORD: ${{ inputs.docker_password }}
       run: |
         IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_REPOSITORY:${{ steps.extract_branch.outputs.branch_hash }}
 
@@ -108,10 +107,10 @@ runs:
       # kube configurations can use following environment variables along with the default ones provided by GitHub action
       # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
       env:
-        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
-        DOCKER_USERNAME: ${{ inputs.docker_username }}
-        DOCKER_PASSWORD: ${{ inputs.docker_password }}
-        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
+        DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+        DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+        DOPPLER_TOKEN: ${{ env.DOPPLER_TOKEN }}
         DOPPLER_TOKEN_SECRET_NAME: doppler-${{ inputs.app_name }}-${{ inputs.app_env }}-token-secret
         DOPPLER_MANAGED_SECRET_NAME: doppler-${{ inputs.app_name }}-${{ inputs.app_env }}-managed-secret
         KUBE_ROOT: ${{ inputs.deploy_root }}
