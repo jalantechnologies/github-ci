@@ -6,58 +6,58 @@ on:
       analyze_base:
         required: false
         type: string
-        description: "If analyze is enabled, this refers to the base branch against with sonarqube will run code analysis"
+        description: 'If analyze is enabled, this refers to the base branch against with sonarqube will run code analysis'
       app_name:
         required: true
         type: string
-        description: "Application name based on which docker repository, doppler project and kube namespace would be selected"
+        description: 'Application name based on which docker repository, doppler project and kube namespace would be selected'
       app_env:
         required: true
         type: string
-        description: "Application environment based on which doppler configuration, kube namespace and kube spec files would be selected"
+        description: 'Application environment based on which doppler configuration, kube namespace and kube spec files would be selected'
       app_hostname:
         required: true
         type: string
-        description: "Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch"
+        description: 'Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch'
       branch:
         required: true
         type: string
-        description: "Branch from which this workflow was run"
+        description: 'Branch from which this workflow was run'
       build_args:
         required: false
         type: string
-        description: "Build arguments provided to the docker daemon when building the image"
+        description: 'Build arguments provided to the docker daemon when building the image'
       build_context:
         required: false
         type: string
-        description: "Build context to use with docker. Default to checked out Git directory."
+        description: 'Build context to use with docker. Default to checked out Git directory.'
         default: .
       deploy_root:
         required: false
         type: string
-        description: "Directory where deployment specification files are. This is dependent on the chosen deployment service."
+        description: 'Directory where deployment specification files are. This is dependent on the chosen deployment service.'
       deploy_service:
         required: false
         type: string
-        description: "Service to use for deployment. If nothing was provided, deployment will be skipped."
+        description: 'Service to use for deployment. If nothing was provided, deployment will be skipped.'
       deploy_annotate_pr:
         required: false
         type: boolean
-        description: "Enable pull request annotation with deployment URL"
+        description: 'Enable pull request annotation with deployment URL'
         default: true
       pull_request_number:
         required: false
         type: number
-        description: "Pull request number running the workflow against a pull request"
+        description: 'Pull request number running the workflow against a pull request'
       steps:
         required: false
         type: string
-        description: "If provided, only specified steps would be run by the workflow. Value to be provided in CSV format."
+        description: 'If provided, only specified steps would be run by the workflow. Value to be provided in CSV format.'
       platform_version:
         required: false
         type: string
-        description: "Branch from which platform will be checked out to use actions"
-        default: "v1.0"
+        description: 'Branch from which platform will be checked out to use actions'
+        default: 'v1.0'
     secrets:
       docker_registry:
         required: false
@@ -79,7 +79,7 @@ on:
         required: false
     outputs:
       deploy_url:
-        description: "Deployment URL"
+        description: 'Deployment URL'
         value: ${{ jobs.deploy.outputs.url }}
 
 jobs:
@@ -241,7 +241,7 @@ jobs:
         with:
           header: ${{ inputs.app_name }}
           hide_and_recreate: true
-          hide_classify: "OUTDATED"
+          hide_classify: 'OUTDATED'
           number: ${{ inputs.pull_request_number }}
           message: |
             Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
@@ -250,7 +250,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() && !cancelled() }}
     # list all jobs after which clean up should be performed
-    needs: [ "lint", "test", "deploy", "e2e" ]
+    needs: [ 'lint', 'test', 'deploy', 'e2e' ]
     steps:
       - uses: geekyeggo/delete-artifact@v1
         with:

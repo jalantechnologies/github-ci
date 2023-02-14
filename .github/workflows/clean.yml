@@ -5,23 +5,23 @@ on:
     inputs:
       app_name:
         required: true
-        description: "Application name using which cleanup would be performed"
+        description: 'Application name using which cleanup would be performed'
       app_env:
         required: true
-        description: "Application environment from which cleanup needs to be performed"
+        description: 'Application environment from which cleanup needs to be performed'
       branch:
         required: true
-        description: "Branch for which cleanup needs to be performed"
+        description: 'Branch for which cleanup needs to be performed'
       deploy_root:
         required: false
-        description: "Directory where deployment specification files are. This is dependent on the chosen deployment service."
+        description: 'Directory where deployment specification files are. This is dependent on the chosen deployment service.'
       deploy_service:
         required: true
-        description: "Service from where deployment cleanup needs to be performed"
+        description: 'Service from where deployment cleanup needs to be performed'
       platform_version:
         required: false
-        description: "Branch from which platform will be checked out to use actions"
-        default: "v1.0"
+        description: 'Branch from which platform will be checked out to use actions'
+        default: 'v1.0'
     secrets:
       docker_registry:
         required: false

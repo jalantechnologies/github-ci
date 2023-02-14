@@ -4,9 +4,6 @@ inputs:
   tag:
     required: true
     description: 'Tag via which docker image will be selected'
-#  command:
-#    required: true
-#    description: 'Command to run against the docker image to run linting'
 runs:
   using: composite
   steps:

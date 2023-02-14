@@ -12,8 +12,8 @@ inputs:
     description: 'Branch from which this action was run'
   deploy_root:
     required: false
-    description: "Directory where kube deployment would look for kubernetes specification files"
-    default: "lib/kube"
+    description: 'Directory where kube deployment would look for kubernetes specification files'
+    default: 'lib/kube'
 runs:
   using: composite
   steps:
