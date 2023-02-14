@@ -34,6 +34,8 @@ runs:
 
     - name: Setup Kubernetes
       shell: bash
+      env:
+        DO_CLUSTER_ID: ${{ env.DO_CLUSTER_ID }}
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
     - name: Install doppler

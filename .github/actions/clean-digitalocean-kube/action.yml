@@ -17,23 +17,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check env params
-      shell: bash
-      env:
-        DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
-        DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
-        DO_ACCESS_TOKEN: ${{ env.DO_ACCESS_TOKEN }}
-        DO_CLUSTER_ID: ${{ env.DO_CLUSTER_ID }}
-      run:
-        if [ "$DO_ACCESS_TOKEN" == "" ]; then
-        echo "DO_ACCESS_TOKEN was not provided"
-        exit 1
-        elif [ "$DO_CLUSTER_ID" == "" ]; then
-        echo "DO_CLUSTER_ID was not provided"
-        exit 1
-        fi
-
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
       with:
