@@ -14,33 +14,34 @@ inputs:
     required: false
     description: "Directory where kube deployment would look for kubernetes specification files"
     default: "lib/kube"
-# TODO: Add support for dynamic inputs
-#  docker_registry:
-#    required: true
-#    description: 'Docker registry where build images would be pushed and pulled from'
-#  docker_username:
-#    required: true
-#    description: 'Username for authenticating with provided docker registry'
-#  docker_password:
-#    required: true
-#    description: 'Password for authenticating with provided docker registry'
-#  do_access_token:
-#    required: true
-#    description: 'DigitalOcean access token'
-#  do_cluster_id:
-#    required: true
-#    description: 'Kubernetes cluster ID on DigitalOcean'
 runs:
   using: composite
   steps:
+    - name: Check env params
+      shell: bash
+      env:
+        DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+        DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+        DO_ACCESS_TOKEN: ${{ env.DO_ACCESS_TOKEN }}
+        DO_CLUSTER_ID: ${{ env.DO_CLUSTER_ID }}
+      run:
+        if [ "$DO_ACCESS_TOKEN" == "" ]; then
+        echo "DO_ACCESS_TOKEN was not provided"
+        exit 1
+        elif [ "$DO_CLUSTER_ID" == "" ]; then
+        echo "DO_CLUSTER_ID was not provided"
+        exit 1
+        fi
+
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
       with:
-        token: ${{ inputs.do_access_token }}
+        token: ${{ env.DO_ACCESS_TOKEN }}
 
     - name: Setup Kubernetes
       env:
-        DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+        DO_CLUSTER_ID: ${{ env.DO_CLUSTER_ID }}
       shell: bash
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
@@ -66,10 +67,10 @@ runs:
 
     - name: Clean up - Docker
       env:
-        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+        DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
         DOCKER_REPOSITORY: ${{ inputs.app_name }}
-        DOCKER_USERNAME: ${{ inputs.docker_username }}
-        DOCKER_PASSWORD: ${{ inputs.docker_password }}
       if: env.DOCKER_REGISTRY != null && env.DOCKER_USERNAME != null && env.DOCKER_PASSWORD != null
       shell: bash
       run: |

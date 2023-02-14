@@ -50,8 +50,13 @@ jobs:
           path: platform
           ref: ${{ inputs.platform_version }}
 
+      - name: Link action
+        shell: bash
+        run: |
+          cp -a platform/.github/actions/clean-${{ inputs.deploy_service }} platform/.github/actions/clean
+
       - name: Clean
-        uses: ./platform/.github/actions/clean-${{ inputs.deploy_service }}
+        uses: ./platform/.github/actions/clean
         env:
           DOCKER_REGISTRY: ${{ secrets.docker_registry }}
           DOCKER_USERNAME: ${{ secrets.docker_username }}
