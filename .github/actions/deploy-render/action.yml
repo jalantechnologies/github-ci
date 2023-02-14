@@ -21,10 +21,18 @@ runs:
   using: composite
   steps:
     - name: Deploy
-      uses: bounceapp/render-action@0.6.0
-      with:
-        render-token: ${{ env.RENDER_TOKEN }}
-        service-id: ${{ env.RENDER_SERVICE_ID }}
-        retries: 10
-        wait: 16000
-        sleep: 30000
+      shell: bash
+      id: deploy
+      env:
+        RENDER_TOKEN: ${{ env.RENDER_TOKEN }}
+        RENDER_SERVICE_ID: ${{ RENDER_SERVICE_ID }}
+      run: |
+        source platform/src/scripts/deploy-render.sh
+
+        service=$(curl -s --request GET \
+          --url "https://api.render.com/v1/services/$RENDER_SERVICE_ID" \
+          --header "Authorization: Bearer $RENDER_TOKEN")
+
+        service_url=$(echo "$service" | jq -r '.serviceDetails.url')
+
+        echo "##[set-output name=url;]$(echo $service_url)"
