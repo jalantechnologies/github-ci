@@ -209,9 +209,9 @@ jobs:
       - name: Link action
         shell: bash
         run: |
-          ls "./platform/.github/actions/deploy-${{ inputs.deploy_service }}"
-          ln -sfn "./platform/.github/actions/deploy-${{ inputs.deploy_service }}" ./platform/.github/actions/deploy
-          ls ./platform/.github/actions/deploy
+          cp -a /platform/.github/actions/deploy-${{ inputs.deploy_service }} platform/.github/actions/deploy
+          echo "YO"
+          ls platform/.github/actions/deploy
 
       - name: Deploy application
         id: deploy
