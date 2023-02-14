@@ -20,11 +20,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Deploy to render
-      shell: bash
-      id: deploy
-      env:
-        RENDER_TOKEN: ${{ env.RENDER_TOKEN }}
-        RENDER_DEPLOY_URL: ${{ env.RENDER_DEPLOY_URL }}
-      run:
-        source platform/src/scripts/deploy-render.sh
+    - name: Deploy
+      uses: bounceapp/render-action@0.6.0
+      with:
+        render-token: ${{ env.RENDER_TOKEN }}
+        service-id: ${{ env.RENDER_SERVICE_ID }}
+        retries: 10
+        wait: 16000
+        sleep: 30000

@@ -77,7 +77,7 @@ on:
         required: false
       render_token:
         required: false
-      render_deploy_url:
+      render_service_id:
         required: false
     outputs:
       deploy_url:
@@ -225,7 +225,7 @@ jobs:
           DO_CLUSTER_ID: ${{ secrets.do_cluster_id }}
           DOPPLER_TOKEN: ${{ secrets.doppler_token }}
           RENDER_TOKEN: ${{ secrets.render_token }}
-          RENDER_DEPLOY_URL: ${{ secrets.render_deploy_url }}
+          RENDER_SERVICE_ID: ${{ secrets.render_service_id }}
         with:
           app_name: ${{ inputs.app_name }}
           app_env: ${{ inputs.app_env }}

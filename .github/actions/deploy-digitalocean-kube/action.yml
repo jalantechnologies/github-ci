@@ -79,7 +79,7 @@ runs:
 
         echo "##[set-output name=hash;]$(echo $IMAGE_HASH)"
 
-    - name: Deploy to kubernetes
+    - name: Deploy
       shell: bash
       id: deploy
       # kube configurations can use following environment variables along with the default ones provided by GitHub action
