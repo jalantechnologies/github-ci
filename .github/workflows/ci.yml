@@ -1,0 +1,176 @@
+name: ci
+
+on:
+  workflow_call:
+    inputs:
+      # required
+
+      app_name:
+        required: true
+        type: string
+        description: 'Application name based on which docker repository, doppler project and kube namespace would be selected'
+      app_env:
+        required: true
+        type: string
+        description: 'Application environment based on which doppler configuration, kube namespace and kube spec files would be selected'
+      app_hostname:
+        required: true
+        type: string
+        description: 'Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch.'
+      branch:
+        required: true
+        type: string
+        description: 'Branch from which this workflow was run'
+      docker_username:
+        required: true
+        type: string
+        description: 'Username for authenticating with provided Docker registry'
+
+      # optional
+
+      analyze_base:
+        required: false
+        type: string
+        description: 'Base branch against with sonarqube will run code analysis'
+      build_args:
+        required: false
+        type: string
+        description: 'Build arguments provided to the docker daemon when building docker image'
+      build_context:
+        required: false
+        type: string
+        description: 'Build context to use with docker. Default to checked out Git directory.'
+        default: .
+      checks:
+        required: false
+        type: string
+        description: 'If provided, only specified checks would be run by the workflow. Value to be provided in CSV format.'
+      ci_version:
+        required: false
+        type: string
+        description: 'Branch from which CI actions will be checked out'
+        default: 'v1'
+      deploy_root:
+        required: false
+        type: string
+        description: 'Directory where deployment would look for kubernetes specification files'
+        default: 'lib/kube'
+      deploy_annotate_pr:
+        required: false
+        type: boolean
+        description: 'Enable pull request annotation with deployment URL. Requires pull_request_number to work.'
+        default: true
+      docker_registry:
+        required: false
+        type: string
+        description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
+        default: registry.hub.docker.com
+      pull_request_number:
+        required: false
+        type: number
+        description: 'Pull request number running the workflow against a pull request'
+
+    secrets:
+      docker_password:
+        required: true
+      do_access_token:
+        required: true
+      do_cluster_id:
+        required: true
+      doppler_token:
+        required: false
+      sonar_host_url:
+        required: false
+      sonar_token:
+        required: false
+
+    outputs:
+      deploy_url:
+        description: 'URL where application was deployed'
+        value: ${{ jobs.deploy.outputs.url }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_ref: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
+    steps:
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        # make sure to keep checked in code at different directory to avoid colliding with docker caching
+        with:
+          path: app
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
+
+      - name: Extract branch name
+        id: extract_branch
+        shell: bash
+        run: |
+          BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
+          BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
+
+          echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+
+      - name: Build application
+        id: build
+        uses: ./platform/.github/actions/build
+        with:
+          tags: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          build-args: ${{ inputs.build_args }}
+          context: app/${{ inputs.build_context }}
+          docker_registry: ${{ inputs.docker_registry }}
+          docker_username: ${{ inputs.docker_username }}
+          docker_password: ${{ secrets.docker_password }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        with:
+          path: app
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
+
+      - name: Deploy
+        id: deploy
+        uses: ./platform/.github/actions/deploy
+        with:
+          app_name: ${{ inputs.app_name }}
+          app_env: ${{ inputs.app_env }}
+          app_hostname: ${{ inputs.app_hostname }}
+          branch: ${{ inputs.branch }}
+          deploy_root: app/${{ inputs.deploy_root }}
+          deploy_labels: gh/workflow-version=${{ inputs.platform_version }}
+          deploy_image: ${{ needs.build.outputs.image_ref }}
+          docker_registry: ${{ inputs.docker_registry }}
+          docker_username: ${{ inputs.docker_username }}
+          docker_password: ${{ secrets.docker_password }}
+          do_access_token: ${{ secrets.do_access_token }}
+          do_cluster_id: ${{ secrets.do_cluster_id }}
+          doppler_token: ${{ secrets.doppler_token }}
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        # only run this step if enabled and pull request number was provided
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+        with:
+          header: ${{ inputs.app_name }}
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+          number: ${{ inputs.pull_request_number }}
+          message: |
+            Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
