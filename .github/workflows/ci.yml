@@ -70,6 +70,10 @@ on:
         required: false
         type: number
         description: 'Pull request number running the workflow against a pull request'
+      sonar_host_url:
+        required: false
+        type: string
+        description: 'SonarQube server URL. If not provided, analysis will not be performed.'
 
     secrets:
       docker_password:
@@ -80,8 +84,6 @@ on:
         required: true
       doppler_token:
         required: false
-      sonar_host_url:
-        required: false
       sonar_token:
         required: false
 
@@ -91,6 +93,42 @@ on:
         value: ${{ jobs.deploy.outputs.url }}
 
 jobs:
+  analyze:
+    if: inputs.sonar_host_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # important - for analyze to work, it needs a deep clone of the repository
+          fetch-depth: 0
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
+
+      - name: Extract branch name
+        id: extract_branch
+        shell: bash
+        run: |
+          BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
+          BRANCH_BASE_NAME=$(echo ${{ inputs.analyze_base }} | sed -e 's/^refs\/heads\///g')
+
+          echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
+          echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
+
+      - name: Analyze application
+        uses: ./platform/.github/actions/analyze
+        with:
+          sonar_host_url: ${{ inputs.sonar_host_url }}
+          sonar_token: ${{ secrets.sonar_token }}
+          branch: ${{ steps.extract_branch.outputs.branch }}
+          branch_base: ${{ steps.extract_branch.outputs.branch_base }}
+          pull_request_number: ${{ inputs.pull_request_number }}
+
   build:
     runs-on: ubuntu-latest
     outputs:
