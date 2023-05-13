@@ -90,16 +90,17 @@ jobs:
         run: |
           source platform/lib/kube/clean.sh
 
+
+      - name: Docker login
+        if: inputs.docker_username != ''
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.docker_registry }}
+          username: ${{ inputs.docker_username }}
+          password: ${{ inputs.docker_password }}
+
       - name: Docker clean
-        env:
-          DOCKER_REGISTRY: ${{ inputs.docker_registry }}
-          DOCKER_REPOSITORY: ${{ inputs.app_name }}
-          DOCKER_USERNAME: ${{ inputs.docker_username }}
-          DOCKER_PASSWORD: ${{ secrets.docker_password }}
-        if: env.DOCKER_REGISTRY != null && env.DOCKER_USERNAME != null && env.DOCKER_PASSWORD != null
+        if: inputs.docker_username != ''
         shell: bash
         run: |
-          IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_USERNAME/$DOCKER_REPOSITORY:${{ steps.extract_branch.outputs.branch_hash }}
-
-          docker login $DOCKER_REGISTRY --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
-          docker image rm $IMAGE_NAME || true
+          docker image ls
