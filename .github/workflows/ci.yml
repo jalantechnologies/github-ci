@@ -171,6 +171,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     strategy:
+      # turn off fail fast, let all the checks run irrespective of failures
+      fail-fast: false
       matrix:
         check: ${{ fromJSON(inputs.checks) }}
     steps:
