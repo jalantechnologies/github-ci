@@ -1,0 +1,105 @@
+name: clean
+
+on:
+  workflow_call:
+    inputs:
+      # required
+
+      app_name:
+        required: true
+        type: string
+      app_env:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+      docker_username:
+        required: true
+        type: string
+        description: 'Username for authenticating with provided Docker registry'
+
+      # optional
+
+      ci_version:
+        required: false
+        type: string
+        description: 'Branch from which CI actions will be checked out'
+        default: 'v1'
+      deploy_root:
+        required: false
+        type: string
+        description: 'Directory where deployment would look for kubernetes specification files'
+        default: 'lib/kube'
+      docker_registry:
+        required: false
+        type: string
+        description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
+        default: registry.hub.docker.com
+
+    secrets:
+      docker_password:
+        required: false
+      do_access_token:
+        required: true
+      do_cluster_id:
+        required: true
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        with:
+          path: app
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
+
+      - name: Extract branch name
+        id: extract_branch
+        shell: bash
+        run: |
+          BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
+          BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
+
+          echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
+          echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+
+      - name: DigitalOcean setup
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.do_access_token }}
+
+      - name: Kubernetes setup
+        env:
+          DO_CLUSTER_ID: ${{ secrets.do_cluster_id }}
+        run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
+
+      - name: Kubernetes clean
+        env:
+          KUBE_ROOT: app/${{ inputs.deploy_root }}
+          KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
+          KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
+          KUBE_ENV: ${{ inputs.app_env }}
+        run: |
+          source platform/lib/kube/clean.sh
+
+      - name: Docker clean
+        env:
+          DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+          DOCKER_REPOSITORY: ${{ inputs.app_name }}
+          DOCKER_USERNAME: ${{ inputs.docker_username }}
+          DOCKER_PASSWORD: ${{ secrets.docker_password }}
+        if: env.DOCKER_REGISTRY != null && env.DOCKER_USERNAME != null && env.DOCKER_PASSWORD != null
+        shell: bash
+        run: |
+          IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_USERNAME/$DOCKER_REPOSITORY:${{ steps.extract_branch.outputs.branch_hash }}
+
+          docker login $DOCKER_REGISTRY --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+          docker image rm $IMAGE_NAME || true
