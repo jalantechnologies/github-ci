@@ -1,0 +1,48 @@
+name: 'check'
+description: 'Performs check'
+inputs:
+  check:
+    required: true
+    description: 'Check to be performed. Can be run via looking up compose file (docker-compose.<check>.yml). If not found, falls back to npm run <check>.'
+  image:
+    required: true
+    description: 'Image against which check will be performed'
+  docker_registry:
+    required: true
+    description: 'Docker registry where build images would be pushed and pulled from'
+  docker_username:
+    required: true
+    description: 'Username for authenticating with provided docker registry'
+  docker_password:
+    required: true
+    description: 'Password for authenticating with provided docker registry'
+  tag:
+    required: false
+    description: 'If provided, can be used for tagging the image'
+runs:
+  using: composite
+  steps:
+    - name: Docker setup
+      uses: docker/setup-buildx-action@v2
+
+    - name: Docker login
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.docker_registry }}
+        username: ${{ inputs.docker_username }}
+        password: ${{ inputs.docker_password }}
+
+    - name: Docker pull
+      shell: bash
+      run: |
+        docker pull ${{ inputs.image }}
+        docker tag ${{ inputs.image }} ${{ inputs.tag }}
+
+    - name: Run check
+      shell: bash
+      run: |
+        if [ -f "app/docker-compose.${{ matrix.check }}.yml" ]; then
+          docker-compose -f app/docker-compose.${{ matrix.check }}.yml up --exit-code-from app
+        else
+          docker run -t ${{ inputs.image }} npm run ${{ inputs.check }}
+        fi

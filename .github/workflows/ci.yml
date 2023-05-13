@@ -44,7 +44,8 @@ on:
       checks:
         required: false
         type: string
-        description: 'If provided, only specified checks would be run by the workflow. Value to be provided in CSV format.'
+        description: 'Checks to be run by the workflow'
+        default: "[ 'lint', 'test', 'e2e' ]"
       ci_version:
         required: false
         type: string
@@ -122,8 +123,37 @@ jobs:
         uses: ./platform/.github/actions/build
         with:
           tags: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
-          build-args: ${{ inputs.build_args }}
+          build_args: ${{ inputs.build_args }}
           context: app/${{ inputs.build_context }}
+          docker_registry: ${{ inputs.docker_registry }}
+          docker_username: ${{ inputs.docker_username }}
+          docker_password: ${{ secrets.docker_password }}
+
+  checks:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        check: ${{ fromJSON(inputs.checks) }}
+    steps:
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        with:
+          path: app
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
+
+      - name: Run check
+        uses: ./platform/.github/actions/check
+        with:
+          check: ${{ matrix.check }}
+          image: ${{ needs.build.outputs.image_ref }}
+          tag: ${{ inputs.app_name }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
