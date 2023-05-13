@@ -90,17 +90,24 @@ jobs:
         run: |
           source platform/lib/kube/clean.sh
 
-
-      - name: Docker login
+      - name: Docker setup
         if: inputs.docker_username != ''
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ inputs.docker_registry }}
-          username: ${{ inputs.docker_username }}
-          password: ${{ inputs.docker_password }}
+        shell: bash
+        run: |
+          #!/bin/bash
+          set -ex
+
+          mkdir -p $HOME/.regctl
+
+          curl -L "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-arm64" > "$HOME/.regctl/regctl"
+          chmod 755 "$HOME/.regctl/regctl"
+
+          echo "$HOME/.regctl" >> $GITHUB_PATH
+          regctl version
 
       - name: Docker clean
         if: inputs.docker_username != ''
         shell: bash
         run: |
-          docker image ls
+          regctl registry login ${{ inputs.registry }} -u ${{ inputs.username }} -p ${{ secrets.docker_password }}
+          regctl tag rm ${{ inputs.registry }}/${{ inputs.username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
