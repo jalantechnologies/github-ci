@@ -44,8 +44,7 @@ on:
       checks:
         required: false
         type: string
-        description: 'Checks to be run by the workflow. Provide array of checks to be performed.'
-        default: "[]"
+        description: 'Checks to be performed. Provide here list of checks in scheme:input format where scheme can be - npm, compose.'
       ci_version:
         required: false
         type: string
@@ -168,6 +167,7 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
 
   checks:
+    if: inputs.checks != ''
     needs: build
     runs-on: ubuntu-latest
     strategy:
