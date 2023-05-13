@@ -3,7 +3,7 @@ description: 'Performs check'
 inputs:
   check:
     required: true
-    description: 'Check to be performed. Can be run via looking up compose file (docker-compose.<check>.yml). If not found, falls back to npm run <check>.'
+    description: 'Check to be performed. Value to be provided in scheme:input format where scheme can be - npm, compose.'
   image:
     required: true
     description: 'Image against which check will be performed'
@@ -22,6 +22,15 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Process check
+      id: check
+      shell: bash
+      env:
+        CHECK: ${{ inputs.check }}
+      run: |
+        echo "::set-output name=scheme::${CHECK%:*}"
+        echo "::set-output name=input::${CHECK#*:}"
+
     - name: Docker setup
       uses: docker/setup-buildx-action@v2
 
@@ -38,11 +47,24 @@ runs:
         docker pull ${{ inputs.image }}
         docker tag ${{ inputs.image }} ${{ inputs.tag }}
 
-    - name: Run check
+    # runs check using npm
+    # for a check - npm:lint
+    # will execute - npm run lint
+
+    - name: Run check using npm
+      if: steps.check.outputs.scheme == 'npm'
       shell: bash
       run: |
-        if [ -f "app/docker-compose.${{ matrix.check }}.yml" ]; then
-          docker-compose -f app/docker-compose.${{ matrix.check }}.yml up --exit-code-from app
-        else
-          docker run -t ${{ inputs.image }} npm run ${{ inputs.check }}
-        fi
+        docker run -t ${{ inputs.image }} npm run ${{ steps.check.outputs.input }}
+
+    # runs check using docker compose
+    # for a check - compose:test
+    # will look for compose file - docker-compose.test.yml and will run the services.
+    # service named 'app' should run and exit successfully to mark the test successful
+    # to reference the app's image, inputs.tag can be used
+
+    - name: Run check using compose
+      if: steps.check.outputs.scheme == 'compose'
+      shell: bash
+      run: |
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
