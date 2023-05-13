@@ -44,8 +44,8 @@ on:
       checks:
         required: false
         type: string
-        description: 'Checks to be run by the workflow'
-        default: "[ 'lint', 'test', 'e2e' ]"
+        description: 'Checks to be run by the workflow. Provide array of checks to be performed.'
+        default: "[]"
       ci_version:
         required: false
         type: string
