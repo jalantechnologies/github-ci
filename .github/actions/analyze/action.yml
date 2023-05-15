@@ -1,0 +1,44 @@
+name: 'analyze'
+description: 'Run code analyzer using SonarQube'
+inputs:
+  sonar_host_url:
+    required: true
+    description: 'SonarQube server URL'
+  sonar_token:
+    required: true
+    description: 'The authentication token or login of a SonarQube user'
+  branch:
+    required: true
+    description: 'Branch from which this workflow was run'
+  branch_base:
+    required: false
+    description: 'If provided, this branch will be used for quality gate analysis'
+  pull_request_number:
+    required: false
+    description: 'Pull request number to be used for providing quality gate analysis details'
+runs:
+  using: composite
+  steps:
+    - name: sonarqube-scan-pullrequest
+      uses: sonarsource/sonarqube-scan-action@master
+      if: inputs.branch_base
+      env:
+        SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+      with:
+        args: >
+          -Dsonar.pullrequest.key=${{ inputs.pull_request_number }}
+          -Dsonar.pullrequest.branch=${{ inputs.branch }}
+          -Dsonar.pullrequest.base=${{ inputs.branch_base }}
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=1000
+
+    - name: sonarqube-scan-branch
+      uses: sonarsource/sonarqube-scan-action@master
+      if: inputs.branch_base == ''
+      env:
+        SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+      with:
+        args: >
+          -Dsonar.branch.name=${{ inputs.branch }}
