@@ -75,6 +75,9 @@ on:
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
 
     secrets:
+      build_secrets:
+        required: false
+        description: 'Build secrets provided to the docker daemon when building docker image'
       docker_password:
         required: true
       do_access_token:
@@ -161,8 +164,7 @@ jobs:
         with:
           tags: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
-          build_secrets: |
-            "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}"
+          build_secrets: ${{ secrets.build_secrets }}
           context: app/${{ inputs.build_context }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
