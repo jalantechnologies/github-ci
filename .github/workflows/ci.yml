@@ -161,6 +161,8 @@ jobs:
         with:
           tags: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
+          build_secrets: |
+            "github_token=${{ secrets.GITHUB_TOKEN }}"
           context: app/${{ inputs.build_context }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
