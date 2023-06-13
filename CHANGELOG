@@ -3,3 +3,7 @@
 ## v1
 
 Initial Release
+
+## v1.1
+
+- [feat] Added support for passing build secrets using `build_secrets`
