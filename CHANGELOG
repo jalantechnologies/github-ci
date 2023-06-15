@@ -7,3 +7,7 @@ Initial Release
 ## v1.1
 
 - [feat] Added support for passing build secrets using `build_secrets`
+
+## v1.2
+
+-[enhancement] Added support for cache in build process

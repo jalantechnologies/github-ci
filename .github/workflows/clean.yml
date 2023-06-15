@@ -25,7 +25,7 @@ on:
         required: false
         type: string
         description: 'Branch from which CI actions will be checked out'
-        default: 'v1.1'
+        default: 'v1.2'
       deploy_root:
         required: false
         type: string

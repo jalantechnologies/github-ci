@@ -49,7 +49,7 @@ on:
         required: false
         type: string
         description: 'Branch from which CI actions will be checked out'
-        default: 'v1.1'
+        default: 'v1.2'
       deploy_root:
         required: false
         type: string
@@ -162,6 +162,7 @@ jobs:
         id: build
         uses: ./platform/.github/actions/build
         with:
+          app_name: ${{ inputs.app_name }}
           tags: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
