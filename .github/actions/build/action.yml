@@ -1,31 +1,34 @@
-name: 'build'
-description: 'Build application from Dockerfile'
+name: "build"
+description: "Build application from Dockerfile"
 inputs:
+  app_name:
+    required: true
+    description: "Application name based on which docker repository, doppler project and kube namespace would be selected"
   docker_registry:
     required: true
-    description: 'Docker registry where build images would be pushed and pulled from'
+    description: "Docker registry where build images would be pushed and pulled from"
   docker_username:
     required: true
-    description: 'Username for authenticating with provided docker registry'
+    description: "Username for authenticating with provided docker registry"
   docker_password:
     required: true
-    description: 'Password for authenticating with provided docker registry'
+    description: "Password for authenticating with provided docker registry"
   tags:
     required: false
-    description: 'Tags to use for tagging docker image'
+    description: "Tags to use for tagging docker image"
   build_args:
     required: false
-    description: 'Build time arguments which can be passed when building docker image'
+    description: "Build time arguments which can be passed when building docker image"
   build_secrets:
     required: false
-    description: 'Build time secrets which can be passed when building docker image'
+    description: "Build time secrets which can be passed when building docker image"
   context:
     required: false
-    description: 'Build context to use with docker. Default to checked out Git directory.'
+    description: "Build context to use with docker. Default to checked out Git directory."
     default: .
 outputs:
   image_digest:
-    description: 'Built docker image reference'
+    description: "Built docker image reference"
     value: ${{ steps.build.outputs.digest }}
 runs:
   using: composite
