@@ -60,18 +60,7 @@ runs:
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
         cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
         #outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
-
-
-    # Temp fix
-    # https://github.com/docker/build-push-action/issues/252
-    # https://github.com/moby/buildkit/issues/1896
-
-    - name: Move cache
-      run: |
-        rm -rf /tmp/.buildx-cache
-        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
