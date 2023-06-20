@@ -61,6 +61,6 @@ runs:
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-        #outputs: type=image,push=true
+        outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
