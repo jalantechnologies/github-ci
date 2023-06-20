@@ -46,21 +46,21 @@ runs:
     - name: Cache Docker layers
       uses: actions/cache@v3
       with:
-        path: /tmp/.buildx-cache
+        path: ${GITHUB_WORKSPACE}/dist
         key: ${{ inputs.app_name }}
         restore-keys: |
           ${{ inputs.app_name }}
 
     - name: Docker build
       id: build
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: ${{ inputs.context }}
         tags: ${{ inputs.tags }}
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        cache-from: type=local,src=${GITHUB_WORKSPACE}/dist
+        cache-to: type=local,dest=${GITHUB_WORKSPACE}/dist,mode=max
         outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
