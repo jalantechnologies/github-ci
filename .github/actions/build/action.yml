@@ -36,20 +36,20 @@ runs:
     - name: Docker setup
       uses: docker/setup-buildx-action@v2
 
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ inputs.app_name }}
+        restore-keys: |
+          ${{ inputs.app_name }}
+
     - name: Docker login
       uses: docker/login-action@v2
       with:
         registry: ${{ inputs.docker_registry }}
         username: ${{ inputs.docker_username }}
         password: ${{ inputs.docker_password }}
-
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: ${GITHUB_WORKSPACE}/dist
-        key: ${{ inputs.app_name }}
-        restore-keys: |
-          ${{ inputs.app_name }}
 
     - name: Docker build
       id: build
@@ -59,13 +59,19 @@ runs:
         tags: ${{ inputs.tags }}
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
-        cache-from: type=local,src=${GITHUB_WORKSPACE}/dist
-        cache-to: type=local,dest=${GITHUB_WORKSPACE}/dist,mode=max
-        outputs: type=image,push=true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        #outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
 
-      # Temp fix
-      # https://github.com/docker/build-push-action/issues/252
-      # https://github.com/moby/buildkit/issues/1896
+
+    # Temp fix
+    # https://github.com/docker/build-push-action/issues/252
+    # https://github.com/moby/buildkit/issues/1896
+
+    - name: Move cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
