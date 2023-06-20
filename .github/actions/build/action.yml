@@ -51,8 +51,8 @@ runs:
         tags: ${{ inputs.tags }}
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
-        cache-from: type=gha,key=${{ inputs.app_name }}-${{ github.sha }}
-        cache-to: type=gha,key=${{ inputs.app_name }}-${{ github.sha }},mode=max
+        cache-from: type=gha,key=${{ inputs.app_name }}
+        cache-to: type=gha,key=${{ inputs.app_name }},mode=max
         outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
