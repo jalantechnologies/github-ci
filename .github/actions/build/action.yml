@@ -36,10 +36,13 @@ runs:
     - name: Docker setup
       uses: docker/setup-buildx-action@v2
 
-    - name: Cache Docker layers
+    - name: Create cache directory
       run: |
-          mkdir -p /tmp/.buildx-cache
-          chmod 777 /tmp/.buildx-cache
+        mkdir -p /tmp/.buildx-cache
+        chmod 777 /tmp/.buildx-cache
+      shell: bash
+      
+    - name: Cache Docker layers
       uses: actions/cache@v3
       with:
         path: /tmp/.buildx-cache
