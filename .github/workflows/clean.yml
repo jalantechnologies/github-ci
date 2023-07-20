@@ -125,11 +125,3 @@ jobs:
 #        run: |
 #          regctl registry login ${{ inputs.registry }} -u ${{ inputs.username }} -p ${{ secrets.docker_password }}
 #          regctl tag rm ${{ inputs.registry }}/${{ inputs.username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
-
-delete_docker_tag:
-  stage: cleanup
-  script:
-    - curl -X DELETE -u $CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD "https://$CI_REGISTRY/v2/$DOCKER_IMAGE_REPOSITORY/manifests/$TAG_TO_DELETE"
-  only:
-    - master  # You can adjust the branch or add other conditions for when the tag should be deleted.
-
