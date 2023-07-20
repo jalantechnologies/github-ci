@@ -101,7 +101,7 @@ jobs:
 
           # Remove the Docker tag
           TAG_TO_DELETE="your_image_tag_here"
-          docker image rm "${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${TAG_TO_DELETE}"
+          docker image rm "${inputs.registry}/${inputs.username}/${inputs.app_name}:${steps.extract_branch.outputs.branch_hash}"
 
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
