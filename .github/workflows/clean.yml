@@ -90,6 +90,13 @@ jobs:
         run: |
           source platform/lib/kube/clean.sh
 
+      - name: Install regctl
+        run: |
+          curl -L "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-arm64" > "$HOME/.regctl/regctl"
+          chmod 755 "$HOME/.regctl/regctl"
+          echo "$HOME/.regctl" >> $GITHUB_PATH
+
+
       - name: Docker setup
         if: inputs.docker_username != ''
         shell: bash
