@@ -101,7 +101,7 @@ jobs:
 
           # Remove the Docker tag
           echo "${inputs.docker_registry}/${inputs.docker_username}/${inputs.app_name}:${steps.extract_branch.outputs.branch_hash}"
-          docker image rm "${inputs.docker_registry}/${inputs.docker_username}/${inputs.app_name}:${steps.extract_branch.outputs.branch_hash}"
+          docker image rm "${inputs.docker_registry}/${inputs.docker_username}/${inputs.app_name}:d8b9d2dcd2cd619"
 
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
