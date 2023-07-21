@@ -97,7 +97,7 @@ jobs:
       - name: Delete Docker Tag
         if: inputs.docker_username != ''
         run: |
-          docker rmi ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          docker rmi ${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
 
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
