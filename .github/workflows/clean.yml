@@ -91,7 +91,7 @@ jobs:
           source platform/lib/kube/clean.sh
         
       - name: Login to Docker Registry
-        if: inputs.docker_username != '' && secrets.docker_password != ''
+        if: inputs.docker_username != ''
         run: |
           echo ${{ secrets.docker_password }} | docker login -u ${{ inputs.docker_username }} --password-stdin ${{ inputs.docker_registry }}
       - name: Delete Docker Tag
