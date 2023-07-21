@@ -94,6 +94,7 @@ jobs:
         if: inputs.docker_username != ''
         run: |
           echo ${{ secrets.docker_password }} | docker login -u ${{ inputs.docker_username }} --password-stdin ${{ inputs.docker_registry }}
+          echo docker images -a
       - name: Delete Docker Tag
         if: inputs.docker_username != ''
         run: |
