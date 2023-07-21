@@ -90,17 +90,14 @@ jobs:
         run: |
           source platform/lib/kube/clean.sh
         
-      - name: Delete Docker tag
-        env:
-          DOCKER_USERNAME: ${{ inputs.docker_username }}
-          DOCKER_PASSWORD: ${{ secrets.docker_password }}
-          DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+      - name: Login to Docker Registry
+        if: inputs.docker_username != '' && secrets.docker_password != ''
         run: |
-          # Log in to the Docker registry
-          echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin "${DOCKER_REGISTRY}"
-
-          # Remove the Docker tag
-          docker image rm "${inputs.docker_registry}/${inputs.docker_username}/${inputs.app_name}:${steps.extract_branch.outputs.branch_hash}"
+          echo ${{ secrets.docker_password }} | docker login -u ${{ inputs.docker_username }} --password-stdin ${{ inputs.docker_registry }}
+      - name: Delete Docker Tag
+        if: inputs.docker_username != ''
+        run: |
+          docker rmi ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
 
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
