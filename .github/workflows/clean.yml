@@ -92,15 +92,14 @@ jobs:
         
       - name: Delete Docker tag
         env:
-          DOCKER_USERNAME: ${{ inputs.docker_username }}
+          DOCKER_USERNAME: ${{ inputs.username }}
           DOCKER_PASSWORD: ${{ secrets.docker_password }}
-          DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+          DOCKER_REGISTRY: ${{ inputs.registry }}
         run: |
           # Log in to the Docker registry
           echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin "${DOCKER_REGISTRY}"
 
           # Remove the Docker tag
-          TAG_TO_DELETE="your_image_tag_here"
           docker image rm "${inputs.registry}/${inputs.username}/${inputs.app_name}:${steps.extract_branch.outputs.branch_hash}"
 
 # TODO: Find a way to delete tag from provided docker registry and repository
