@@ -89,15 +89,6 @@ jobs:
           KUBE_ENV: ${{ inputs.app_env }}
         run: |
           source platform/lib/kube/clean.sh
-        
-      - name: Login to Docker Registry
-        if: inputs.docker_username != ''
-        run: |
-          echo ${{ secrets.docker_password }} | docker login -u ${{ inputs.docker_username }} --password-stdin ${{ inputs.docker_registry }}
-      - name: Delete Docker Tag
-        if: inputs.docker_username != ''
-        run: |
-          docker rmi ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
 
       - name: Docker setup
         if: inputs.docker_username != ''
