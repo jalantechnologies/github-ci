@@ -97,6 +97,9 @@ jobs:
           #!/bin/bash
           set -ex
 
+          echo "Current PATH: $PATH"
+          which curl
+
           mkdir -p $HOME/.regctl
 
           curl -L "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-arm64" > "$HOME/.regctl/regctl"
@@ -109,5 +112,7 @@ jobs:
         if: inputs.docker_username != ''
         shell: bash
         run: |
+          #!/bin/bash
+          set -ex
           regctl registry login ${{ inputs.docker_registry }} -u ${{ inputs.docker_username }} -p ${{ secrets.docker_password }}
           regctl tag rm ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
