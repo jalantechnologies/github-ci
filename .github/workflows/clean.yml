@@ -103,6 +103,7 @@ jobs:
         run: |
           # Replace <your-image-name> and <your-image-tag> with the appropriate values
           # Use the "app_name" input parameter to construct the full image name.
+          docker pull ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           docker image rm ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
