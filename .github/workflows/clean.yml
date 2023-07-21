@@ -99,25 +99,24 @@ jobs:
         run: |
           docker rmi ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
 
-# TODO: Find a way to delete tag from provided docker registry and repository
-     - name: Docker setup
-       if: inputs.docker_username != ''
-       shell: bash
-       run: |
-         #!/bin/bash
-         set -ex
+      - name: Docker setup
+        if: inputs.docker_username != ''
+        shell: bash
+        run: |
+          #!/bin/bash
+          set -ex
 
-         mkdir -p $HOME/.regctl
+          mkdir -p $HOME/.regctl
 
-         curl -L "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-arm64" > "$HOME/.regctl/regctl"
-         chmod 755 "$HOME/.regctl/regctl"
+          curl -L "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-arm64" > "$HOME/.regctl/regctl"
+          chmod 755 "$HOME/.regctl/regctl"
 
-         echo "$HOME/.regctl" >> $GITHUB_PATH
-         regctl version
+          echo "$HOME/.regctl" >> $GITHUB_PATH
+          regctl version
 
-     - name: Docker clean
-       if: inputs.docker_username != ''
-       shell: bash
-       run: |
-         regctl registry login ${{ inputs.docker_registry }} -u ${{ inputs.docker_username }} -p ${{ secrets.docker_password }}
-         regctl tag rm ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+      - name: Docker clean
+        if: inputs.docker_username != ''
+        shell: bash
+        run: |
+          regctl registry login ${{ inputs.docker_registry }} -u ${{ inputs.docker_username }} -p ${{ secrets.docker_password }}
+          regctl tag rm ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
