@@ -105,6 +105,20 @@ jobs:
           # Use the "app_name" input parameter to construct the full image name.
           docker pull ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           docker image rm ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+      
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Delete Image from Docker Hub
+        env:
+          DOCKERHUB_TOKEN: dckr_pat_SSvM14dn7KtE6Y2ctqcwah1sNVE
+        run: |
+          # Replace YOUR_USERNAME/YOUR_REPO:TAG with the image you want to delete
+          IMAGE_NAME=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          URL="https://hub.docker.com/v2/repositories/${IMAGE_NAME}/"
+          
+          # Perform the DELETE request to Docker Hub's API
+          curl -X DELETE -H "Authorization: Bearer ${DOCKERHUB_TOKEN}" ${URL}
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
 #        if: inputs.docker_username != ''
