@@ -91,6 +91,7 @@ jobs:
           source platform/lib/kube/clean.sh
 
       - name: Check Docker Image
+        if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com'
         id: docker_check
         
         run: |
