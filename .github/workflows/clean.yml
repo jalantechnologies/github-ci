@@ -100,12 +100,12 @@ jobs:
             "password": {secrets.docker_password}
             }' | jq -r .token)
 
-          tkn = curl --location 'https://hub.docker.com//v2/users/login' \
+          tkn = $(curl --location 'https://hub.docker.com//v2/users/login' \
           --header 'Content-Type: application/json' \
           --data '{
             "username": {inputs.docker_username},
             "password": {secrets.docker_password}
-            }'
+            }')
 
           echo $tkn
           
