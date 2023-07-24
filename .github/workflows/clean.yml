@@ -100,14 +100,14 @@ jobs:
             "password": {secrets.docker_password}
             }' | jq -r .token)
 
-          tkn = $(curl --location 'https://hub.docker.com//v2/users/login' \
+          TKN=$(curl --location 'https://hub.docker.com//v2/users/login' \
           --header 'Content-Type: application/json' \
           --data '{
             "username": {inputs.docker_username},
             "password": {secrets.docker_password}
             }')
 
-          echo $tkn
+          echo $TKN
           
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/jalantechnologies/boilerplate-mern/tags/d8b9d2dcd2cd619")
           echo $TOKEN
