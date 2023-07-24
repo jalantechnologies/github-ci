@@ -139,9 +139,8 @@ jobs:
               "tags": [
                 "latest"
               ]
-            }
-          ]
-        }'
+            }]
+          }'
 
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
