@@ -110,15 +110,18 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Delete Image from Docker Hub
-        env:
-          DOCKERHUB_TOKEN: dckr_pat_SSvM14dn7KtE6Y2ctqcwah1sNVE
         run: |
-          # Replace YOUR_USERNAME/YOUR_REPO:TAG with the image you want to delete
-          IMAGE_NAME=${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
-          URL="https://hub.docker.com/v2/repositories/${IMAGE_NAME}/"
+          # Replace DOCKER_USERNAME, DOCKER_PASSWORD, REPO_NAME, and IMAGE_DIGEST with your actual credentials and image information.
+          DOCKER_USERNAME=${{ inputs.docker_username }}
+          DOCKER_PASSWORD=${{ secrets.docker_password }}
+          REPO_NAME=${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          IMAGE_DIGEST="sha256:6668fb23226f3cce160b1e73381358c9b142fc0e0959d880865f166c21f7e8ca"
           
-          # Perform the DELETE request to Docker Hub's API
-          curl -X DELETE -H "Authorization: Bearer ${DOCKERHUB_TOKEN}" ${URL}
+          # Authenticate and get an access token
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+
+# Delete the image
+curl -X DELETE -H "Authorization: JWT $TOKEN" "https://hub.docker.com/v2/repositories/$REPO_NAME/manifests/$IMAGE_DIGEST"
 # TODO: Find a way to delete tag from provided docker registry and repository
 #      - name: Docker setup
 #        if: inputs.docker_username != ''
