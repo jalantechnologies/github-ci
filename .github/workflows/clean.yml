@@ -118,7 +118,7 @@ jobs:
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
         shell: bash
         run: |
-        DOCKER_USERNAME=${{inputs.docker_username}}
+          DOCKER_USERNAME=${{inputs.docker_username}}
           DOCKER_PASSWORD=${{secrets.docker_password}}
 
           TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
