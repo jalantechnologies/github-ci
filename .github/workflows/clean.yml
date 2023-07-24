@@ -94,7 +94,7 @@ jobs:
         id: docker_check
         
         run: |
-          DOCKER_USERNAME=${{input.docker_username}}
+          DOCKER_USERNAME=${{inputs.docker_username}}
           DOCKER_PASSWORD=${{secrets.docker_password}}
           TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
           --header 'Content-Type: application/json' \
