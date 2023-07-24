@@ -96,26 +96,16 @@ jobs:
         run: |
           DOCKER_USERNAME=${{inputs.docker_username}}
           DOCKER_PASSWORD=${{secrets.docker_password}}
+
           TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
           --header 'Content-Type: application/json' \
           --data '{
             "username": "'"$DOCKER_USERNAME"'",
             "password": "'"$DOCKER_PASSWORD"'"
             }' | jq -r .token)
-
-          TKN=$(curl --location 'https://hub.docker.com/v2/users/login' \
-          --header 'Content-Type: application/json' \
-          --data '{
-            "username": "'"$DOCKER_USERNAME"'",
-            "password": "'"$DOCKER_PASSWORD"'"
-            }')
-
-
-          echo $TKN
           
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/jalantechnologies/boilerplate-mern/tags/d8b9d2dcd2cd619")
-          echo "Authentication token: $TOKEN"
-          echo $STATUS_CODE
+
           if [ $STATUS_CODE -eq 200 ]; then
             echo "Docker image exists"
             echo "::set-output name=image_exists::true"
@@ -128,5 +118,14 @@ jobs:
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
         shell: bash
         run: |
+        DOCKER_USERNAME=${{inputs.docker_username}}
+          DOCKER_PASSWORD=${{secrets.docker_password}}
+
+          TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
+          --header 'Content-Type: application/json' \
+          --data '{
+            "username": "'"$DOCKER_USERNAME"'",
+            "password": "'"$DOCKER_PASSWORD"'"
+            }' | jq -r .token)
           curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/16b6b091af4f248/" \
-          --header 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsIng1YyI6WyJNSUlDK1RDQ0FwK2dBd0lCQWdJQkFEQUtCZ2dxaGtqT1BRUURBakJHTVVRd1FnWURWUVFERXp0U1RVbEdPbEZNUmpRNlEwZFFNenBSTWtWYU9sRklSRUk2VkVkRlZUcFZTRlZNT2taTVZqUTZSMGRXV2pwQk5WUkhPbFJMTkZNNlVVeElTVEFlRncweU16QXhNRFl3TkRJM05EUmFGdzB5TkRBeE1qWXdOREkzTkRSYU1FWXhSREJDQmdOVkJBTVRPME5EVlVZNlNqVkhOanBGUTFORU9rTldSRWM2VkRkTU1qcEtXa1pST2xOTk0wUTZXRmxQTkRwV04wTkhPa2RHVjBJNldsbzFOam8wVlVSRE1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBek4wYjBqN1V5XC9hc2pZWFdoMmczcW82SmhPa0FqWFdBVUJjc0h1NmhZWlJGTDl2ZTgxM1RCNGNsOFFreENJNGNVZ0dHbkdXWFZ4SDJ1NXZFdHhTT3FXQnJ4U05yaFNNalwvVk8rNlwvaVkrOG1GRmEwR2J5czF3VDVjNlY5cWROaERiVGNwQXVYSjFSNGJLdSt1VGpVS0VIYXlqSFI5TFBEeUdnUFwvbm1BWnZOT1hHbXJTU0pGSTZ4RTZmN0FcLys5Wm1xaDJWVFpCVzRxd25KcXRyc0kzY294M1BzMzBLYythSHdXdVl2TlF0U0F3K2pVeENVUWhFZkZrSUpLOHo5V2xcL1FjdE9EcEdUeXNtVHBjNzZaVEdKWWtnaGhGTFJEMmJQTlFEOEU1ZWdKa2RQOXhpaW5sVGx3MjBxWlhVRmlqdWFBcndOR0xJbUJEWE0wWlI1YzVtU3Z3SURBUUFCbzRHeU1JR3ZNQTRHQTFVZER3RUJcL3dRRUF3SUhnREFQQmdOVkhTVUVDREFHQmdSVkhTVUFNRVFHQTFVZERnUTlCRHREUTFWR09rbzFSelk2UlVOVFJEcERWa1JIT2xRM1RESTZTbHBHVVRwVFRUTkVPbGhaVHpRNlZqZERSenBIUmxkQ09scGFOVFk2TkZWRVF6QkdCZ05WSFNNRVB6QTlnRHRTVFVsR09sRk1SalE2UTBkUU16cFJNa1ZhT2xGSVJFSTZWRWRGVlRwVlNGVk1Pa1pNVmpRNlIwZFdXanBCTlZSSE9sUkxORk02VVV4SVNUQUtCZ2dxaGtqT1BRUURBZ05JQURCRkFpRUFtUTR4bEF2V1ZQK09cL2E2WENTTmlhQVhFTUFvVFBUVFhFYlgySzZFVThlMENJSDRBMDBJWG1Sd2N0a0Q4eVg3N2RNWjIrSkRjUUZ0MXFGS0xkVHlKdXNPVSJdfQ.eyJzb3VyY2UiOnsidHlwZSI6InB3ZCIsImlkIjoiN2Y0ZTI3YzctNjNkYy00ZTJlLTkzODYtZjA3ZGZmZmQ4MjcyIn0sImh0dHBzOlwvXC9odWIuZG9ja2VyLmNvbSI6eyJzb3VyY2UiOiJkb2NrZXJfcHdkfDdmNGUyN2M3LTYzZGMtNGUyZS05Mzg2LWYwN2RmZmZkODI3MiIsInV1aWQiOiI3ZjRlMjdjNy02M2RjLTRlMmUtOTM4Ni1mMDdkZmZmZDgyNzIiLCJzZXNzaW9uX2lkIjoiMDc4ZjNlZWQtYWU1OS00OWFhLWIyYmItY2I1YWIxYmI0MmU2IiwidXNlcm5hbWUiOiJqYWxhbnRlY2hub2xvZ2llcyIsImVtYWlsIjoiZGV2ZWxvcGVyQGphbGFudGVjaG5vbG9naWVzLmNvbSIsInJvbGVzIjpbXX0sInVzZXJuYW1lIjoiamFsYW50ZWNobm9sb2dpZXMiLCJleHAiOjE2OTI3NzM5NzQsImlzcyI6Imh0dHBzOlwvXC9hcGkuZG9ja2VyLmNvbVwvIiwiYXVkIjpbImh0dHBzOlwvXC9odWIuZG9ja2VyLmNvbSJdLCJqdGkiOiIwNzhmM2VlZC1hZTU5LTQ5YWEtYjJiYi1jYjVhYjFiYjQyZTYiLCJ1c2VyX2lkIjoiN2Y0ZTI3Yzc2M2RjNGUyZTkzODZmMDdkZmZmZDgyNzIiLCJzZXNzaW9uX2lkIjoiMDc4ZjNlZWQtYWU1OS00OWFhLWIyYmItY2I1YWIxYmI0MmU2IiwiaWF0IjoxNjkwMTgxOTc0LCJzdWIiOiI3ZjRlMjdjNzYzZGM0ZTJlOTM4NmYwN2RmZmZkODI3MiJ9.fOa224t4WLpBwcGoAUkSeVsYHf06oDQDuO9dU6WAeEhOyg8waZDAwUUz39H2bt_0XnIum21-VP1J3WiAmdFhculFlaIiiCpdiVY-KfamZwe4FDMalR9n2hWVSpCKTvxcnA2baJOHiEoSVB-zjBveccJ2Fk_BrsrmtmG3GgpIb7YQqMwET90tb-GopqOMltSo8J6M2VQ7jseH9DgqXzPN1qYm_fgGBdsnbG7T1C_D0jE4FIAJKvR4_PiLOPCVCOyMkNf2DzbPwa79NDL4DN7on9uRzScKtCferDbjlAUy4k7CnnDy75q4cmtlvC3eP8jPk9Phvrgqd2__tU7-cVCDGg'
+          --header 'Authorization: Bearer $TOKEN'
