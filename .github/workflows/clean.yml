@@ -92,25 +92,29 @@ jobs:
 
       - name: Check Docker Image
         id: docker_check
+        
         run: |
+          DOCKER_USERNAME="{input.docker_username}"
+          DOCKER_PASSWORD="{secrets.docker_password}"
           TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
           --header 'Content-Type: application/json' \
           --data '{
-            "username": {inputs.docker_username},
-            "password": {secrets.docker_password}
+            "username": "'"$DOCKER_USERNAME"'",
+            "password": "'"$DOCKER_PASSWORD"'"
             }' | jq -r .token)
 
-          TKN=$(curl --location 'https://hub.docker.com//v2/users/login' \
+          TKN=$(curl --location 'https://hub.docker.com/v2/users/login' \
           --header 'Content-Type: application/json' \
           --data '{
-            "username": {inputs.docker_username},
-            "password": {secrets.docker_password}
+            "username": "'"$DOCKER_USERNAME"'",
+            "password": "'"$DOCKER_PASSWORD"'"
             }')
+
 
           echo $TKN
           
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/jalantechnologies/boilerplate-mern/tags/d8b9d2dcd2cd619")
-          echo $TOKEN
+          echo "Authentication token: $TOKEN"
           echo $STATUS_CODE
           if [ $STATUS_CODE -eq 200 ]; then
             echo "Docker image exists"
