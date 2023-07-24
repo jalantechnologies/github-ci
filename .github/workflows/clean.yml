@@ -114,7 +114,7 @@ jobs:
           DOCKERHUB_TOKEN: dckr_pat_SSvM14dn7KtE6Y2ctqcwah1sNVE
         run: |
           # Replace YOUR_USERNAME/YOUR_REPO:TAG with the image you want to delete
-          IMAGE_NAME=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          IMAGE_NAME=${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           URL="https://hub.docker.com/v2/repositories/${IMAGE_NAME}/"
           
           # Perform the DELETE request to Docker Hub's API
