@@ -128,4 +128,4 @@ jobs:
             "password": "'"$DOCKER_PASSWORD"'"
             }' | jq -r .token)
           curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/16b6b091af4f248/" \
-          --header 'Authorization: Bearer $TOKEN'
+          --header "Authorization: Bearer $TOKEN"
