@@ -105,7 +105,7 @@ jobs:
             "password": "'"$DOCKER_PASSWORD"'"
             }' | jq -r .token)
           
-          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/jalantechnologies/boilerplate-mern/tags/d8b9d2dcd2cd619")
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}")
 
           if [ $STATUS_CODE -eq 200 ]; then
             echo "Docker image exists"
@@ -128,5 +128,5 @@ jobs:
             "username": "'"$DOCKER_USERNAME"'",
             "password": "'"$DOCKER_PASSWORD"'"
             }' | jq -r .token)
-          curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/16b6b091af4f248/" \
+          curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/" \
           --header "Authorization: Bearer $TOKEN"
