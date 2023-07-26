@@ -128,7 +128,8 @@ jobs:
             "username": "'"$DOCKER_USERNAME"'",
             "password": "'"$DOCKER_PASSWORD"'"
             }' | jq -r .token)
-          QWE=$(curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/" \
-          --header "Authorization: Bearer $TOKEN")
 
-          echo $QWE
+          echo $("https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/")
+          
+          curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/" \
+          --header "Authorization: Bearer $TOKEN"
