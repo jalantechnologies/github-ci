@@ -90,21 +90,25 @@ jobs:
         run: |
           source platform/lib/kube/clean.sh
 
+      - name: Get Bearer Token
+        id: get_token
+        run: |
+          DOCKER_USERNAME=${{inputs.docker_username}}
+          DOCKER_PASSWORD=${{secrets.docker_password}}
+          response=$(curl --location 'https://hub.docker.com/v2/users/login' \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "username": "'"$DOCKER_USERNAME"'",
+              "password": "'"$DOCKER_PASSWORD"'"
+            }')
+          echo "::set-output name=token::$(echo $response | jq -r '.token')"
+
       - name: Check Docker Image
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com'
         id: docker_check
         
         run: |
-          DOCKER_USERNAME=${{inputs.docker_username}}
-          DOCKER_PASSWORD=${{secrets.docker_password}}
-
-          TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
-          --header 'Content-Type: application/json' \
-          --data '{
-            "username": "'"$DOCKER_USERNAME"'",
-            "password": "'"$DOCKER_PASSWORD"'"
-            }' | jq -r .token)
-          
+          TOKEN: ${{ steps.get_token.outputs.token }}       
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}")
 
           if [ $STATUS_CODE -eq 200 ]; then
@@ -119,17 +123,8 @@ jobs:
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
         shell: bash
         run: |
-          DOCKER_USERNAME=${{inputs.docker_username}}
-          DOCKER_PASSWORD=${{secrets.docker_password}}
-
-          TOKEN=$(curl --location 'https://hub.docker.com/v2/users/login' \
-          --header 'Content-Type: application/json' \
-          --data '{
-            "username": "'"$DOCKER_USERNAME"'",
-            "password": "'"$DOCKER_PASSWORD"'"
-            }' | jq -r .token)
-
+          TOKEN: ${{ steps.get_token.outputs.token }}
           echo $("https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/")
           
-          curl --location --request DELETE "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/" \
+          curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{inputs.docker_username}}/${{inputs.app_name}}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
           --header "Authorization: Bearer $TOKEN"
