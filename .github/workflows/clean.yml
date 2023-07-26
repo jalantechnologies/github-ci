@@ -104,11 +104,12 @@ jobs:
           echo "::set-output name=token::$(echo $response | jq -r '.token')"
 
       - name: Check Docker Image
+        env:
+          TOKEN: ${{ steps.get_token.outputs.token }}
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com'
         id: docker_check
         
-        run: |
-          TOKEN: ${{ steps.get_token.outputs.token }}       
+        run: |       
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}")
 
           if [ $STATUS_CODE -eq 200 ]; then
@@ -120,10 +121,11 @@ jobs:
           fi
 
       - name: Docker clean
+        env:
+          TOKEN: ${{ steps.get_token.outputs.token }}
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
         shell: bash
         run: |
-          TOKEN: ${{ steps.get_token.outputs.token }}
           echo $("https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}/")
           
           curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{inputs.docker_username}}/${{inputs.app_name}}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
