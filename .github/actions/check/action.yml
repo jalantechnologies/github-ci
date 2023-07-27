@@ -37,6 +37,7 @@ runs:
       env:
         CHECK: ${{ inputs.check }}
       run: |
+        echo $inputs
         echo "::set-output name=scheme::${CHECK%:*}"
         echo "::set-output name=input::${CHECK#*:}"
 
