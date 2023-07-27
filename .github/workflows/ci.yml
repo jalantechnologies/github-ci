@@ -208,54 +208,37 @@ jobs:
     if: inputs.checks != ''
     needs: build
     runs-on: ubuntu-latest
-    strategy:
-      # turn off fail fast, let all the checks run irrespective of failures
-      fail-fast: false
-      matrix:
-        check: ${{ fromJSON(inputs.checks) }}
     steps:
-      - name: Checkout (app)
-        uses: actions/checkout@v3
-        with:
-          path: app
-
-      - name: Checkout (platform)
-        uses: actions/checkout@v3
-        with:
-          repository: jalantechnologies/github-ci
-          path: platform
-          ref: ${{ inputs.ci_version }}
-
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14.17.3'
+          node-version: 14.17.3  # Adjust to your desired Node.js version
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run tests with coverage
+        run: npm run test
+
+      - name: Export coverage report
         run: npm run coverage:export
 
-      - name: Upload coverage results
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage
-          path: coverage
+      - name: Extract coverage information
+        id: extract_coverage
+        run: |
+          coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage/coverage-summary.json)
+          echo "::set-output name=coverage_percentage::$coverage_percentage"
 
-      - uses: marocchino/sticky-pull-request-comment@v2
-        # only run this step if enabled and pull request number was provided
-        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+      - name: Post coverage report as a comment
+        if: always()
+        uses: actions/github-comment@v1
         with:
-          header: ${{ inputs.app_name }}
-          hide_and_recreate: true
-          hide_classify: "OUTDATED"
-          number: ${{ inputs.pull_request_number }}
-          message: |
-            Test Coverage testing
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Test Coverage: ${{ steps.extract_coverage.outputs.coverage_percentage }}%
 
   deploy:
     needs: build
