@@ -193,7 +193,7 @@ jobs:
           ref: ${{ inputs.ci_version }}
 
       - name: Run check
-        uses: ./platform/.github/actions/check
+        uses: ./actions/check
         with:
           check: ${{ matrix.check }}
           image: ${{ needs.build.outputs.image_ref }}

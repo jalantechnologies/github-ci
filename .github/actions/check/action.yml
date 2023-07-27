@@ -72,3 +72,51 @@ runs:
     # service named 'app' should run and exit successfully to mark the test successful
     # to reference the app's image, inputs.tag can be used
 
+    - name: Run check using compose
+      if: steps.check.outputs.scheme == 'compose'
+      shell: bash
+      run: |
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
+
+    - name: Run check using compose for code coverage
+      if: steps.check.outputs.scheme == 'coverage'
+      shell: bash
+      run: |
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app
+      
+    - name: Extract coverage information
+      if: steps.check.outputs.scheme == 'coverage'
+      id: extract_coverage
+      run: |
+        coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage/coverage-summary.json)
+        echo "::set-output name=coverage_percentage::$coverage_percentage"
+    
+    - uses: marocchino/sticky-pull-request-comment@v2
+        # only run this step if enabled and pull request number was provided
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+        with:
+          header: ${{ inputs.app_name }}
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+          number: ${{ inputs.pull_request_number }}
+          message: |
+            Test Coverage ${{ steps.extract_coverage.outputs.coverage_percentage }}
+
+    - name: Post coverage report as a comment
+      if: steps.check.outputs.scheme == 'coverage'
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const context = github.context;
+          const prNumber = context.payload.pull_request.number;
+          const coveragePercentage = '${{ steps.extract_coverage.outputs.coverage_percentage }}';
+
+          const message = `Test Coverage: ${coveragePercentage}%`;
+          const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+
+          octokit.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            body: message,
+          });
