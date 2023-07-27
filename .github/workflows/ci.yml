@@ -220,11 +220,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm run test
-
       - name: Export coverage report
-        run: npm run coverage:export
+        run: docker-compose -f app/docker-compose.coverage.yml up --exit-code-from app
 
       - name: Extract coverage information
         id: extract_coverage
