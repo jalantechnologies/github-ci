@@ -201,6 +201,8 @@ jobs:
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
+          deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
+          pull_request_number: ${{ inputs.pull_request_number }}
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
