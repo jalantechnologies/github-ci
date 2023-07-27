@@ -209,6 +209,17 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        with:
+          path: app
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
       - name: Checkout code
         uses: actions/checkout@v2
 
