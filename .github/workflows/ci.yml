@@ -235,6 +235,59 @@ jobs:
           message: |
             Test Coverage testing
 
+  code coverage:
+    if: inputs.checks != ''
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      # turn off fail fast, let all the checks run irrespective of failures
+      fail-fast: false
+      matrix:
+        check: ${{ fromJSON(inputs.checks) }}
+    steps:
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        with:
+          path: app
+
+      - name: Checkout (platform)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/github-ci
+          path: platform
+          ref: ${{ inputs.ci_version }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.17.3'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests with coverage
+        run: npm run coverage:export
+
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: coverage
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        # only run this step if enabled and pull request number was provided
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+        with:
+          header: ${{ inputs.app_name }}
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+          number: ${{ inputs.pull_request_number }}
+          message: |
+            Test Coverage testing
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
