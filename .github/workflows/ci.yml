@@ -204,6 +204,26 @@ jobs:
           deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
           pull_request_number: ${{ inputs.pull_request_number }}
 
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.17.3'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: coverage
+
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
         if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
