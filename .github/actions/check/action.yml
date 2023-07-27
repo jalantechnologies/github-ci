@@ -67,7 +67,6 @@ runs:
       if: steps.check.outputs.scheme == 'compose'
       shell: bash
       run: |
-        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
         docker-compose -f app/docker-compose.coverage.yml up --exit-code-from app
 
     - name: Run check using compose for code coverage
