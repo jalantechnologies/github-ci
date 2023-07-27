@@ -204,7 +204,7 @@ jobs:
           deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
           pull_request_number: ${{ inputs.pull_request_number }}
 
-  code coverage:
+  code_coverage:
     if: inputs.checks != ''
     needs: build
     runs-on: ubuntu-latest
