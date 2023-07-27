@@ -19,9 +19,6 @@ inputs:
   tag:
     required: false
     description: 'If provided, can be used for tagging the image'
-secrets:
-  GITHUB_TOKEN:
-    required: true
 runs:
   using: composite
   steps:
@@ -89,7 +86,6 @@ runs:
       if: steps.check.outputs.scheme == 'coverage'
       uses: actions/github-script@v4
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const context = github.context;
           const prNumber = context.payload.pull_request.number;
