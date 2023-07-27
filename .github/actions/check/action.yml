@@ -19,6 +19,9 @@ inputs:
   tag:
     required: false
     description: 'If provided, can be used for tagging the image'
+secrets:
+  GITHUB_TOKEN:
+    required: true
 runs:
   using: composite
   steps:
@@ -67,7 +70,7 @@ runs:
       if: steps.check.outputs.scheme == 'compose'
       shell: bash
       run: |
-        docker-compose -f app/docker-compose.coverage.yml up --exit-code-from app
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
 
     - name: Run check using compose for code coverage
       if: steps.check.outputs.scheme == 'coverage'
@@ -86,6 +89,7 @@ runs:
       if: steps.check.outputs.scheme == 'coverage'
       uses: actions/github-script@v4
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const context = github.context;
           const prNumber = context.payload.pull_request.number;
