@@ -203,11 +203,6 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
           deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
           pull_request_number: ${{ inputs.pull_request_number }}
-      
-      - uses: tintef/nyc-reporter-action
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REPORTER: 'text' # defaults to 'text-summary'
 
   deploy:
     needs: build
