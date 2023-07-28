@@ -86,8 +86,6 @@ on:
         required: true
       doppler_token:
         required: false
-      GITHUB_TOKEN:
-        required: true
       sonar_token:
         required: false
 
