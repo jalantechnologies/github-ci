@@ -90,6 +90,11 @@ runs:
       run: |
         coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage/coverage-summary.json)
         echo "::set-output name=coverage_percentage::$coverage_percentage"
+
+    - uses: tintef/nyc-reporter-action
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPORTER: 'text' # defaults to 'text-summary'
     
     - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
