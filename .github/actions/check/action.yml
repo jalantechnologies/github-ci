@@ -85,7 +85,7 @@ runs:
         docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app
       
     - name: Extract coverage information
-      if: steps.check.outputs.scheme == 'coverage'
+      if: steps.check.outputs.input == 'coverage'
       id: extract_coverage
       run: |
         coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage/coverage-summary.json)
@@ -108,7 +108,7 @@ runs:
             Test Coverage ${{ steps.extract_coverage.outputs.coverage_percentage }}
 
     - name: Post coverage report as a comment
-      if: steps.check.outputs.scheme == 'coverage'
+      if: steps.check.outputs.input == 'coverage'
       uses: actions/github-script@v4
       with:
         script: |
