@@ -90,8 +90,8 @@ jobs:
         run: |
           source platform/lib/kube/clean.sh
 
-      - name: Get Bearer Token
-        id: get_token
+      - name: Authenticate - DockerHub
+        id: auth_docker_hub
         run: |
           DOCKER_USERNAME=${{inputs.docker_username}}
           DOCKER_PASSWORD=${{secrets.docker_password}}
@@ -103,11 +103,11 @@ jobs:
             }')
           echo "::set-output name=token::$(echo $response | jq -r '.token')"
 
-      - name: Check Docker Image
+      - name: Check - DockerHub
         env:
-          TOKEN: ${{ steps.get_token.outputs.token }}
+          TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com'
-        id: docker_check
+        id: check_docker_hub
         
         run: |       
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}")
@@ -120,9 +120,9 @@ jobs:
             echo "::set-output name=image_exists::false"
           fi
 
-      - name: Docker clean
+      - name: Clean - DockerHub
         env:
-          TOKEN: ${{ steps.get_token.outputs.token }}
+          TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
         shell: bash
         run: |          
