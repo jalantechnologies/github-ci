@@ -205,7 +205,7 @@ jobs:
           pull_request_number: ${{ inputs.pull_request_number }}
       
       - name: Read data from file
-      if: matrix.check == 'compose:coverage'
+        if: matrix.check == 'compose:coverage'
         id: read_data
         run: |
           data=$(cat coverage-summary.txt)
