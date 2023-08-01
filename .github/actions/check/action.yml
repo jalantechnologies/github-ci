@@ -76,13 +76,13 @@ runs:
       if: steps.check.outputs.scheme == 'compose'
       shell: bash
       run: |
-        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app  --detach
 
     - name: Run check using compose for code coverage
       if: steps.check.outputs.scheme == 'coverage'
       shell: bash
       run: |
-        docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app 
       
     - name: Extract coverage information
       if: steps.check.outputs.input == 'coverage'
