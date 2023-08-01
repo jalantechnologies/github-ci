@@ -266,10 +266,5 @@ jobs:
           hide_and_recreate: true
           hide_classify: "OUTDATED"
           number: ${{ inputs.pull_request_number }}
-          script: |
-            const fs = require('fs');
-
-            // Read the data from the text file
-            const data = fs.readFileSync('coverage-summary.txt', 'utf8');
           message: |
             ${{ steps.read_data.outputs.data }}
