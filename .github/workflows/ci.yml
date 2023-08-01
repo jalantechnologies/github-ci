@@ -205,7 +205,7 @@ jobs:
           pull_request_number: ${{ inputs.pull_request_number }}
       
       - name: Read data from file
-        if: steps.check.outputs.scheme == 'compose:coverage'
+        if: matrix.check == 'compose:coverage'
         id: read_data
         run: |
           const fs = require('fs');
@@ -214,7 +214,7 @@ jobs:
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
-        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number && steps.check.outputs.scheme == 'compose:coverage'
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number && matrix.check == 'compose:coverage'
         with:
           header: ${{ inputs.app_name }}
           hide_and_recreate: true
