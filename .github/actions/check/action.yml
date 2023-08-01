@@ -56,6 +56,32 @@ runs:
         docker pull ${{ inputs.image }}
         docker tag ${{ inputs.image }} ${{ inputs.tag }}
 
+    - name: Run Docker Compose
+      run: |
+      # Replace 'app/docker-compose.${{ steps.check.outputs.input }}.yml' with your Docker Compose file path
+      docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --detach
+
+      # Wait for the container to start (adjust the sleep duration if needed)
+      sleep 10
+
+      # Get the text file from the running container (replace 'file.txt' with your file name)
+      ls
+      docker cp $(docker-compose ps -q app):coverage-summary.txt .
+
+      # Stop and remove the containers created by Docker Compose
+      docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml down
+          
+    - uses: marocchino/sticky-pull-request-comment@v2
+        # only run this step if enabled and pull request number was provided
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+        with:
+          header: ${{ inputs.app_name }}
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+          number: ${{ inputs.pull_request_number }}
+          message: |
+            ${{ cat coverage-summary.txt }}
+
     # runs check using npm
     # for a check - npm:lint
     # will execute - npm run lint
@@ -76,6 +102,7 @@ runs:
       if: steps.check.outputs.scheme == 'compose'
       shell: bash
       run: |
+        
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
 
     # - name: Run check using compose for code coverage
