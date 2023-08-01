@@ -208,6 +208,7 @@ jobs:
         if: matrix.check == 'compose:coverage'
         id: read_data
         run: |
+          ls
           data=$(cat coverage-summary.txt)
           echo "::set-output name=data::$data"
         shell: bash
