@@ -263,6 +263,6 @@ jobs:
             const fs = require('fs');
 
             // Read the data from the text file
-            const data = fs.readFileSync('path/to/your/file.txt', 'utf8');
+            const data = fs.readFileSync('coverage-summary.txt', 'utf8');
           message: |
             ${{data}}
