@@ -265,4 +265,4 @@ jobs:
             // Read the data from the text file
             const data = fs.readFileSync('coverage-summary.txt', 'utf8');
           message: |
-            ${{data}}
+            ${{ data }}
