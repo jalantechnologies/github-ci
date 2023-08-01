@@ -205,12 +205,12 @@ jobs:
           pull_request_number: ${{ inputs.pull_request_number }}
       
       - name: Read data from file
-        if: matrix.check == 'compose:coverage'
+      if: matrix.check == 'compose:coverage'
         id: read_data
         run: |
-          const fs = require('fs');
-          const data = fs.readFileSync('coverage-summary.txt', 'utf8');
-          echo "::set-output name=data::${data}"
+          data=$(cat coverage-summary.txt)
+          echo "::set-output name=data::$data"
+        shell: bash
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
