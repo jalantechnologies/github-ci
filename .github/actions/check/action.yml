@@ -85,6 +85,12 @@ runs:
     #   shell: bash
     #   run: |
     #     docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app 
+
+    - name: Save coverage file as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-coverage
+          path: coverage-summary.txt
       
     - name: Extract coverage information
       if: steps.check.outputs.scheme == 'compose'
