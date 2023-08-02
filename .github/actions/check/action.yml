@@ -85,12 +85,12 @@ runs:
     #   run: |
     #     docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app 
       
-    # - name: Extract coverage information
-    #   if: steps.check.outputs.input == 'coverage'
-    #   id: extract_coverage
-    #   run: |
-    #     coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage-summary.txt)
-    #     echo "::set-output name=coverage_percentage::$coverage_percentage"
+    - name: Extract coverage information
+      if: steps.check.outputs.input == 'coverage'
+      id: extract_coverage
+      run: |
+        coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage-summary.txt)
+        echo "::set-output name=coverage_percentage::$coverage_percentage"
 
     # - uses: tintef/nyc-reporter-action
     #   with:
