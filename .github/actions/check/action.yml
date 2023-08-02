@@ -77,7 +77,7 @@ runs:
       shell: bash
       run: |
         ls app/
-        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
