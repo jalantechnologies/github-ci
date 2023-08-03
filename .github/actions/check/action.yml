@@ -73,13 +73,12 @@ runs:
     # to reference the app's image, inputs.tag can be used
 
     - name: Run check using compose
+      id: build
       if: steps.check.outputs.scheme == 'compose'
       shell: bash
       run: |
         ls app/
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
-        ls app/
-        ls
         output=$(docker-compose logs webapp 2>&1)
         echo "::set-output name=webapp_logs::$output"
 
