@@ -80,6 +80,14 @@ runs:
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
         ls app/
         ls
+        output=$(docker-compose logs webapp 2>&1)
+        echo "::set-output name=webapp_logs::$output"
+
+    - name: Show logs from webapp service
+      run: |
+        # Access the logs set as output
+        echo "Logs from webapp service:"
+        echo "${{ steps.build.outputs.webapp_logs }}"
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
