@@ -209,9 +209,9 @@ jobs:
         id: read_data
         run: |
           ls
-          data=$(cat app/output_directory/coverage-summary.txt)
-          echo "::set-output name=cov_data::$data"
-          echo $data
+          cov_sum=$(cat app/output_directory/coverage-summary.txt)
+          echo "::set-output name=cov_data::$cov_sum"
+          echo $cov_sum
         shell: bash
 
       - uses: marocchino/sticky-pull-request-comment@v2
