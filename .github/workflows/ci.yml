@@ -223,7 +223,7 @@ jobs:
           hide_classify: "OUTDATED"
           number: ${{ inputs.pull_request_number }}
           message: |
-            ${{ steps.read_data.outputs.data }}
+             Testing ${{ steps.read_data.outputs.data }}
 
   deploy:
     needs: build
