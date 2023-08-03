@@ -77,7 +77,6 @@ runs:
       shell: bash
       run: |
         ls app/
-        ls plateform/
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --detach
         ls app/coverage/
 
