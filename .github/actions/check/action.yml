@@ -87,10 +87,12 @@ runs:
     #     docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app 
 
     - name: Copy coverage summary file
+      shell: bash
       run: docker cp $(docker-compose -f docker-compose.yml ps -q app):/app/coverage-summary.txt coverage-summary.txt
 
     - name: Save coverage summary as artifact
       uses: actions/upload-artifact@v2
+      shell: bash
       with:
         name: test-coverage
         path: coverage-summary.txt
