@@ -87,7 +87,7 @@ runs:
       shell: bash
       run: |
         ls app/
-        ls app/output_directory
+        cat app/output_directory/coverage-summary.txt
         ls
 
     # - name: Run check using compose for code coverage
