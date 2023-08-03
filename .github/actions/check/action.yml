@@ -77,9 +77,8 @@ runs:
       shell: bash
       run: |
         ls app/
-        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --detach
+        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
         ls app
-        ls app/coverage/
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
@@ -87,7 +86,10 @@ runs:
     #   run: |
     #     docker-compose -f app/docker-compose.${{ steps.check.outputs.scheme }}.yml up --exit-code-from app 
 
-    - name: Save coverage file as artifact
+    - name: Copy coverage summary file
+      run: docker cp $(docker-compose -f docker-compose.yml ps -q app):/app/coverage-summary.txt coverage-summary.txt
+
+    - name: Save coverage summary as artifact
       uses: actions/upload-artifact@v2
       with:
         name: test-coverage
