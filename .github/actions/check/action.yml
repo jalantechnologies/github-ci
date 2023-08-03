@@ -78,8 +78,7 @@ runs:
       shell: bash
       run: |
         ls app/
-        docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
-        output=$(docker-compose logs webapp 2>&1)
+        output = $(docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app)
         echo "::set-output name=webapp_logs::$output"
 
     - name: Show logs from webapp service
