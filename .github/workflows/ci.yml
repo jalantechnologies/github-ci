@@ -210,7 +210,7 @@ jobs:
         run: |
           ls
           data=$(cat app/output_directory/coverage-summary.txt)
-          echo "::set-output name=data::$data"
+          echo "::set-output name=cov_data::$data"
           echo $data
         shell: bash
 
@@ -223,7 +223,7 @@ jobs:
           hide_classify: "OUTDATED"
           number: ${{ inputs.pull_request_number }}
           message: |
-             Testing ${{ steps.read_data.outputs.data }}
+             Testing ${{ steps.read_data.outputs.cov_data }}
 
   deploy:
     needs: build
