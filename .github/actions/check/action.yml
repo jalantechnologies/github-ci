@@ -78,6 +78,7 @@ runs:
       run: |
         ls app/
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --detach
+        ls app
         ls app/coverage/
 
     # - name: Run check using compose for code coverage
