@@ -82,6 +82,14 @@ runs:
         ls app/output_directory
         ls
 
+    - name: Run check using compose-1
+      if: steps.check.outputs.scheme == 'compose'
+      shell: bash
+      run: |
+        ls app/
+        ls app/output_directory
+        ls
+
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
     #   shell: bash
