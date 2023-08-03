@@ -96,7 +96,7 @@ runs:
         hide_classify: "OUTDATED"
         number: ${{ inputs.pull_request_number }}
         message: |
-          cat app/output_directory/coverage-summary.txt
+          testing
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
