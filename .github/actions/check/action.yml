@@ -86,7 +86,7 @@ runs:
       run: |
         # Access the logs set as output
         echo "Logs from webapp service:"
-        echo "${{ steps.build.outputs.webapp_logs }}"
+        echo "${{ steps.build.outputs.compose_logs }}"
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
