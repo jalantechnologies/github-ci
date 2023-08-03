@@ -92,7 +92,6 @@ runs:
 
     - name: Save coverage summary as artifact
       uses: actions/upload-artifact@v2
-      shell: bash
       with:
         name: test-coverage
         path: coverage-summary.txt
