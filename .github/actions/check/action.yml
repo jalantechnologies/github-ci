@@ -77,8 +77,8 @@ runs:
       shell: bash
       run: |
         ls app/
+        ls plateform/
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --detach
-        ls app/
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
@@ -92,13 +92,13 @@ runs:
         name: test-coverage
         path: coverage-summary.txt
       
-    - name: Extract coverage information
-      if: steps.check.outputs.scheme == 'compose'
-      id: extract_coverage
-      shell: bash
-      run: |
-        coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage-summary.txt)
-        echo "::set-output name=coverage_percentage::$coverage_percentage"
+    # - name: Extract coverage information
+    #   if: steps.check.outputs.scheme == 'compose'
+    #   id: extract_coverage
+    #   shell: bash
+    #   run: |
+    #     coverage_percentage=$(grep -oP "(?<=Statements\s+:)\s+\d+\.\d+" coverage-summary.txt)
+    #     echo "::set-output name=coverage_percentage::$coverage_percentage"
 
     # - uses: tintef/nyc-reporter-action
     #   with:
