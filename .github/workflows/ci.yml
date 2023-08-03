@@ -211,6 +211,7 @@ jobs:
           ls
           data=$(cat app/output_directory/coverage-summary.txt)
           echo "::set-output name=data::$data"
+          echo $data
         shell: bash
 
       - uses: marocchino/sticky-pull-request-comment@v2
