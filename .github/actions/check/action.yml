@@ -119,16 +119,16 @@ runs:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #     REPORTER: 'text' # defaults to 'text-summary'
     
-    # - uses: marocchino/sticky-pull-request-comment@v2
-    #     # only run this step if enabled and pull request number was provided
-    #     if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
-    #     with:
-    #       header: ${{ inputs.app_name }}
-    #       hide_and_recreate: true
-    #       hide_classify: "OUTDATED"
-    #       number: ${{ inputs.pull_request_number }}
-    #       message: |
-    #         Test Coverage ${{ steps.extract_coverage.outputs.coverage_percentage }}
+    - uses: marocchino/sticky-pull-request-comment@v2
+        # only run this step if enabled and pull request number was provided
+        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+        with:
+          header: ${{ inputs.app_name }}
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+          number: ${{ inputs.pull_request_number }}
+          message: |
+            cat app/output_directory/coverage-summary.txt
 
     # - name: Post coverage report as a comment
     #   if: steps.check.outputs.input == 'coverage'
