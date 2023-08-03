@@ -84,6 +84,7 @@ runs:
         echo "::set-output name=webapp_logs::$output"
 
     - name: Show logs from webapp service
+      shell: bash
       run: |
         # Access the logs set as output
         echo "Logs from webapp service:"
