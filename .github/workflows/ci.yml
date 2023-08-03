@@ -225,6 +225,10 @@ jobs:
           message: |
              Testing ${{ steps.read_data.outputs.cov_data }}
 
+      uses: romeovs/lcov-reporter-action@v0.2.16
+      with:
+        lcov-file: app/output_directory/coverage/lcov.info
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
