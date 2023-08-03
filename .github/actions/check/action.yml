@@ -89,6 +89,7 @@ runs:
     
     - name: Read file content
       id: read-file
+      shell: bash
       run: |
         file_content=$(cat app/output_directory/coverage-summary.txt)
         echo "::set-output name=file_content::$file_content"
