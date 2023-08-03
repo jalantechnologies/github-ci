@@ -204,26 +204,26 @@ jobs:
           deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
           pull_request_number: ${{ inputs.pull_request_number }}
       
-      - name: Read data from file
-        if: matrix.check == 'compose:test'
-        id: read_data
-        run: |
-          ls
-          cov_sum=$(cat app/output_directory/coverage-summary.txt)
-          echo "::set-output name=cov_data::$cov_sum"
-          echo $cov_sum
-        shell: bash
+      # - name: Read data from file
+      #   if: matrix.check == 'compose:test'
+      #   id: read_data
+      #   run: |
+      #     ls
+      #     cov_sum=$(cat app/output_directory/coverage-summary.txt)
+      #     echo "::set-output name=cov_data::$cov_sum"
+      #     echo $cov_sum
+      #   shell: bash
 
-      - uses: marocchino/sticky-pull-request-comment@v2
-        # only run this step if enabled and pull request number was provided
-        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number && matrix.check == 'compose:test'
-        with:
-          header: ${{ inputs.app_name }}
-          hide_and_recreate: true
-          hide_classify: "OUTDATED"
-          number: ${{ inputs.pull_request_number }}
-          message: |
-             Testing ${{ steps.read_data.outputs.cov_data }}
+      # - uses: marocchino/sticky-pull-request-comment@v2
+      #   # only run this step if enabled and pull request number was provided
+      #   if: inputs.deploy_annotate_pr == true && inputs.pull_request_number && matrix.check == 'compose:test'
+      #   with:
+      #     header: ${{ inputs.app_name }}
+      #     hide_and_recreate: true
+      #     hide_classify: "OUTDATED"
+      #     number: ${{ inputs.pull_request_number }}
+      #     message: |
+      #        Testing ${{ steps.read_data.outputs.cov_data }}
 
       - name: LCOV Reporter Action
         uses: romeovs/lcov-reporter-action@v0.2.16

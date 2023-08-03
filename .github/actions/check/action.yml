@@ -79,31 +79,31 @@ runs:
         ls app/output_directory
         ls
 
-    - name: Run check using compose-1
-      if: steps.check.outputs.scheme == 'compose'
-      shell: bash
-      run: |
-        ls app/
-        cat app/output_directory/coverage-summary.txt
-        ls
+    # - name: Run check using compose-1
+    #   if: steps.check.outputs.scheme == 'compose'
+    #   shell: bash
+    #   run: |
+    #     ls app/
+    #     cat app/output_directory/coverage-summary.txt
+    #     ls
     
-    - name: Read file content
-      id: read-file
-      shell: bash
-      run: |
-        file_content=$(cat app/output_directory/coverage-summary.txt)
-        echo "::set-output name=file_content::$file_content"
+    # - name: Read file content
+    #   id: read-file
+    #   shell: bash
+    #   run: |
+    #     file_content=$(cat app/output_directory/coverage-summary.txt)
+    #     echo "::set-output name=file_content::$file_content"
       
-    - uses: marocchino/sticky-pull-request-comment@v2
-      # only run this step if enabled and pull request number was provided
-      if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
-      with:
-        header: ${{ inputs.app_name }}
-        hide_and_recreate: true
-        hide_classify: "OUTDATED"
-        number: ${{ inputs.pull_request_number }}
-        message: |
-          ${{ steps.read-file.outputs.file_content }}
+    # - uses: marocchino/sticky-pull-request-comment@v2
+    #   # only run this step if enabled and pull request number was provided
+    #   if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
+    #   with:
+    #     header: ${{ inputs.app_name }}
+    #     hide_and_recreate: true
+    #     hide_classify: "OUTDATED"
+    #     number: ${{ inputs.pull_request_number }}
+    #     message: |
+    #       ${{ steps.read-file.outputs.file_content }}
 
     # - name: Run check using compose for code coverage
     #   if: steps.check.outputs.scheme == 'coverage'
