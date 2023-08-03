@@ -209,7 +209,7 @@ jobs:
         id: read_data
         run: |
           ls
-          data=$(cat coverage-summary.txt)
+          data=$(cat app/output_directory/coverage-summary.txt)
           echo "::set-output name=data::$data"
         shell: bash
 
