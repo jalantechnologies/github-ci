@@ -88,10 +88,10 @@ runs:
         ls
     
     - name: Read file content
-        id: read-file
-        run: |
-          file_content=$(cat app/output_directory/coverage-summary.txt)
-          echo "::set-output name=file_content::$file_content"
+      id: read-file
+      run: |
+        file_content=$(cat app/output_directory/coverage-summary.txt)
+        echo "::set-output name=file_content::$file_content"
       
     - uses: marocchino/sticky-pull-request-comment@v2
       # only run this step if enabled and pull request number was provided
