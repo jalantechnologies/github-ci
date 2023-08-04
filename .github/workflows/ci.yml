@@ -49,7 +49,7 @@ on:
         required: false
         type: string
         description: 'Branch from which CI actions will be checked out'
-        default: 'v1.1'
+        default: 'generate_cov_report'
       deploy_root:
         required: false
         type: string
@@ -201,8 +201,6 @@ jobs:
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
-          deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
-          pull_request_number: ${{ inputs.pull_request_number }}
 
   deploy:
     needs: build
