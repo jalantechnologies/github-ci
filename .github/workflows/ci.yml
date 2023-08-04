@@ -121,7 +121,7 @@ jobs:
 
           echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
           echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
-          echo "Branch Name: ${GITHUB_REF#refs/heads/}"
+          echo "Branch Name: ${GITHUB_HEAD_REF#refs/heads/}"
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
