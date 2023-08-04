@@ -4,9 +4,6 @@ inputs:
   check:
     required: true
     description: 'Check to be performed. Value to be provided in scheme:input format where scheme can be - npm, compose.'
-  check_args:
-    required: false
-    description: 'check arguments which is used for generating the coverage'
   image:
     required: true
     description: 'Image against which check will be performed'
@@ -82,7 +79,7 @@ runs:
       continue-on-error: true
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
-        filename: app/output/coverage.cobertura.xml
+        filename: app/output/coverage.xml
         badge: true
         fail_below_min: true
         format: markdown
