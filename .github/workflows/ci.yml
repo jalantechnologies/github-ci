@@ -49,7 +49,7 @@ on:
         required: false
         type: string
         description: 'Branch from which CI actions will be checked out'
-        default: 'generate_cov_report'
+        default: 'v1.1'
       deploy_root:
         required: false
         type: string
