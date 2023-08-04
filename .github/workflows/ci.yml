@@ -119,9 +119,10 @@ jobs:
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_BASE_NAME=$(echo ${{ inputs.analyze_base }} | sed -e 's/^refs\/heads\///g')
 
+          abcd = ${{ env.GITHUB_ACTIONS }}
           echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
           echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
-          echo "GitHub Actions Version: ${{ env.GITHUB_ACTIONS }}"
+          echo "GitHub Actions Version: $abcd"
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
