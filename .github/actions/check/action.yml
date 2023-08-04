@@ -68,3 +68,23 @@ runs:
       shell: bash
       run: |
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
+
+    - name: Coverage Report
+      continue-on-error: true
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: app/output/coverage.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '60 80'
+
+    - uses: marocchino/sticky-pull-request-comment@v2
+      continue-on-error: true
+      with:
+        recreate: true
+        path: code-coverage-results.md
