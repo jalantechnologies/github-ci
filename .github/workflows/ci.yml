@@ -45,11 +45,6 @@ on:
         required: false
         type: string
         description: 'Checks to be performed. Provide here list of checks in scheme:input format where scheme can be - npm, compose.'
-      ci_version:
-        required: false
-        type: string
-        description: 'Branch from which CI actions will be checked out'
-        default: 'v1.1'
       deploy_root:
         required: false
         type: string
@@ -110,7 +105,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ inputs.ci_version }}
+          ref: ${{ github.ref }}
 
       - name: Extract branch name
         id: extract_branch
