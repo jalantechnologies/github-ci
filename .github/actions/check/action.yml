@@ -19,12 +19,7 @@ inputs:
   tag:
     required: false
     description: 'If provided, can be used for tagging the image'
-  deploy_annotate_pr:
-        required: true
-        description: 'Enable pull request annotation with deployment URL. Requires pull_request_number to work.'
-  pull_request_number:
-        required: true
-        description: 'Pull request number running the workflow against a pull request'
+
 runs:
   using: composite
   steps:
