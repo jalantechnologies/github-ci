@@ -215,6 +215,7 @@ jobs:
       #   shell: bash
       
       - name: Code Coverage Report
+        if: matrix.check == 'compose:test'
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: app/output_directory/coverage.cobertura.xml
@@ -228,6 +229,7 @@ jobs:
           thresholds: '60 80'
 
       - uses: marocchino/sticky-pull-request-comment@v2
+        if: matrix.check == 'compose:test'
         with:
           recreate: true
           path: code-coverage-results.md
