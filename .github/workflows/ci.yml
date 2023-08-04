@@ -196,7 +196,6 @@ jobs:
         uses: ./platform/.github/actions/check
         with:
           check: ${{ matrix.check }}
-          check_args: ${{ inputs.check_args }}
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
           docker_registry: ${{ inputs.docker_registry }}

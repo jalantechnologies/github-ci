@@ -87,7 +87,7 @@ runs:
         hide_complexity: true
         indicators: true
         output: both
-        thresholds: ${{ inputs.check_args }}
+        thresholds: '60 80'
 
     - uses: marocchino/sticky-pull-request-comment@v2
       continue-on-error: true
