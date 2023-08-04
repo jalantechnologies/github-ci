@@ -204,15 +204,15 @@ jobs:
           deploy_annotate_pr: ${{ inputs.deploy_annotate_pr }}
           pull_request_number: ${{ inputs.pull_request_number }}
       
-      - name: Read data from file
-        if: matrix.check == 'compose:test'
-        id: read_data
-        run: |
-          ls
-          cov_sum=$(cat app/output_directory/coverage-summary.txt)
-          echo "::set-output name=cov_data::$cov_sum"
-          echo $cov_sum
-        shell: bash
+      # - name: Read data from file
+      #   if: matrix.check == 'compose:test'
+      #   id: read_data
+      #   run: |
+      #     ls
+      #     cov_sum=$(cat app/output_directory/coverage-summary.txt)
+      #     echo "::set-output name=cov_data::$cov_sum"
+      #     echo $cov_sum
+      #   shell: bash
       
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
