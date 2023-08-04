@@ -121,7 +121,7 @@ jobs:
 
           echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
           echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
-          echo "CI Version: $GITHUB_ACTIONS"
+          echo "GitHub Actions Version: ${{ env.GITHUB_ACTIONS }}"
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
