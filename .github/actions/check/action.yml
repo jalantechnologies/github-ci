@@ -75,7 +75,7 @@ runs:
       run: |
         docker-compose -f app/docker-compose.${{ steps.check.outputs.input }}.yml up --exit-code-from app
 
-    - name: Code Coverage Report
+    - name: Coverage Report
       continue-on-error: true
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
