@@ -111,6 +111,9 @@ jobs:
           repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ inputs.ci_version }}
+        
+      - name: Show CI Version
+        run: echo "CI Version: $GITHUB_ACTIONS"
 
       - name: Extract branch name
         id: extract_branch
