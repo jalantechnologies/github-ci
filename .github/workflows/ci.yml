@@ -45,6 +45,11 @@ on:
         required: false
         type: string
         description: 'Checks to be performed. Provide here list of checks in scheme:input format where scheme can be - npm, compose.'
+      ci_version:
+        required: false
+        type: string
+        description: 'Branch from which CI actions will be checked out'
+        default: 'v1.1'
       deploy_root:
         required: false
         type: string
@@ -105,7 +110,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.ci_version }}
 
       - name: Extract branch name
         id: extract_branch
@@ -142,7 +147,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.ci_version }}
 
       - name: Extract branch name
         id: extract_branch
@@ -185,7 +190,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.ci_version }}
 
       - name: Run check
         uses: ./platform/.github/actions/check
@@ -213,7 +218,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.ci_version }}
 
       - name: Deploy
         id: deploy
@@ -224,7 +229,7 @@ jobs:
           app_hostname: ${{ inputs.app_hostname }}
           branch: ${{ inputs.branch }}
           deploy_root: app/${{ inputs.deploy_root }}
-          deploy_labels: gh/workflow-version=${{ github.ref }}
+          deploy_labels: gh/workflow-version=${{ inputs.ci_version }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
