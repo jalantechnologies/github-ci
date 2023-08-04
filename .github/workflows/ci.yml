@@ -36,6 +36,11 @@ on:
         required: false
         type: string
         description: 'Build arguments provided to the docker daemon when building docker image'
+      check_args:
+        required: false
+        type: string
+        description: 'Build arguments provided to the docker daemon when building docker image'
+        default: '60 80'
       build_context:
         required: false
         type: string
@@ -196,6 +201,7 @@ jobs:
         uses: ./platform/.github/actions/check
         with:
           check: ${{ matrix.check }}
+          check_args: ${{ inputs.check_args }}
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
           docker_registry: ${{ inputs.docker_registry }}
