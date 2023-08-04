@@ -19,7 +19,6 @@ inputs:
   tag:
     required: false
     description: 'If provided, can be used for tagging the image'
-
 runs:
   using: composite
   steps:

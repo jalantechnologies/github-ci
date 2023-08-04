@@ -248,4 +248,3 @@ jobs:
           number: ${{ inputs.pull_request_number }}
           message: |
             Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
-
