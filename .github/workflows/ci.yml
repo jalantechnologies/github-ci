@@ -141,6 +141,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get workflow uses data
+        run: |
+          workflow_yaml=$(cat .github/workflows/preview_on_pr_update.yml)
+          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
+          echo "$uses_data"  
+
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
         with:
