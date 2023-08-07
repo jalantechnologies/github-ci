@@ -100,22 +100,20 @@ jobs:
           # important - for analyze to work, it needs a deep clone of the repository
           fetch-depth: 0
 
-      - name: Get workflow uses data
-        id: get_ref
+      - name: Get workflow version
+        id: ci_workflow
         run: |
           workflow_yaml=$(cat .github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=ci_version;]$(echo $tag)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "##[set-output name=version;]$(echo $tag)"
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ steps.get_ref.outputs.ci_version }}
+          ref: ${{ steps.ci_workflow.outputs.version }}
 
       - name: Extract branch name
         id: extract_branch
@@ -140,6 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_ref: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
+      workflow_ci_version: ${{ steps.ci_workflow.outputs.version }}
     steps:
       - name: Checkout (app)
         uses: actions/checkout@v3
@@ -147,22 +146,20 @@ jobs:
         with:
           path: app
 
-      - name: Get workflow uses data
-        id: get_ref
+      - name: Get workflow version
+        id: ci_workflow
         run: |
           workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=ci_version;]$(echo $tag)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "##[set-output name=version;]$(echo $tag)"
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ steps.get_ref.outputs.ci_version }}
+          ref: ${{ steps.ci_workflow.outputs.version }}
 
       - name: Extract branch name
         id: extract_branch
@@ -205,7 +202,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ needs.build.outputs.ci_version }}
+          ref: ${{ needs.build.outputs.workflow_ci_version }}
 
       - name: Run check
         uses: ./platform/.github/actions/check
@@ -233,7 +230,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ needs.build.outputs.ci_version }}
+          ref: ${{ needs.build.outputs.workflow_ci_version }}
 
       - name: Deploy
         id: deploy
@@ -244,7 +241,7 @@ jobs:
           app_hostname: ${{ inputs.app_hostname }}
           branch: ${{ inputs.branch }}
           deploy_root: app/${{ inputs.deploy_root }}
-          deploy_labels: gh/workflow-version=${{ needs.build.outputs.ci_version }}
+          deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
