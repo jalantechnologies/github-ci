@@ -131,12 +131,15 @@ jobs:
             const eventData = require(process.env.GITHUB_EVENT_PATH);
             console.log(JSON.stringify(eventData, null, 2));
 
-      - name: Extract action details
-        run: |
-          action_ref = ${{ steps.get_event.outputs.event.workflow_run.head_repository }};
-          action_version = ${{ steps.get_event.outputs.event.workflow_run.head_branch }};
-          echo "Action Reference: $action_ref"
-          echo "Action Version: $action_version"
+      - name: Create tag
+      uses: actions/github-script@v3
+      with:
+        script: |
+          console.log(await github.git.getRef({
+            owner: context.repo.owner,
+            ref: "tags/v0.0.1",
+           repo: context.repo.repo,
+          }));
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
