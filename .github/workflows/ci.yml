@@ -131,15 +131,15 @@ jobs:
             const eventData = require(process.env.GITHUB_EVENT_PATH);
             console.log(JSON.stringify(eventData, null, 2));
 
-      - name: Create tag
-        uses: actions/github-script@v3
-        with:
-          script: |
-            console.log(await github.git.getRef({
-              owner: context.repo.owner,
-              ref: "tags/v0.0.1",
-              repo: context.repo.repo,
-            }));
+      - name: Print Workflow Info
+        run: |
+          echo "Workflow ID: ${{ github.run_id }}"
+          echo "Workflow Name: ${{ github.workflow }}"
+          echo "Event Type: ${{ github.event_name }}"
+          echo "Event Path: ${{ github.event_path }}"
+          echo "Event Payload: ${{ steps.event_data.outputs.event }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
