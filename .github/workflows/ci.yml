@@ -45,11 +45,6 @@ on:
         required: false
         type: string
         description: 'Checks to be performed. Provide here list of checks in scheme:input format where scheme can be - npm, compose.'
-      ci_version:
-        required: false
-        type: string
-        description: 'Branch from which CI actions will be checked out'
-        default: 'v1.1'
       deploy_root:
         required: false
         type: string
@@ -113,6 +108,7 @@ jobs:
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
           echo $tag
           echo "##[set-output name=ci_version;]$(echo $tag)"
+          echo "ci_version=$tag" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -121,18 +117,18 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ needs.analyze.outputs.ci_version }}
+          ref: ${{ steps.get_ref.outputs.ci_version }}
 
       - name: Extract branch name
         id: extract_branch
         shell: bash
         run: |
+          echo "GitHub Action Ref: ${{ github.action_ref }}"
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_BASE_NAME=$(echo ${{ inputs.analyze_base }} | sed -e 's/^refs\/heads\///g')
 
           echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
           echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
-          echo "Branch Name: ${GITHUB_REF#refs/heads/}"
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
@@ -145,7 +141,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: analyze
     outputs:
       image_ref: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
     steps:
@@ -155,12 +150,29 @@ jobs:
         with:
           path: app
 
+      - name: Get workflow uses data
+        id: get_ref
+        run: |
+          workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
+          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
+          tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
+          echo $tag
+          echo "##[set-output name=ci_version;]$(echo $tag)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ needs.analyze.outputs.ci_version }}
+          ref: ${{ steps.get_ref.outputs.ci_version }}
+
+      - name: Print GitHub Context
+        run: |
+          echo "GitHub Context: $GITHUB_CONTEXT"
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Extract branch name
         id: extract_branch
@@ -170,6 +182,8 @@ jobs:
           BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
 
           echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+
+          echo "MY_DYNAMIC_VAR: $ci_version"
 
       - name: Build application
         id: build
@@ -185,9 +199,7 @@ jobs:
 
   checks:
     if: inputs.checks != ''
-    needs:
-      - analyze
-      - build
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       # turn off fail fast, let all the checks run irrespective of failures
@@ -200,12 +212,21 @@ jobs:
         with:
           path: app
 
+      - name: Get workflow uses data
+        id: get_ref
+        run: |
+          workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
+          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
+          tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
+          echo $tag
+          echo "##[set-output name=ci_version;]$(echo $tag)"
+
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ needs.analyze.outputs.ci_version }}
+          ref: ${{ steps.get_ref.outputs.ci_version }}
 
       - name: Run check
         uses: ./platform/.github/actions/check
@@ -218,9 +239,7 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
 
   deploy:
-    needs:
-      - analyze
-      - build
+    needs: build
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.deploy.outputs.url }}
@@ -230,12 +249,21 @@ jobs:
         with:
           path: app
 
+      - name: Get workflow uses data
+        id: get_ref
+        run: |
+          workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
+          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
+          tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
+          echo $tag
+          echo "##[set-output name=ci_version;]$(echo $tag)"
+
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ needs.analyze.outputs.ci_version }}
+          ref: ${{ steps.get_ref.outputs.ci_version }}
 
       - name: Deploy
         id: deploy
@@ -246,7 +274,7 @@ jobs:
           app_hostname: ${{ inputs.app_hostname }}
           branch: ${{ inputs.branch }}
           deploy_root: app/${{ inputs.deploy_root }}
-          deploy_labels: gh/workflow-version=${{ needs.analyze.outputs.ci_version }}
+          deploy_labels: gh/workflow-version=${{ steps.get_ref.outputs.ci_version }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
