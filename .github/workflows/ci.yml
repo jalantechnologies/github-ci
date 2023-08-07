@@ -145,7 +145,10 @@ jobs:
         run: |
           workflow_yaml=$(cat .github/workflows/preview_on_pr_update.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
-          echo "$uses_data"  
+          echo "$uses_data"
+          workflow_string="$uses_data"
+          tag=$(echo $workflow_string | sed -n 's/.*@\(.*\)/\1/p')
+          echo $tag
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
