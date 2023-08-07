@@ -83,8 +83,8 @@ runs:
         output: both
         thresholds: '60 80'
 
-    - uses: marocchino/sticky-pull-request-comment@v2
-      continue-on-error: true
-      with:
-        recreate: true
-        path: code-coverage-results.md
+    # - uses: marocchino/sticky-pull-request-comment@v2
+    #   continue-on-error: true
+    #   with:
+    #     recreate: true
+    #     path: code-coverage-results.md
