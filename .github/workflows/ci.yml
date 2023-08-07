@@ -121,7 +121,22 @@ jobs:
 
           echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
           echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
-          echo "Branch Name: ${GITHUB_HEAD_REF#refs/heads/}"
+          echo "Branch Name: ${GITHUB_REF#refs/heads/}"
+
+      - name: Fetch workflow run event JSON
+        uses: actions/github-script@v4
+        id: get_event
+        with:
+          script: |
+            const eventData = require(process.env.GITHUB_EVENT_PATH);
+            console.log(JSON.stringify(eventData, null, 2));
+
+      - name: Extract action details
+        run: |
+          action_ref = ${{ steps.get_event.outputs.event.workflow_run.head_repository }};
+          action_version = ${{ steps.get_event.outputs.event.workflow_run.head_branch }};
+          echo "Action Reference: $action_ref"
+          echo "Action Version: $action_version"
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
