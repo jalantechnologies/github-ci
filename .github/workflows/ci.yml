@@ -132,14 +132,14 @@ jobs:
             console.log(JSON.stringify(eventData, null, 2));
 
       - name: Create tag
-      uses: actions/github-script@v3
-      with:
-        script: |
-          console.log(await github.git.getRef({
-            owner: context.repo.owner,
-            ref: "tags/v0.0.1",
-           repo: context.repo.repo,
-          }));
+        uses: actions/github-script@v3
+        with:
+          script: |
+            console.log(await github.git.getRef({
+              owner: context.repo.owner,
+              ref: "tags/v0.0.1",
+              repo: context.repo.repo,
+            }));
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
