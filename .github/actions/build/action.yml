@@ -54,4 +54,3 @@ runs:
         cache-to: type=gha,mode=max,scope=${{ github.head_ref }}-${{ inputs.app_name }}
         outputs: type=image,push=true
         secrets: ${{ inputs.build_secrets }}
-
