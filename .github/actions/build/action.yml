@@ -1,6 +1,9 @@
 name: 'build'
 description: 'Build application from Dockerfile'
 inputs:
+  app_name:
+    required: true
+    description: "Application name based on which build is cached"
   docker_registry:
     required: true
     description: 'Docker registry where build images would be pushed and pulled from'
@@ -42,14 +45,14 @@ runs:
 
     - name: Docker build
       id: build
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: ${{ inputs.context }}
         tags: ${{ inputs.tags }}
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=${{ github.head_ref }}-${{ inputs.app_name }}
+        cache-to: type=gha,mode=max,scope=${{ github.head_ref }}-${{ inputs.app_name }}
         outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
