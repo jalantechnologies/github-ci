@@ -50,7 +50,9 @@ runs:
         context: ${{ inputs.context }}
         tags: ${{ inputs.tags }}
         build-args: ${{ inputs.build_args }}
+        # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
         cache-from: type=gha,scope=${{ github.head_ref }}-${{ inputs.app_name }}
         cache-to: type=gha,mode=max,scope=${{ github.head_ref }}-${{ inputs.app_name }}
         outputs: type=image,push=true
+        # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
