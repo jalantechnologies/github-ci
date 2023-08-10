@@ -94,12 +94,6 @@ jobs:
     if: inputs.sonar_host_url != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          # important - for analyze to work, it needs a deep clone of the repository
-          fetch-depth: 0
-
       - name: Get workflow version
         id: ci_workflow
         run: |
@@ -107,6 +101,12 @@ jobs:
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
           echo "##[set-output name=version;]$(echo $tag)"
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # important - for analyze to work, it needs a deep clone of the repository
+          fetch-depth: 0
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -140,12 +140,6 @@ jobs:
       image_ref: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
       workflow_ci_version: ${{ steps.ci_workflow.outputs.version }}
     steps:
-      - name: Checkout (app)
-        uses: actions/checkout@v3
-        # make sure to keep checked in code at different directory to avoid colliding with docker caching
-        with:
-          path: app
-
       - name: Get workflow version
         id: ci_workflow
         run: |
@@ -153,6 +147,12 @@ jobs:
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
           echo "##[set-output name=version;]$(echo $tag)"
+
+      - name: Checkout (app)
+        uses: actions/checkout@v3
+        # make sure to keep checked in code at different directory to avoid colliding with docker caching
+        with:
+          path: app
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
