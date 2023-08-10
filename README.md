@@ -23,6 +23,7 @@ Our MERN Boilerplate implements the workflows documented here. Find the project 
 - Create a new branch from `main` from where release needs to happen.
 - Follow [semantic versioning](https://docs.npmjs.com/about-semantic-versioning) for creating a new release, eg - `v1.2`
 - Update CHANGELOG with changes being released, commit the change.
-- Push the branch to origin
+- Push the branch to origin.
+- Raise a PR pointed towards `main` for release. Ask for review from code owners and get it merged.
 - Create a new release with title being the version, eg - `v1.2` and description being the items added in CHANGELOG.
 - Workflows can now use this new version, eg - `jalantechnologies/github-ci/.github/workflows/ci.yml@v1.2`
