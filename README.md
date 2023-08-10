@@ -13,11 +13,16 @@ Our MERN Boilerplate implements the workflows documented here. Find the project 
 
 ## Development
 
-- Create a new branch for the version (Example - `v1.1`)
-- Update the default value for `ci_version` input to the created branch name (Example - `v1.1`)
-- Commit new updates
-- To test out changes, push the changes and update the workflow ref. Example - `jalantechnologies/github-ci/.github/workflows/ci.yml@v1.1`
-- Update `CHANGELOG` and add the new version, listing out the updates that have been done.
-- Push new changes and raise PR for review
-- `Squash and Merge` new changes once PR is approved
-- Workflows can now use this updated workflow using the branch name. Example - `jalantechnologies/github-ci/.github/workflows/ci.yml@v1.1`.
+- Take latest pull from base branch - `main`
+- Create a new branch for the fix / feature, eg - `fix/remove_ci_version_from_clean`
+- To test out changes, push the changes and update the workflow ref. Example - `jalantechnologies/github-ci/.github/workflows/ci.yml@fix/remove_ci_version_from_clean`
+- Once changes have been tested, getting approval from code owners, PR can be merged using `Squash and Merge`.
+
+## Release
+
+- Create a new branch from `main` from where release needs to happen.
+- Follow [semantic versioning](https://docs.npmjs.com/about-semantic-versioning) for creating a new release, eg - `v1.2`
+- Update CHANGELOG with changes being released, commit the change.
+- Push the branch to origin
+- Create a new release with title being the version, eg - `v1.2` and description being the items added in CHANGELOG.
+- Workflows can now use this new version, eg - `jalantechnologies/github-ci/.github/workflows/ci.yml@v1.2`
