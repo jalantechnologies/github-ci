@@ -7,3 +7,12 @@ Initial Release
 ## v1.1
 
 - [feat] Added support for passing build secrets using `build_secrets`
+
+## v1.2
+
+- (bug) Docker images are not removed once apps have been cleaned up
+- (feat) add support for exporting test (check) coverage on pull requests
+- (bug) Caching does not works in monorepo setup
+- (bug) remove dependency from 'ci_version' input
+- (bug) remove dependency from 'ci_version' input from clean workflow
+- (chore) update documentation on development and release process
