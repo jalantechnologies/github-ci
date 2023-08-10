@@ -3,7 +3,7 @@ description: 'Build application from Dockerfile'
 inputs:
   app_name:
     required: true
-    description: "Application name based on which docker repository, doppler project and kube namespace would be selected"
+    description: "Application name based on which build is cached"
   docker_registry:
     required: true
     description: 'Docker registry where build images would be pushed and pulled from'
