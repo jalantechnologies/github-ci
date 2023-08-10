@@ -20,12 +20,6 @@ on:
         description: 'Username for authenticating with provided Docker registry'
 
       # optional
-
-      ci_version:
-        required: false
-        type: string
-        description: 'Branch from which CI actions will be checked out'
-        default: 'v1.1'
       deploy_root:
         required: false
         type: string
@@ -49,6 +43,14 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
+      - name: Get workflow version
+        id: ci_workflow
+        run: |
+          workflow_yaml=$(cat .github/workflows/${{ github.workflow }}.yml)
+          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
+          tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
+          echo "##[set-output name=version;]$(echo $tag)"
+
       - name: Checkout (app)
         uses: actions/checkout@v3
         with:
@@ -59,7 +61,7 @@ jobs:
         with:
           repository: jalantechnologies/github-ci
           path: platform
-          ref: ${{ inputs.ci_version }}
+          ref: ${{ steps.ci_workflow.outputs.version }}
 
       - name: Extract branch name
         id: extract_branch
@@ -108,8 +110,8 @@ jobs:
           TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com'
         id: check_docker_hub
-        
-        run: |       
+
+        run: |
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}")
 
           if [ $STATUS_CODE -eq 200 ]; then
@@ -125,6 +127,6 @@ jobs:
           TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
         if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
         shell: bash
-        run: |          
+        run: |
           curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{inputs.docker_username}}/${{inputs.app_name}}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
           --header "Authorization: Bearer $TOKEN"
