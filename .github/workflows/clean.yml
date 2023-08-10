@@ -43,18 +43,18 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-      - name: Get workflow version
-        id: ci_workflow
-        run: |
-          workflow_yaml=$(cat .github/workflows/${{ github.workflow }}.yml)
-          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
-          tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=version;]$(echo $tag)"
-
       - name: Checkout (app)
         uses: actions/checkout@v3
         with:
           path: app
+
+      - name: Get workflow version
+        id: ci_workflow
+        run: |
+          workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
+          uses_data=$(echo "$workflow_yaml" | grep 'uses:')
+          tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
+          echo "##[set-output name=version;]$(echo $tag)"
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
