@@ -242,7 +242,7 @@ jobs:
           app_hostname: ${{ inputs.app_hostname }}
           branch: ${{ inputs.branch }}
           deploy_root: app/${{ inputs.deploy_root }}
-          deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
+#          deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
