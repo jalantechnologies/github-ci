@@ -15,10 +15,30 @@ echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 
 kube_pre_deploy_script="$KUBE_ROOT/scripts/pre-deploy.sh"
 kube_post_deploy_script="$KUBE_ROOT/scripts/post-deploy.sh"
+kube_parsed_labels=""
+
+# kubernetes labels
+# we convert invalid label values to 'NA'
+# this breaks input on IFS
+for label in $KUBE_LABELS
+do
+    lKey=${label%=*}
+    lValue=${label#*=}
+
+    if ! [[ $lValue =~ ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$ ]]; then
+        echo "deploy :: value for label - $lKey is not valid - $lValue"
+        lValue="NA"
+    fi
+
+    kube_parsed_labels+="$lKey=$lValue "
+done
+
+echo "deploy :: parsed labels - $kube_parsed_labels"
 
 # deployment pre deploy hook
 if [ -f "$kube_pre_deploy_script" ]; then
     echo "deploy :: running pre deploy hook - $kube_pre_deploy_script"
+    # shellcheck disable=SC1090
     source "$kube_pre_deploy_script"
 fi
 
@@ -56,8 +76,8 @@ if [ -d "$kube_core_dir" ]; then
         echo "deploy :: deploying from core config - $kube_core_dir/$file"
         envsubst <"$file" | kubectl apply -f -
 
-        if [ -n "$KUBE_LABELS" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
+        if [ -n "$kube_parsed_labels" ]; then
+            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
         fi
     done
 fi
@@ -67,8 +87,8 @@ if [ -d "$kube_shared_dir" ]; then
         echo "deploy :: deploying from shared config - $kube_shared_dir/$file"
         envsubst <"$file" | kubectl apply -f -
 
-        if [ -n "$KUBE_LABELS" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
+        if [ -n "$kube_parsed_labels" ]; then
+            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
         fi
     done
 fi
@@ -78,8 +98,8 @@ if [ -d "$kube_env_dir" ]; then
         echo "deploy :: deploying from env config - $kube_env_dir/$file"
         envsubst <"$file" | kubectl apply -f -
 
-        if [ -n "$KUBE_LABELS" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $KUBE_LABELS)
+        if [ -n "$kube_parsed_labels" ]; then
+            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
         fi
     done
 fi
@@ -87,6 +107,7 @@ fi
 # deployment post deploy hook
 if [ -f "$kube_post_deploy_script" ]; then
     echo "deploy :: running post deploy hook - $kube_post_deploy_script"
+    # shellcheck disable=SC1090
     source "$kube_post_deploy_script"
 fi
 
