@@ -20,19 +20,19 @@ on:
         type: string
         description: 'Directory where deployment would look for kubernetes specification files'
         default: 'lib/kube'
-      docker_username:
-        required: true
-        type: string
-        description: 'Username for authenticating with provided Docker registry'
       docker_registry:
         required: false
         type: string
         description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
         default: registry.hub.docker.com
+      docker_username:
+        required: true
+        type: string
+        description: 'Username for authenticating with provided Docker registry'
 
     secrets:
       docker_password:
-        required: false
+        required: true
       do_access_token:
         required: true
       do_cluster_id:
