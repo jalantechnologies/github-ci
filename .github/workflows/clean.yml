@@ -108,25 +108,8 @@ jobs:
 
           echo "::set-output name=token::$(echo $response | jq -r '.token')"
 
-      - name: Check - DockerHub
-        if: inputs.docker_registry == 'registry.hub.docker.com'
-        id: check_docker_hub
-        env:
-          DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
-        shell: bash
-        run: |
-          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $DOCKER_TOKEN" "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}")
-
-          if [ $STATUS_CODE -eq 200 ]; then
-            echo "Docker image exists"
-            echo "::set-output name=image_exists::true"
-          else
-            echo "Docker image does not exist"
-            echo "::set-output name=image_exists::false"
-          fi
-
       - name: Clean - DockerHub
-        if: inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.check_docker_hub.outputs.image_exists == 'true' }}
+        if: inputs.docker_registry == 'registry.hub.docker.com'
         env:
           DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
         shell: bash
