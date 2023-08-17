@@ -4,7 +4,6 @@ on:
   workflow_call:
     inputs:
       # required
-
       app_name:
         required: true
         type: string
@@ -14,10 +13,6 @@ on:
       branch:
         required: true
         type: string
-      docker_username:
-        required: true
-        type: string
-        description: 'Username for authenticating with provided Docker registry'
 
       # optional
       deploy_root:
@@ -30,10 +25,14 @@ on:
         type: string
         description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
         default: registry.hub.docker.com
+      docker_username:
+        required: true
+        type: string
+        description: 'Username for authenticating with provided Docker registry'
 
     secrets:
       docker_password:
-        required: false
+        required: true
       do_access_token:
         required: true
       do_cluster_id:
@@ -93,40 +92,27 @@ jobs:
           source platform/lib/kube/clean.sh
 
       - name: Authenticate - DockerHub
+        if: inputs.docker_registry == 'registry.hub.docker.com'
         id: auth_docker_hub
+        env:
+          DOCKER_USERNAME: ${{ inputs.docker_username }}
+          DOCKER_PASSWORD: ${{ secrets.docker_password }}
+        shell: bash
         run: |
-          DOCKER_USERNAME=${{inputs.docker_username}}
-          DOCKER_PASSWORD=${{secrets.docker_password}}
           response=$(curl --location 'https://hub.docker.com/v2/users/login' \
             --header 'Content-Type: application/json' \
             --data '{
               "username": "'"$DOCKER_USERNAME"'",
               "password": "'"$DOCKER_PASSWORD"'"
             }')
+
           echo "::set-output name=token::$(echo $response | jq -r '.token')"
 
-      - name: Check - DockerHub
-        env:
-          TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
-        if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com'
-        id: check_docker_hub
-
-        run: |
-          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "https://hub.docker.com/v2/repositories/{inputs.docker_username}/{inputs.app_name}/tags/{steps.extract_branch.outputs.branch_hash}")
-
-          if [ $STATUS_CODE -eq 200 ]; then
-            echo "Docker image exists"
-            echo "::set-output name=image_exists::true"
-          else
-            echo "Docker image does not exist"
-            echo "::set-output name=image_exists::false"
-          fi
-
       - name: Clean - DockerHub
+        if: inputs.docker_registry == 'registry.hub.docker.com'
         env:
-          TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
-        if: inputs.docker_username != '' && inputs.docker_registry == 'registry.hub.docker.com' && ${{ steps.docker_check.outputs.image_exists == 'true' }}
+          DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
         shell: bash
         run: |
-          curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{inputs.docker_username}}/${{inputs.app_name}}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
-          --header "Authorization: Bearer $TOKEN"
+          curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
+          --header "Authorization: Bearer $DOCKER_TOKEN"
