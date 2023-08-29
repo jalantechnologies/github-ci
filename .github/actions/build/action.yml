@@ -54,7 +54,7 @@ runs:
         # multiple cache sources - in case of pull requests, we'd like to reuse cache from base branch
         # @see - https://github.com/moby/moby/issues/34715#issuecomment-425933774
         cache-from: |
-          ${{ github.event.number == 0 && type=gha,scope=${{ github.base_ref }}-${{ inputs.app_name }} || '' }}
+          ${{ github.event.number == 0 && 'type=gha,scope=${{ github.base_ref }}-${{ inputs.app_name }}' || '' }}
           type=gha,scope=${{ github.head_ref || github.ref_name }}-${{ inputs.app_name }}
         cache-to: type=gha,mode=max,scope=${{ github.head_ref || github.ref_name }}-${{ inputs.app_name }}
         outputs: type=image,push=true
