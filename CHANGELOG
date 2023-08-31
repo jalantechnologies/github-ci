@@ -16,3 +16,21 @@ Initial Release
 - (bug) remove dependency from 'ci_version' input
 - (bug) remove dependency from 'ci_version' input from clean workflow
 - (chore) update documentation on development and release process
+
+## v1.2.1
+
+- (fix) Fix issue with workflow version
+
+## v1.3
+
+- (feat) Add support for tagging kubernetes resources with workflow attempt info
+- (bug) Deployment fails if the branch name does not passes the label validation
+- (bug) doppler kube secret is not updated when token is changed
+
+## v1.3.1
+
+- (bug) Clean up workflow is not working as expected
+
+## v1.4
+
+- (feat) Build on PRs should be able to use cache from base branch
