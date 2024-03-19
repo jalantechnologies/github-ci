@@ -2,7 +2,7 @@
 
 # requires - kubectl
 # requires - KUBE_ROOT, KUBE_NS, KUBE_APP, KUBE_ENV, KUBE_DEPLOYMENT_IMAGE, KUBE_INGRESS_HOSTNAME
-# requires - DOCKER_REGISTRY, DOCKER_USERNAME, DOCKER_PASSWORD
+# optional - DOCKER_REGISTRY, DOCKER_USERNAME, DOCKER_PASSWORD
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
 echo "deploy :: starting deployment procedure"
@@ -60,11 +60,13 @@ fi
 # docker registry secret - allowing resources to access private registries
 # see - https://stackoverflow.com/questions/45879498/how-can-i-update-a-secret-on-kubernetes-when-it-is-generated-from-a-file
 # created if does not exists, updates in place if updated
-kubectl create secret docker-registry regcred --docker-server="$DOCKER_REGISTRY" --docker-username="$DOCKER_USERNAME" --docker-password="$DOCKER_PASSWORD" -n "$KUBE_NS" \
-    --save-config \
-    --dry-run=client \
-    -o yaml | \
-kubectl apply -f -
+if [[ -n "$DOCKER_USERNAME" ]]; then
+    kubectl create secret docker-registry regcred --docker-server="$DOCKER_REGISTRY" --docker-username="$DOCKER_USERNAME" --docker-password="$DOCKER_PASSWORD" -n "$KUBE_NS" \
+        --save-config \
+        --dry-run=client \
+        -o yaml | \
+    kubectl apply -f -
+fi
 
 # kubernetes config (core / shared / env)
 kube_core_dir="$KUBE_ROOT/core"
@@ -111,4 +113,4 @@ if [ -f "$kube_post_deploy_script" ]; then
     source "$kube_post_deploy_script"
 fi
 
-echo "deploy :: deployment procedure finished"
+echo "deploy :: deployment finished - $KUBE_INGRESS_HOSTNAME"

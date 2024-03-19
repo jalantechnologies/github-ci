@@ -10,6 +10,22 @@ inputs:
   app_hostname:
     required: true
     description: 'Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch'
+  aws_access_key_id:
+    required: false
+    description: 'Access key ID for AWS'
+  aws_secret_access_key:
+    required: false
+    description: 'Access key Secret for AWS'
+  aws_cluster_name:
+    required: false
+    description: 'AWS EKS Cluster name'
+  aws_region:
+    required: false
+    description: 'Region for AWS'
+    default: 'us-east-1'
+  aws_use_ecr:
+    required: false
+    description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
   branch:
     required: true
     description: 'Branch from which this action was run'
@@ -23,19 +39,19 @@ inputs:
     required: true
     description: 'Docker image to use for deployment'
   docker_registry:
-    required: true
+    required: false
     description: 'Docker registry where build images would be pushed and pulled from'
   docker_username:
-    required: true
+    required: false
     description: 'Username for authenticating with provided docker registry'
   docker_password:
-    required: true
+    required: false
     description: 'Password for authenticating with provided docker registry'
   do_access_token:
-    required: true
+    required: false
     description: 'DigitalOcean access token'
   do_cluster_id:
-    required: true
+    required: false
     description: 'Kubernetes cluster ID on DigitalOcean'
   doppler_token:
     required: false
@@ -59,22 +75,45 @@ runs:
         echo "##[set-output name=branch_commit_hash;]$(echo $GITHUB_SHA)"
         echo "##[set-output name=branch_actor;]$(echo $GITHUB_ACTOR)"
 
-    - name: Doppler setup
-      env:
-        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
-      if: "${{ env.DOPPLER_TOKEN != '' }}"
-      uses: dopplerhq/cli-action@v1
-
     - name: DigitalOcean setup
-      uses: digitalocean/action-doctl@v2
+      env:
+        DO_ACCESS_TOKEN: ${{ inputs.do_access_token }}
+      if: "${{ env.DO_ACCESS_TOKEN != '' }}"
       with:
         token: ${{ inputs.do_access_token }}
+      uses: digitalocean/action-doctl@v2
 
-    - name: Kubernetes setup
+    - name: DigitalOcean Kubernetes setup
       shell: bash
       env:
         DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+      if: "${{ env.DO_CLUSTER_ID != '' }}"
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
+
+    - name: AWS setup
+      uses: aws-actions/configure-aws-credentials@v1
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+      if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: AWS ECR setup
+      env:
+        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      id: aws_ecr_login
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: AWS Kubernetes setup
+      shell: bash
+      env:
+        AWS_CLUSTER_NAME: ${{ inputs.aws_cluster_name }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      if: "${{ env.AWS_CLUSTER_NAME != '' }}"
+      run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
     - name: Kubernetes deploy
       shell: bash
@@ -82,7 +121,7 @@ runs:
       # kube configurations can use following environment variables along with the default ones provided by GitHub action
       # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
       env:
-        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_REGISTRY: ${{ inputs.docker_registry || steps.aws_ecr_login.outputs.registry }}
         DOCKER_USERNAME: ${{ inputs.docker_username }}
         DOCKER_PASSWORD: ${{ inputs.docker_password }}
         DOPPLER_TOKEN: ${{ inputs.doppler_token }}

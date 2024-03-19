@@ -21,10 +21,6 @@ on:
         required: true
         type: string
         description: 'Branch from which this workflow was run'
-      docker_username:
-        required: true
-        type: string
-        description: 'Username for authenticating with provided Docker registry'
 
       # optional
 
@@ -32,6 +28,20 @@ on:
         required: false
         type: string
         description: 'Base branch against with sonarqube will run code analysis'
+      aws_cluster_name:
+        required: false
+        type: string
+        description: 'AWS EKS Cluster Name'
+      aws_region:
+        required: false
+        type: string
+        description: 'Region for AWS'
+        default: 'us-east-1'
+      aws_use_ecr:
+        required: false
+        type: boolean
+        description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
+        default: false
       build_args:
         required: false
         type: string
@@ -60,6 +70,10 @@ on:
         type: string
         description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
         default: registry.hub.docker.com
+      do_cluster_id:
+        required: false
+        type: string
+        description: 'Kubernetes cluster ID on DigitalOcean'
       pull_request_number:
         required: false
         type: number
@@ -70,19 +84,30 @@ on:
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
 
     secrets:
+      aws_access_key_id:
+        required: false
+        description: 'Access key ID for AWS'
+      aws_secret_access_key:
+        required: false
+        description: 'Access key Secret for AWS'
       build_secrets:
         required: false
         description: 'Build secrets provided to the docker daemon when building docker image'
+      docker_username:
+        required: false
+        description: 'Username for authenticating with provided Docker registry'
       docker_password:
-        required: true
+        required: false
+        description: 'Password for authenticating with provided Docker registry'
       do_access_token:
-        required: true
-      do_cluster_id:
-        required: true
+        required: false
+        description: 'DigitalOcean access token'
       doppler_token:
         required: false
+        description: 'Doppler token for accessing environment variables'
       sonar_token:
         required: false
+        description: 'The authentication token or login of a SonarQube user'
 
     outputs:
       deploy_url:
@@ -137,7 +162,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image_ref: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
+      image_ref: ${{ inputs.docker_registry }}/${{ secrets.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
       workflow_ci_version: ${{ steps.ci_workflow.outputs.version }}
     steps:
       - name: Checkout (app)
@@ -175,12 +200,12 @@ jobs:
         uses: ./platform/.github/actions/build
         with:
           app_name: ${{ inputs.app_name }}
-          tags: ${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          tags: ${{ inputs.docker_registry }}/${{ secrets.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
           context: app/${{ inputs.build_context }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ inputs.docker_username }}
+          docker_username: ${{ secrets.docker_username }}
           docker_password: ${{ secrets.docker_password }}
 
   checks:
@@ -212,7 +237,7 @@ jobs:
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ inputs.docker_username }}
+          docker_username: ${{ secrets.docker_username }}
           docker_password: ${{ secrets.docker_password }}
 
   deploy:
@@ -240,15 +265,20 @@ jobs:
           app_name: ${{ inputs.app_name }}
           app_env: ${{ inputs.app_env }}
           app_hostname: ${{ inputs.app_hostname }}
+          aws_cluster_name: ${{ inputs.aws_cluster_name }}
+          aws_access_key_id: ${{ secrets.aws_access_key_id }}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+          aws_region: ${{ inputs.aws_region }}
+          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           branch: ${{ inputs.branch }}
           deploy_root: app/${{ inputs.deploy_root }}
           deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }} gh/workflow-run=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ inputs.docker_username }}
+          docker_username: ${{ secrets.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           do_access_token: ${{ secrets.do_access_token }}
-          do_cluster_id: ${{ secrets.do_cluster_id }}
+          do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
 
       - uses: marocchino/sticky-pull-request-comment@v2
