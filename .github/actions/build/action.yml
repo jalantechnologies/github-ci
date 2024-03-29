@@ -83,7 +83,7 @@ runs:
       run: |
         if [[ "$AWS_USE_ECR" == 'true' ]]; then
           TAG=${{ steps.aws_ecr_login.outputs.registry }}/${{ inputs.app_name }}
-        elsif
+        else
           TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
         fi
 
