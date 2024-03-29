@@ -7,14 +7,26 @@ inputs:
   image:
     required: true
     description: 'Image against which check will be performed'
+  aws_use_ecr:
+    required: false
+    description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
+  aws_access_key_id:
+    required: false
+    description: 'Access key ID for AWS. Required if login using ECR is enabled.'
+  aws_secret_access_key:
+    required: false
+    description: 'Access key Secret for AWS. Required if login using ECR is enabled.'
+  aws_region:
+    required: false
+    description: 'Region for AWS. Required if login using ECR is enabled.'
   docker_registry:
-    required: true
+    required: false
     description: 'Docker registry where build images would be pushed and pulled from'
   docker_username:
-    required: true
+    required: false
     description: 'Username for authenticating with provided docker registry'
   docker_password:
-    required: true
+    required: false
     description: 'Password for authenticating with provided docker registry'
   tag:
     required: false
@@ -36,10 +48,30 @@ runs:
 
     - name: Docker login
       uses: docker/login-action@v2
+      env:
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
+      if: "${{ env.DOCKER_USERNAME != '' }}"
       with:
         registry: ${{ inputs.docker_registry }}
         username: ${{ inputs.docker_username }}
         password: ${{ inputs.docker_password }}
+
+    - name: AWS setup
+      uses: aws-actions/configure-aws-credentials@v1
+      env:
+        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: AWS ECR login
+      env:
+        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      id: aws_ecr_login
+      uses: aws-actions/amazon-ecr-login@v1
 
     - name: Docker pull
       shell: bash
