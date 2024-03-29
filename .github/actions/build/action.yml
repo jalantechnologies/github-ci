@@ -4,18 +4,30 @@ inputs:
   app_name:
     required: true
     description: "Application name based on which build is cached"
+  aws_use_ecr:
+    required: false
+    description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
+  aws_access_key_id:
+    required: false
+    description: 'Access key ID for AWS. Required if login using ECR is enabled.'
+  aws_secret_access_key:
+    required: false
+    description: 'Access key Secret for AWS. Required if login using ECR is enabled.'
+  aws_region:
+    required: false
+    description: 'Region for AWS. Required if login using ECR is enabled.'
   docker_registry:
-    required: true
+    required: false
     description: 'Docker registry where build images would be pushed and pulled from'
   docker_username:
-    required: true
-    description: 'Username for authenticating with provided docker registry'
-  docker_password:
-    required: true
-    description: 'Password for authenticating with provided docker registry'
-  tags:
     required: false
-    description: 'Tags to use for tagging docker image'
+    description: 'Username for authenticating with provided docker registry. Required if provided registry requires authentication.'
+  docker_password:
+    required: false
+    description: 'Password for authenticating with provided docker registry. Required if provided registry requires authentication.'
+  tag:
+    required: false
+    description: 'Tag to use for tagging docker image'
   build_args:
     required: false
     description: 'Build time arguments which can be passed when building docker image'
@@ -27,9 +39,9 @@ inputs:
     description: 'Build context to use with docker. Default to checked out Git directory.'
     default: .
 outputs:
-  image_digest:
+  image_ref:
     description: 'Built docker image reference'
-    value: ${{ steps.build.outputs.digest }}
+    value: ${{ steps.tag.outputs.value }}@${{ steps.build.outputs.digest }}
 runs:
   using: composite
   steps:
@@ -38,17 +50,51 @@ runs:
 
     - name: Docker login
       uses: docker/login-action@v2
+      env:
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
+      if: "${{ env.DOCKER_USERNAME != '' }}"
       with:
         registry: ${{ inputs.docker_registry }}
         username: ${{ inputs.docker_username }}
         password: ${{ inputs.docker_password }}
+
+    - name: AWS setup
+      uses: aws-actions/configure-aws-credentials@v1
+      env:
+        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: AWS ECR login
+      env:
+        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      id: aws_ecr_login
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Docker build tag
+      shell: bash
+      id: tag
+      env:
+        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      run: |
+        if [[ "$AWS_USE_ECR" == 'true' ]]; then
+          TAG=${{ steps.aws_ecr_login.outputs.registry }}/${{ inputs.app_name }}
+        elsif
+          TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
+        fi
+
+        echo "##[set-output name=value;]$(echo $TAG)"
 
     - name: Docker build
       id: build
       uses: docker/build-push-action@v4
       with:
         context: ${{ inputs.context }}
-        tags: ${{ inputs.tags }}
+        tags: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
         # multiple cache sources - in case of pull requests (github.base_ref), we'd like to reuse cache from base branch

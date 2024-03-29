@@ -21,11 +21,8 @@ inputs:
     description: 'AWS EKS Cluster name'
   aws_region:
     required: false
-    description: 'Region for AWS'
+    description: 'Region for AWS. Defaults to us-east-1.'
     default: 'us-east-1'
-  aws_use_ecr:
-    required: false
-    description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
   branch:
     required: true
     description: 'Branch from which this action was run'
@@ -100,13 +97,6 @@ runs:
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
         aws-region: ${{ inputs.aws_region }}
 
-    - name: AWS ECR setup
-      env:
-        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.AWS_USE_ECR == 'true' }}"
-      id: aws_ecr_login
-      uses: aws-actions/amazon-ecr-login@v1
-
     - name: AWS Kubernetes setup
       shell: bash
       env:
@@ -121,7 +111,7 @@ runs:
       # kube configurations can use following environment variables along with the default ones provided by GitHub action
       # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
       env:
-        DOCKER_REGISTRY: ${{ inputs.docker_registry || steps.aws_ecr_login.outputs.registry }}
+        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
         DOCKER_USERNAME: ${{ inputs.docker_username }}
         DOCKER_PASSWORD: ${{ inputs.docker_password }}
         DOPPLER_TOKEN: ${{ inputs.doppler_token }}

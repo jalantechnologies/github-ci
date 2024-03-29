@@ -162,7 +162,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image_ref: ${{ inputs.docker_registry }}/${{ secrets.docker_username }}/${{ inputs.app_name }}@${{ steps.build.outputs.image_digest }}
+      image_ref: ${{ steps.build.outputs.image_ref }}
       workflow_ci_version: ${{ steps.ci_workflow.outputs.version }}
     steps:
       - name: Checkout (app)
@@ -200,7 +200,11 @@ jobs:
         uses: ./platform/.github/actions/build
         with:
           app_name: ${{ inputs.app_name }}
-          tags: ${{ inputs.docker_registry }}/${{ secrets.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}
+          aws_access_key_id: ${{ secrets.aws_access_key_id }}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+          aws_region: ${{ inputs.aws_region }}
+          aws_use_ecr: ${{ inputs.aws_use_ecr }}
+          tag: ${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
           context: app/${{ inputs.build_context }}
@@ -269,7 +273,6 @@ jobs:
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
-          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           branch: ${{ inputs.branch }}
           deploy_root: app/${{ inputs.deploy_root }}
           deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }} gh/workflow-run=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
