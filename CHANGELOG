@@ -34,3 +34,11 @@ Initial Release
 ## v1.4
 
 - (feat) Build on PRs should be able to use cache from base branch
+
+## v2
+
+- (feat) Add support for deploying on AWS EKS
+
+Breaking changes:
+- This moves docker_username from inputs to secrets
+- This moves do_cluster_id from secrets to inputs
