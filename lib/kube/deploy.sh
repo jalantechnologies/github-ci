@@ -5,6 +5,10 @@
 # optional - DOCKER_REGISTRY, DOCKER_USERNAME, DOCKER_PASSWORD
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
+# custom vars
+# deployment id based on current timestamp
+export KUBE_DEPLOY_ID=$(($(date +%s)))
+
 echo "deploy :: starting deployment procedure"
 echo "deploy :: kube root - $KUBE_ROOT"
 echo "deploy :: kube namespace - $KUBE_NS"
