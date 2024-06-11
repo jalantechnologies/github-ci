@@ -16,6 +16,7 @@ echo "deploy :: kube app - $KUBE_APP"
 echo "deploy :: kube env - $KUBE_ENV"
 echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
 echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
+echo "deploy :: kube deploy id - $KUBE_DEPLOY_ID"
 
 kube_pre_deploy_script="$KUBE_ROOT/scripts/pre-deploy.sh"
 kube_post_deploy_script="$KUBE_ROOT/scripts/post-deploy.sh"
