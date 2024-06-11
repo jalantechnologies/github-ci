@@ -7,7 +7,7 @@
 
 # custom vars
 # deployment id based on current timestamp
-export KUBE_DEPLOY_ID=$(($(date +%s)))
+export KUBE_DEPLOY_ID=$(( ($(date +%s) + 500) % 1000000 ))
 
 echo "deploy :: starting deployment procedure"
 echo "deploy :: kube root - $KUBE_ROOT"
