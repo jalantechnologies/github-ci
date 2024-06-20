@@ -42,3 +42,11 @@ Initial Release
 Breaking changes:
 - This moves docker_username from inputs to secrets
 - This moves do_cluster_id from secrets to inputs
+
+## v2.1
+
+- (feat) Add support for giving priority to preview deployments
+
+## v2.2
+
+- (fix) Fix issue with docker_username getting marked as sensitive
