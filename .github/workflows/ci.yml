@@ -70,6 +70,10 @@ on:
         type: string
         description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
         default: registry.hub.docker.com
+      docker_username:
+        required: false
+        type: string
+        description: 'Username for authenticating with provided Docker registry'
       do_cluster_id:
         required: false
         type: string
@@ -93,9 +97,6 @@ on:
       build_secrets:
         required: false
         description: 'Build secrets provided to the docker daemon when building docker image'
-      docker_username:
-        required: false
-        description: 'Username for authenticating with provided Docker registry'
       docker_password:
         required: false
         description: 'Password for authenticating with provided Docker registry'
@@ -209,7 +210,7 @@ jobs:
           build_secrets: ${{ secrets.build_secrets }}
           context: app/${{ inputs.build_context }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ secrets.docker_username }}
+          docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
 
   checks:
@@ -245,7 +246,7 @@ jobs:
           aws_region: ${{ inputs.aws_region }}
           aws_use_ecr: ${{ inputs.aws_use_ecr }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ secrets.docker_username }}
+          docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
 
   deploy:
@@ -282,7 +283,7 @@ jobs:
           deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }} gh/workflow-run=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ secrets.docker_username }}
+          docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
