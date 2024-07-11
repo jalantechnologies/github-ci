@@ -105,9 +105,10 @@ runs:
     # will execute - npm run lint
 
     - name: Debug Run check using npm
-      if: steps.check.outputs.scheme == 'npm'
+      # if: steps.check.outputs.scheme == 'npm'
       shell: bash
       run: |
+        echo steps.check.outputs.scheme
         echo "Running npm check with input: ${{ steps.check.outputs.input }}"
         docker run -t ${{ inputs.image }} npm run ${{ steps.check.outputs.input }}
 
