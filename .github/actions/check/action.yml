@@ -109,7 +109,8 @@ runs:
       shell: bash
       run: |
         echo "QQQQQQQQQ: ${{ steps.check.outputs.scheme }}"
-        echo "WWWWWWW: ${{ steps }}"
+        echo "WWWWWWW: ${{ steps.check }}"
+        echo "EEEEEEE: ${{ steps.check.outputs }}"
         echo "Running npm check with input: ${{ steps.check.outputs.input }}"
         docker run -t ${{ inputs.image }} npm run ${{ steps.check.outputs.input }}
 
