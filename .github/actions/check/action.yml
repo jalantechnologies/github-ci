@@ -108,7 +108,8 @@ runs:
       # if: steps.check.outputs.scheme == 'npm'
       shell: bash
       run: |
-        echo steps.check.outputs.scheme
+        echo "QQQQQQQQQ: ${{ steps.check.outputs.scheme }}"
+        echo "WWWWWWW: ${{ steps }}"
         echo "Running npm check with input: ${{ steps.check.outputs.input }}"
         docker run -t ${{ inputs.image }} npm run ${{ steps.check.outputs.input }}
 
