@@ -45,6 +45,7 @@ runs:
         echo "::set-output name=input::${CHECK#*:}"
 
     - name: Debug Docker setup
+      shell: bash
       run: |
         echo "Setting up Docker..."
 
@@ -52,6 +53,7 @@ runs:
       uses: docker/setup-buildx-action@v2
 
     - name: Debug Docker login
+      shell: bash
       run: |
         echo "DOCKER_USERNAME: ${{ inputs.docker_username }}"
         echo "DOCKER_REGISTRY: ${{ inputs.docker_registry }}"
@@ -67,6 +69,7 @@ runs:
         password: ${{ inputs.docker_password }}
 
     - name: Debug AWS setup
+      shell: bash
       run: |
         echo "AWS_USE_ECR: ${{ inputs.aws_use_ecr }}"
         echo "AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}"
