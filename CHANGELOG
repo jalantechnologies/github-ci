@@ -50,3 +50,7 @@ Breaking changes:
 ## v2.2
 
 - (fix) Fix issue with docker_username getting marked as sensitive
+
+## v2.3
+
+- (fix) NPM checks getting ignored for npm:lint:ts or npm:lint:py
