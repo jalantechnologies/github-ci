@@ -40,7 +40,7 @@ runs:
       env:
         CHECK: ${{ inputs.check }}
       run: |
-        echo "::set-output name=scheme::${CHECK%:*}"
+        echo "::set-output name=scheme::${CHECK%%:*}"
         echo "::set-output name=input::${CHECK#*:}"
 
     - name: Docker setup
