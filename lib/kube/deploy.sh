@@ -6,26 +6,38 @@
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
 # custom vars
-# Define the file to store the highest used ID
-HIGHEST_ID_FILE="highest_id.txt"
+# function to get the highest priority class value
+get_highest_priority_class() {
+    kubectl get pods --namespace "$KUBE_NS" -o=jsonpath='{.items[*].spec.priorityClassName}' \
+    | xargs -I{} kubectl get priorityclass {} -o=jsonpath='{.value}' \
+    | sort -n | tail -1
+}
 
-# Define the maximum and minimum valid IDs
-MIN_ID=1
-MAX_ID=1000000000
+# Get the current highest priority class value
+HIGHEST_PRIORITY_CLASS=$(get_highest_priority_class)
+echo "debugging :: highest priority class - $HIGHEST_PRIORITY_CLASS"
 
-# Function to get the current highest ID from the file
-get_highest_id() {
-    if [ -f "$HIGHEST_ID_FILE" ]; then
-        cat "$HIGHEST_ID_FILE"
-    else
-        echo "$MIN_ID"
+# Generate a base deployment ID based on the current timestamp
+BASE_ID=$(( ($(date +%s) + 500) % 1000000 ))
+echo "debugging :: base id - $BASE_ID"
+
+# Ensure the BASE_ID is within the valid range
+KUBE_DEPLOY_ID=$(( (BASE_ID % (1000000000 - 1)) + 1 ))
+echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
+
+# If the KUBE_DEPLOY_ID is not greater than the highest priority class, adjust it
+if [ -n "$HIGHEST_PRIORITY_CLASS" ]; then
+    if [ "$KUBE_DEPLOY_ID" -le "$HIGHEST_PRIORITY_CLASS" ]; then
+        KUBE_DEPLOY_ID=$((HIGHEST_PRIORITY_CLASS + 1))
+        if [ "$KUBE_DEPLOY_ID" -gt 1000000000 ]; then
+            KUBE_DEPLOY_ID=1000000000
+        fi
     fi
-}
+fi
+echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
 
-# Function to update the highest ID in the file
-update_highest_id() {
-    echo "$KUBE_DEPLOY_ID" > "$HIGHEST_ID_FILE"
-}
+# Export the ID
+export KUBE_DEPLOY_ID
 
 # Generate a base ID based on the current timestamp and normalize it
 BASE_ID=$(( ($(date +%s) + 500) % 1000000 ))
