@@ -6,7 +6,7 @@
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
 # custom vars
-# function to get the highest priority class value
+# Function to get the highest priority class value
 get_highest_priority_from_pods() {
     # Get priority values from running pods in the specified namespace
     priority_values=$(kubectl get pods -n "$KUBE_NS" -o custom-columns=PRIORITY:.spec.priority --no-headers 2>/dev/null)
@@ -22,12 +22,15 @@ get_highest_priority_from_pods() {
 
 # Get the current highest priority value from pods
 HIGHEST_PRIORITY=$(get_highest_priority_from_pods)
+echo "debug :: highest priority - $HIGHEST_PRIORITY"
 
-# Generate a base deployment ID based on the current timestamp
-BASE_ID=$(( ($(date +%s) + 500) % 1000000 ))
+# Generate a base deployment ID based on the current timestamp, ensuring it's within the range 1 to 1000000000
+BASE_ID=$(( ( $(date +%s) % 1000000000 ) + 1 ))
+echo "debug :: base deployment ID - $BASE_ID"
 
-# Ensure the BASE_ID is within a valid range
-KUBE_DEPLOY_ID=$(( (BASE_ID % (1000000000 - 1)) + 1 ))
+# Set the deployment ID initially to the base ID
+KUBE_DEPLOY_ID=$BASE_ID
+echo "debug :: initial deployment ID - $KUBE_DEPLOY_ID"
 
 # If the KUBE_DEPLOY_ID is not greater than the highest priority class, adjust it
 if [ -n "$HIGHEST_PRIORITY" ]; then
@@ -38,6 +41,7 @@ if [ -n "$HIGHEST_PRIORITY" ]; then
         fi
     fi
 fi
+echo "debug :: adjusted deployment ID - $KUBE_DEPLOY_ID"
 
 # Export the ID
 export KUBE_DEPLOY_ID
