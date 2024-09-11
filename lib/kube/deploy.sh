@@ -7,65 +7,46 @@
 
 # custom vars
 # function to get the highest priority class value
-get_highest_priority_class() {
-    kubectl get pods --namespace "$KUBE_NS" -o=jsonpath='{.items[*].spec.priorityClassName}' \
-    | xargs -I{} kubectl get priorityclass {} -o=jsonpath='{.value}' \
-    | sort -n | tail -1
+get_highest_priority_from_pods() {
+    # Get priority values from running pods in the specified namespace
+    priority_values=$(kubectl get pods -n "$KUBE_NS" -o custom-columns=PRIORITY:.spec.priority --no-headers 2>/dev/null)
+    echo "debug :: priority values - $priority_values"
+    
+    if [ -z "$priority_values" ]; then
+        echo "No pods found or no priority values available"
+        echo 0
+        return
+    fi
+
+    # Extract the highest priority value
+    echo "$priority_values" | sort -n | tail -1
 }
 
-# Get the current highest priority class value
-HIGHEST_PRIORITY_CLASS=$(get_highest_priority_class)
-echo "debugging :: highest priority class - $HIGHEST_PRIORITY_CLASS"
+# Get the current highest priority value from pods
+HIGHEST_PRIORITY=$(get_highest_priority_from_pods)
+echo "debug :: highest priority - $HIGHEST_PRIORITY"
 
 # Generate a base deployment ID based on the current timestamp
 BASE_ID=$(( ($(date +%s) + 500) % 1000000 ))
-echo "debugging :: base id - $BASE_ID"
+echo "debug :: base id - $BASE_ID"
 
-# Ensure the BASE_ID is within the valid range
+# Ensure the BASE_ID is within a valid range
 KUBE_DEPLOY_ID=$(( (BASE_ID % (1000000000 - 1)) + 1 ))
-echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
+echo "debug :: deploy id - $KUBE_DEPLOY_ID"
 
 # If the KUBE_DEPLOY_ID is not greater than the highest priority class, adjust it
-if [ -n "$HIGHEST_PRIORITY_CLASS" ]; then
-    if [ "$KUBE_DEPLOY_ID" -le "$HIGHEST_PRIORITY_CLASS" ]; then
-        KUBE_DEPLOY_ID=$((HIGHEST_PRIORITY_CLASS + 1))
+if [ -n "$HIGHEST_PRIORITY" ]; then
+    if [ "$KUBE_DEPLOY_ID" -le "$HIGHEST_PRIORITY" ]; then
+        KUBE_DEPLOY_ID=$((HIGHEST_PRIORITY + 1))
         if [ "$KUBE_DEPLOY_ID" -gt 1000000000 ]; then
             KUBE_DEPLOY_ID=1000000000
         fi
     fi
 fi
-echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
+echo "debug :: adjusted deploy id - $KUBE_DEPLOY_ID"
 
 # Export the ID
 export KUBE_DEPLOY_ID
-
-# Generate a base ID based on the current timestamp and normalize it
-BASE_ID=$(( ($(date +%s) + 500) % 1000000 ))
-echo "debugging :: base id - $BASE_ID"
-
-# Normalize the BASE_ID to fit within the valid range
-KUBE_DEPLOY_ID=$(( (BASE_ID % (MAX_ID - MIN_ID + 1)) + MIN_ID ))
-echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
-
-# Ensure the ID is higher than the currently highest ID
-HIGHEST_ID=$(get_highest_id)
-echo "debugging :: highest id - $HIGHEST_ID"
-
-if [ "$KUBE_DEPLOY_ID" -le "$HIGHEST_ID" ]; then
-    # Increment to be higher than the current highest ID
-    KUBE_DEPLOY_ID=$((HIGHEST_ID + 1))
-    if [ "$KUBE_DEPLOY_ID" -gt "$MAX_ID" ]; then
-        KUBE_DEPLOY_ID="$MAX_ID"
-    fi
-fi
-echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
-
-# Export the ID
-export KUBE_DEPLOY_ID
-
-# Update the highest ID
-update_highest_id
-echo "debugging :: updated highest id - $KUBE_DEPLOY_ID"
 
 echo "deploy :: starting deployment procedure"
 echo "deploy :: kube root - $KUBE_ROOT"
