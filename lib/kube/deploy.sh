@@ -6,8 +6,14 @@
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
 # custom vars
-# deployment id based on current timestamp
-export KUBE_DEPLOY_ID=$(( ($(date +%s) + 500) % 1000000 ))
+# Set KUBE_DEPLOY_ID using the commit SHA
+COMMIT_SHA=$(git rev-parse HEAD)
+export KUBE_DEPLOY_ID=$(echo "$COMMIT_SHA" | md5sum | tr -dc '0-9' | head -c 9)
+
+# Ensure it's within the valid range
+if [ "$KUBE_DEPLOY_ID" -gt 1000000000 ]; then
+    export KUBE_DEPLOY_ID=1000000000
+fi
 
 echo "deploy :: starting deployment procedure"
 echo "deploy :: kube root - $KUBE_ROOT"
