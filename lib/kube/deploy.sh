@@ -7,7 +7,6 @@
 
 # custom vars
 # Set KUBE_DEPLOY_ID using the commit SHA
-COMMIT_SHA=$(git rev-parse HEAD)
 export KUBE_DEPLOY_ID=$(echo "$COMMIT_SHA" | md5sum | tr -dc '0-9' | head -c 9)
 
 # Ensure it's within the valid range
