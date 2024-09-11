@@ -22,15 +22,12 @@ get_highest_priority_from_pods() {
 
 # Get the current highest priority value from pods
 HIGHEST_PRIORITY=$(get_highest_priority_from_pods)
-echo "debug :: highest priority - $HIGHEST_PRIORITY"
 
 # Generate a base deployment ID based on the current timestamp, ensuring it's within the range 1 to 1000000000
 BASE_ID=$(( ( $(date +%s) % 1000000000 ) + 1 ))
-echo "debug :: base deployment ID - $BASE_ID"
 
 # Set the deployment ID initially to the base ID
 KUBE_DEPLOY_ID=$BASE_ID
-echo "debug :: initial deployment ID - $KUBE_DEPLOY_ID"
 
 # If the KUBE_DEPLOY_ID is not greater than the highest priority class, adjust it
 if [ -n "$HIGHEST_PRIORITY" ]; then
@@ -41,7 +38,6 @@ if [ -n "$HIGHEST_PRIORITY" ]; then
         fi
     fi
 fi
-echo "debug :: adjusted deployment ID - $KUBE_DEPLOY_ID"
 
 # Export the ID
 export KUBE_DEPLOY_ID
