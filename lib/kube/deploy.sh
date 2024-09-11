@@ -10,7 +10,6 @@
 get_highest_priority_from_pods() {
     # Get priority values from running pods in the specified namespace
     priority_values=$(kubectl get pods -n "$KUBE_NS" -o custom-columns=PRIORITY:.spec.priority --no-headers 2>/dev/null)
-    echo "debug :: priority values - $priority_values"
     
     if [ -z "$priority_values" ]; then
         echo "No pods found or no priority values available"
