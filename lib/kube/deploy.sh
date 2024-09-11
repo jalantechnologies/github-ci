@@ -6,13 +6,54 @@
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
 # custom vars
-# Set KUBE_DEPLOY_ID using the commit SHA
-export KUBE_DEPLOY_ID=$(echo "$COMMIT_SHA" | md5sum | tr -dc '0-9' | head -c 9)
+# Define the file to store the highest used ID
+HIGHEST_ID_FILE="highest_id.txt"
 
-# Ensure it's within the valid range
-if [ "$KUBE_DEPLOY_ID" -gt 1000000000 ]; then
-    export KUBE_DEPLOY_ID=1000000000
+# Define the maximum and minimum valid IDs
+MIN_ID=1
+MAX_ID=1000000000
+
+# Function to get the current highest ID from the file
+get_highest_id() {
+    if [ -f "$HIGHEST_ID_FILE" ]; then
+        cat "$HIGHEST_ID_FILE"
+    else
+        echo "$MIN_ID"
+    fi
+}
+
+# Function to update the highest ID in the file
+update_highest_id() {
+    echo "$KUBE_DEPLOY_ID" > "$HIGHEST_ID_FILE"
+}
+
+# Generate a base ID based on the current timestamp and normalize it
+BASE_ID=$(( ($(date +%s) + 500) % 1000000 ))
+echo "debugging :: base id - $BASE_ID"
+
+# Normalize the BASE_ID to fit within the valid range
+KUBE_DEPLOY_ID=$(( (BASE_ID % (MAX_ID - MIN_ID + 1)) + MIN_ID ))
+echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
+
+# Ensure the ID is higher than the currently highest ID
+HIGHEST_ID=$(get_highest_id)
+echo "debugging :: highest id - $HIGHEST_ID"
+
+if [ "$KUBE_DEPLOY_ID" -le "$HIGHEST_ID" ]; then
+    # Increment to be higher than the current highest ID
+    KUBE_DEPLOY_ID=$((HIGHEST_ID + 1))
+    if [ "$KUBE_DEPLOY_ID" -gt "$MAX_ID" ]; then
+        KUBE_DEPLOY_ID="$MAX_ID"
+    fi
 fi
+echo "debugging :: kube deploy id - $KUBE_DEPLOY_ID"
+
+# Export the ID
+export KUBE_DEPLOY_ID
+
+# Update the highest ID
+update_highest_id
+echo "debugging :: updated highest id - $KUBE_DEPLOY_ID"
 
 echo "deploy :: starting deployment procedure"
 echo "deploy :: kube root - $KUBE_ROOT"

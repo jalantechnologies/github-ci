@@ -26,9 +26,6 @@ inputs:
   branch:
     required: true
     description: 'Branch from which this action was run'
-  commit_sha:
-    required: false
-    description: 'Commit SHA for the deployment'
   deploy_root:
     required: true
     description: 'Directory where kube deployment would look for kubernetes specification files'
@@ -115,7 +112,6 @@ runs:
       # kube configurations can use following environment variables along with the default ones provided by GitHub action
       # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
       env:
-        COMMIT_SHA: ${{ inputs.commit_sha }}
         DOCKER_REGISTRY: ${{ inputs.docker_registry }}
         DOCKER_USERNAME: ${{ inputs.docker_username }}
         DOCKER_PASSWORD: ${{ inputs.docker_password }}

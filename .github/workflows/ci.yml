@@ -55,10 +55,6 @@ on:
         required: false
         type: string
         description: 'Checks to be performed. Provide here list of checks in scheme:input format where scheme can be - npm, compose.'
-      commit_sha:
-        required: false
-        type: string
-        description: 'Commit SHA for which this workflow was run'
       deploy_root:
         required: false
         type: string
@@ -283,7 +279,6 @@ jobs:
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
           branch: ${{ inputs.branch }}
-          commit_sha: ${{ inputs.commit_sha}}
           deploy_root: app/${{ inputs.deploy_root }}
           deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }} gh/workflow-run=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
