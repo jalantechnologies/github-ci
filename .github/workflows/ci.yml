@@ -86,6 +86,10 @@ on:
         required: false
         type: string
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
+      workflow_run_number:
+        required: false
+        type: number
+        description: 'Run number of the workflow'
 
     secrets:
       aws_access_key_id:
@@ -288,6 +292,7 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
+          workflow_run_number: ${{ inputs.workflow_run_number }}
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
