@@ -279,6 +279,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
           branch: ${{ inputs.branch }}
+          deploy_id: ${{ github.run_number }}
           deploy_root: app/${{ inputs.deploy_root }}
           deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }} gh/workflow-run=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
@@ -288,7 +289,6 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
-          workflow_run_number: ${{ github.run_number }}
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
