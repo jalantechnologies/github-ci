@@ -54,3 +54,7 @@ Breaking changes:
 ## v2.3
 
 - (fix) NPM checks getting ignored for npm:lint:ts or npm:lint:py
+
+## v2.5
+
+- (bug) DEPLOY_ID is not working as expected
