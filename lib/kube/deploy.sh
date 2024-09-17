@@ -6,8 +6,6 @@
 # optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
 # custom vars
-# deployment id based on current timestamp
-export KUBE_DEPLOY_ID=$(( ($(date +%s) + 500) % 1000000 ))
 
 echo "deploy :: starting deployment procedure"
 echo "deploy :: kube root - $KUBE_ROOT"

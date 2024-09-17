@@ -26,6 +26,9 @@ inputs:
   branch:
     required: true
     description: 'Branch from which this action was run'
+  deploy_id:
+    required: false
+    description: 'Unique identifier which can also be used for giving priority to resources created during deployment process'
   deploy_root:
     required: true
     description: 'Directory where kube deployment would look for kubernetes specification files'
@@ -125,6 +128,7 @@ runs:
         KUBE_DEPLOYMENT_IMAGE: ${{ inputs.deploy_image }}
         KUBE_INGRESS_HOSTNAME: ${{ format(inputs.app_hostname, inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
+        KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
         source platform/lib/kube/deploy.sh
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
