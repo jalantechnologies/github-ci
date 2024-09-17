@@ -27,7 +27,8 @@ Our MERN Boilerplate implements the workflows documented here. Find the project 
 
 - Update the [CHANGELOG](https://github.com/jalantechnologies/github-ci/blob/main/CHANGELOG)
   - Changelog needs to be updated which tracks the updates that are being made with each release.
-  - Update the changelog with the version and updates that are being released. Changes can be pushed directly to `main`.
+  - Update the changelog with the version and updates that are being released.
+  - Raise a pull request with the updated changelog and get approval from the code owners before merging it into main.
 
 - From [Releases](https://github.com/jalantechnologies/github-ci/releases), create a new release.
   - For "Choose a tag", enter the version for release (example - `v2.5`). Select "Create a new tag" option.
