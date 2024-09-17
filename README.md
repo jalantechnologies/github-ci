@@ -20,10 +20,21 @@ Our MERN Boilerplate implements the workflows documented here. Find the project 
 
 ## Release
 
-- Create a new branch from `main` from where release needs to happen.
-- Follow [semantic versioning](https://docs.npmjs.com/about-semantic-versioning) for creating a new release, eg - `v1.2`
-- Update CHANGELOG with changes being released, commit the change.
-- Push the branch to origin.
-- Raise a PR pointed towards `main` for release. Ask for review from code owners and get it merged.
-- Create a new release with title being the version, eg - `v1.2` and description being the items added in CHANGELOG.
-- Workflows can now use this new version, eg - `jalantechnologies/github-ci/.github/workflows/ci.yml@v1.2`
+- Get the version for release - Increment the latest version following [semantic versioning](https://docs.npmjs.com/about-semantic-versioning).
+  - Get the latest version from [Releases](https://github.com/jalantechnologies/github-ci/releases).
+  - If there are breaking changes - Major version needs to be bumped (example - `v2.4` will get bumped to `v3.0`)
+  - If there are no breaking changes - Minor version needs to be bumped (example - `v2.4` will get bumped to `v2.5`)
+
+- Update the [CHANGELOG](https://github.com/jalantechnologies/github-ci/blob/main/CHANGELOG)
+  - Changelog needs to be updated which tracks the updates that are being made with each release.
+  - Update the changelog with the version and updates that are being released. Changes can be pushed directly to `main`.
+
+- From [Releases](https://github.com/jalantechnologies/github-ci/releases), create a new release.
+  - For "Choose a tag", enter the version for release (example - `v2.5`). Select "Create a new tag" option.
+  - For "Release title", enter the version for release (example - `v2.5`).
+  - For "Release notes", select "Generate release notes".
+  - Make sure "Set as the latest release" is selected.
+  - Select "Publish Release"
+
+- Once release is published, dependent apps can now use the new release.
+- Example - `jalantechnologies/github-ci/.github/workflows/ci.yml@v2.4` can now be changed to `jalantechnologies/github-ci/.github/workflows/ci.yml@v2.5`
