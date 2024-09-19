@@ -10,5 +10,5 @@ max_line_length = 1000
 tab_width = 4
 trim_trailing_whitespace = true
 
-[{*.yaml,*.yml}]
+[{*.yaml,*.yml,*.md}]
 indent_size = 2

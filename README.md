@@ -1,11 +1,13 @@
 # GitHub CI
 
-Defines workflows which allows you to run CI checks and deployments using Docker and GitHub Actions. Supports:
+Set of GitHub action workflow for running end-to-end CI pipeline:
+  - Analyzing the code using [SonarQube](https://www.sonarsource.com/products/sonarqube/)
+  - Building a docker image (with cache support) and pushing it to configured docker registry.
+  - Running arbitrary checks using built image - Example: `test`, `lint`, `e2e`.
+  - Injecting configuration using [Doppler](https://www.doppler.com/).
+  - And finally, deploy resources on Kubernetes cluster on [DOKS](https://docs.digitalocean.com/products/kubernetes/) and [EKS](https://aws.amazon.com/eks/).
 
-- Analysis - Running code analysis using SonarQube
-- Checks - Running Functional, E2E, Lint checks (with support for adding your own checks with dependencies using `docker compose`)
-- Deployment - Supports deploying on [Digital Ocean's Kubernetes Cluster](https://www.digitalocean.com/products/kubernetes)
-- Configuration - Supports [Doppler](https://www.doppler.com) for injecting sensitive configuration values during deployments.
+For instructions on usage and setup, please see - [Usage](docs/usage.md)
 
 ## Demo
 
