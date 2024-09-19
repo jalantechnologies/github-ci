@@ -1,10 +1,5 @@
 # GitHub CI - Usage
 
-This project defines following GitHub action workflows:
-
-- `ci.yml` - Main workflow with CI/CD pipeline
-- `clean.yml` - Cleanup workflow which takes care of cleaning up resources.
-
 <!-- TOC -->
 * [GitHub CI - Usage](#github-ci---usage)
   * [CI](#ci)
@@ -14,6 +9,8 @@ This project defines following GitHub action workflows:
 <!-- TOC -->
 
 ## CI
+
+`.github/workflows/ci.yml` - This is the main workflow with CI/CD pipeline
 
 ### Deploying on Digital Ocean
 
@@ -134,11 +131,6 @@ Upon successfully invocation, you will have:
 
 **Pre-requirements**
 
-- Account on DigitalOcean and API token with read/write access (See [this](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for help).
-- Kubernetes cluster on DigitalOcean with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [this](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm) for help.)
-- Access and credentials for a Docker registry (This example uses Docker Hub - `registry.hub.docker.com`)
-- A valid `Dockerfile` on root of your project with entrypoint (See [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
-
 - Account on AWS and credentials (Access key and secret). For required permissions, check [this](https://github.com/goartica/terraform-workspace-aws-projects-bionic/blob/main/iam.tf) out.
 - Kubernetes cluster on AWS with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [this](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-3-nginx-ingress-controller/) for help.)
 - Access and credentials for a Docker registry (This example uses ECR and assumes provided credentials have access to the ECR repository).
@@ -174,3 +166,5 @@ jobs:
 ```
 
 ## Clean
+
+`.github/workflows/clean.yml` - This is the cleanup workflow which takes care of cleaning up resources.
