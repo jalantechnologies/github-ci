@@ -1,13 +1,11 @@
 # GitHub CI - Usage
 
 <!-- TOC -->
-
 * [GitHub CI - Usage](#github-ci---usage)
   * [CI](#ci)
     * [Deploying on Digital Ocean](#deploying-on-digital-ocean)
     * [Deploying on AWS](#deploying-on-aws)
   * [Clean](#clean)
-
 <!-- TOC -->
 
 ## CI
@@ -166,6 +164,13 @@ jobs:
       aws_access_key_id: '<aws_access_key_id>'
       aws_secret_access_key: '<aws_access_secret_key>'
 ```
+
+**Output**
+
+Upon successfully invocation, you will have:
+
+- A built image pushed to your repository
+- A deployment with service and ingress up and running in your Kubernetes cluster
 
 ## Clean
 
