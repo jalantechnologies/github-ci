@@ -1,11 +1,13 @@
 # GitHub CI - Usage
 
 <!-- TOC -->
+
 * [GitHub CI - Usage](#github-ci---usage)
   * [CI](#ci)
     * [Deploying on Digital Ocean](#deploying-on-digital-ocean)
     * [Deploying on AWS](#deploying-on-aws)
   * [Clean](#clean)
+
 <!-- TOC -->
 
 ## CI
@@ -18,7 +20,7 @@
 
 - Account on DigitalOcean and API token with read/write access (See [this](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for help).
 - Kubernetes cluster on DigitalOcean with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [this](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm) for help.)
-- Access and credentials for a Docker registry (This example uses Docker Hub - `registry.hub.docker.com`)
+- Access and credentials for a Docker registry (This example uses Docker Hub - `registry.hub.docker.com` and assumes provided credentials have access to the repository named - `myapp`)
 - A valid `Dockerfile` on root of your project with entrypoint (See [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
 
 **Note** - We also got a Terraform [project](https://github.com/jalantechnologies/platform-digitalocean-tf) for DOKS setup.
@@ -133,7 +135,7 @@ Upon successfully invocation, you will have:
 
 - Account on AWS and credentials (Access key and secret). For required permissions, check [this](https://github.com/goartica/terraform-workspace-aws-projects-bionic/blob/main/iam.tf) out.
 - Kubernetes cluster on AWS with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [this](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-3-nginx-ingress-controller/) for help.)
-- Access and credentials for a Docker registry (This example uses ECR and assumes provided credentials have access to the ECR repository).
+- Access and credentials for a Docker registry (This example uses ECR and assumes provided credentials have access to the ECR repository named - `myapp`).
 - A valid `Dockerfile` on root of your project with entrypoint (See [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
 
 **Note** - We also got a Terraform [project](https://github.com/jalantechnologies/platform-aws-tf) for EKS, ECR and IAM setup.
