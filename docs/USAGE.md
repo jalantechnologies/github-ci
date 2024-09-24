@@ -903,9 +903,9 @@ Here's the complete reference of input/output supported by the workflow:
 
 **Outputs**
 
-| Name       | Description                         | Example                        |
-|------------|-------------------------------------|--------------------------------|
-| deploy_url | 'URL where application was deployed | `https://production.myapp.com` |
+| Name       | Description                        | Example                        |
+|------------|------------------------------------|--------------------------------|
+| deploy_url | URL where application was deployed | `https://production.myapp.com` |
 
 ## Clean
 
