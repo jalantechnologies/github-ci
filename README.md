@@ -7,7 +7,7 @@ Set of GitHub action workflow for running end-to-end CI pipeline:
   - Injecting configuration using [Doppler](https://www.doppler.com/).
   - And finally, deploy resources on Kubernetes cluster on [DOKS](https://docs.digitalocean.com/products/kubernetes/) and [EKS](https://aws.amazon.com/eks/).
 
-For instructions on usage and setup, please see - [Usage](docs/usage.md)
+For instructions on usage, please see - [Usage](docs/USAGE.md)
 
 ## Demo
 
