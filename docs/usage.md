@@ -632,7 +632,7 @@ TBA
 
 - Ideally you'd want to run only one instance of the CI workflow to run for a branch.
 - The concurrency control is in hands of the caller - The ci workflow itself does not control it.
-- Read more about the concurrency controls provided by GitHub [here](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs).
+- Read [Control the concurrency of workflows and jobs](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs) for more info.
 
 **Examples**
 
