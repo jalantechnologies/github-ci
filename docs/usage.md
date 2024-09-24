@@ -29,14 +29,14 @@
 
 **Pre-requirements**
 
-- Account on DigitalOcean and API token with read/write access (See [this](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for help).
-- Kubernetes cluster on DigitalOcean with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [this](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm) for help.)
+- Account on DigitalOcean and API token with read/write access (See [How to Create a Personal Access Token](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for help).
+- Kubernetes cluster on DigitalOcean with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [How To Set Up an Nginx Ingress on DigitalOcean Kubernetes Using Helm](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm) for help.)
 - Access and credentials for a Docker registry (This example uses Docker Hub - `registry.hub.docker.com` and assumes provided credentials have access to the repository named - `myapp`)
-- A valid `Dockerfile` on root of your project with entrypoint (See [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
+- A valid `Dockerfile` on root of your project with entrypoint (See [Dockerfile](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
 
-**Tip** - We also got a Terraform [project](https://github.com/jalantechnologies/platform-digitalocean-tf) for DOKS setup.
+**Tip** - We also got [platform-digitalocean-tf](https://github.com/jalantechnologies/platform-digitalocean-tf) Terraform project for DOKS setup.
 
-**Tip** - For more examples and end-to-end setup, see workflows for our MERN Boilerplate [here](https://github.com/jalantechnologies/boilerplate-mern/tree/main/.github/workflows).
+**Tip** - For more examples and end-to-end setup, see workflows for our [MERN Boilerplate](https://github.com/jalantechnologies/boilerplate-mern/tree/main/.github/workflows).
 
 **Example**
 
@@ -148,12 +148,12 @@ Upon successfully invocation, you will have:
 
 **Pre-requirements**
 
-- Account on AWS and credentials (Access key and secret). For required permissions, check [this](https://github.com/goartica/terraform-workspace-aws-projects-bionic/blob/main/iam.tf) out.
-- Kubernetes cluster on AWS with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [this](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-3-nginx-ingress-controller/) for help.)
+- Account on AWS and credentials (Access key and secret). For required permissions, see [iam.tf](https://github.com/jalantechnologies/platform-aws-tf/blob/main/iam.tf).
+- Kubernetes cluster on AWS with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [Exposing Kubernetes Applications, Part 3: Ingress-Nginx Controller](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-3-nginx-ingress-controller/) for help.)
 - Access and credentials for a Docker registry (This example uses ECR and assumes provided credentials have access to the ECR repository named - `myapp`).
-- A valid `Dockerfile` on root of your project with entrypoint (See [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
+- A valid `Dockerfile` on root of your project with entrypoint (See [Dockerfile](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
 
-**Tip** - We also got a Terraform [project](https://github.com/jalantechnologies/platform-aws-tf) for EKS, ECR and IAM setup.
+**Tip** - We also got [platform-aws-tf](https://github.com/jalantechnologies/platform-aws-tf) Terraform project for EKS, ECR and IAM setup.
 
 ```yaml
 # .github/workflows/production.yml
