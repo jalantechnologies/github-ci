@@ -240,11 +240,11 @@ CMD [ "npm", "start" ]
 
 For authentication, following parameters are supported:
 
-| Name            | Type     | Description                                                                                                      |
-|-----------------|----------|------------------------------------------------------------------------------------------------------------------|
-| docker_registry | variable | Registry to use with docker images. By default it uses Docker Hub (registry.hub.docker.com)                      |
-| docker_username | variable | Username for authenticating with docker. See [docker login](https://docs.docker.com/reference/cli/docker/login/) |
-| docker_password | secret   | Password for authenticating with docker. See [docker login](https://docs.docker.com/reference/cli/docker/login/) |
+| Name            | Type     | Description                                                                                                       |
+|-----------------|----------|-------------------------------------------------------------------------------------------------------------------|
+| docker_registry | variable | Registry to use with docker images. By default it uses Docker Hub (registry.hub.docker.com)                       |
+| docker_username | variable | Username for authenticating with docker, see [docker login](https://docs.docker.com/reference/cli/docker/login/). |
+| docker_password | secret   | Password for authenticating with docker, see [docker login](https://docs.docker.com/reference/cli/docker/login/). |
 
 Using these parameters, workflow then creates a `Secret` with name `regcred` in default namespace which deployments can use to pull built images:
 
@@ -254,12 +254,12 @@ Using these parameters, workflow then creates a `Secret` with name `regcred` in 
 apiVersion: apps/v1
 kind: Deployment
 spec:
-    spec:
-      imagePullSecrets:
-        - name: regcred
-      containers:
-        - name: myapp
-          image: $KUBE_DEPLOYMENT_IMAGE
+  spec:
+    imagePullSecrets:
+      - name: regcred
+    containers:
+      - name: myapp
+        image: $KUBE_DEPLOYMENT_IMAGE
 ```
 
 **Using ECR**
@@ -280,7 +280,7 @@ When using AWS credentials, EKS role is used directly to pull docker images. See
 ### Defining Kubernetes Resources
 
 - Kubernetes resources are applied using `kubectl apply -f` from `yaml` files.
-- Workflow by default looks in `lib/kube` directory for specification files. This can be changed via `deploy_root` param.
+- Workflow by default looks in `lib/kube` directory from root for specification files. This can be changed via `deploy_root` param.
 
 **Directory Structure**
 
@@ -611,13 +611,13 @@ The SonarQube analysis can run in following modes:
     Example - `npm:lint` will run `npm run lint` against the built docker image.
   - `scheme` = `compose` - Can run the compose file with name `docker-compose.<input>.yml` to run the check. Useful for running the check a check with dependencies.
     Example - `compose:test` will run `docker compose -f docker-compose.test.yml`. For this to work as expected, make sure `services.app.image` is same as `app_name` input.
-    See [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/docker-compose.test.yml) compose file for example.
+    See [docker-compose.test.yml](https://github.com/jalantechnologies/boilerplate-mern/blob/main/docker-compose.test.yml) for example.
 
 **Generating Coverage Report**
 
 - Running checks also supports reporting code coverages on Pull Request using [Code Coverage Summary](https://github.com/irongut/CodeCoverageSummary).
 - This also makes sure to fail the check if code coverage falls within configured thresholds. The default threshold is `60 80`. See [thresholds](https://github.com/irongut/CodeCoverageSummary?tab=readme-ov-file#thresholds).
-- To enable code coverage, simply dump coverage report in _Cobertura_ format to `/app/output/coverage.xml` the check would pick it up. Check [this](https://github.com/jalantechnologies/boilerplate-mern/blob/main/docker-compose.test.yml) out for an example.
+- To enable code coverage, simply dump coverage report in _Cobertura_ format to `/app/output/coverage.xml` the check would pick it up. Check [docker-compose.test.yml](https://github.com/jalantechnologies/boilerplate-mern/blob/main/docker-compose.test.yml) out for an example.
 - If no file is presented, this step is simply ignored.
 
 ### Running on Branches and PullRequest
