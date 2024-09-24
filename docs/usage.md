@@ -195,6 +195,8 @@ Upon successfully invocation, you will have:
 
 - Use `build_context` param for changing the [build context](https://docs.docker.com/build/concepts/context/). By default, workflow builds from root of the repository.
 - Use `build_args` param for sending build arguments to the build.
+- Use `build_secrets` for using sensitive config to the build. See [Using secrets with GitHub Actions](https://docs.docker.com/build/ci/github-actions/secrets/).
+- The build step uses the value for `app_name` param to obtain repository name.
 
 **Example**
 
@@ -219,12 +221,17 @@ jobs:
         CI=true
         NODE_ENV=production
       build_context: apps/backend
+    secrets:
+      build_secrets: |
+        github_token=${{ secrets.GITHUB_TOKEN }}
 ```
 
 ```dockerfile
 # apps/backend/Dockerfile
 
 FROM node:20.11.1-buster
+
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN
 
 ARG CI
 ARG NODE_ENV
@@ -866,11 +873,38 @@ Here's the complete reference of input/output supported by the workflow:
 
 **Inputs**
 
-TBA
+| Name                  | Type     | Description                                                                                                                                                            | Required | Default                   |
+|-----------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------------------|
+| app_name              | variable | Application name based on which docker repository, doppler project and kube namespace would be selected                                                                | Yes      | -                         |
+| app_env               | variable | Application environment based on which doppler configuration, kube namespace and kube spec files would be selected                                                     | Yes      | -                         |
+| app_hostname          | variable | Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch. | Yes      | -                         |
+| branch                | variable | Branch from which this workflow was run                                                                                                                                | Yes      | -                         |
+| analyze_base          | variable | Base branch against with sonarqube will run code analysis                                                                                                              | No       | -                         |
+| aws_cluster_name      | variable | Kubernetes cluster name if deploying on EKS                                                                                                                            | No       | -                         |
+| aws_region            | variable | Kubernetes cluster region if deploying on EKS                                                                                                                          | No       | `us-east-1                |
+| aws_use_ecr           | variable | Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.                                        | No       | `false`                   |
+| build_args            | variable | Build arguments provided to the docker daemon when building docker image                                                                                               | No       | -                         |
+| build_context         | variable | Build context to use with docker. Default to checked out Git directory.                                                                                                | No       | `.`                       |
+| checks                | variable | Checks to run. Provide here list of checks in scheme:input format where scheme can be - npm, compose.                                                                  | No       | -                         |
+| deploy_root           | variable | Directory where deployment would look for kubernetes specification files                                                                                               | No       | `lib/kube`                |
+| deploy_annotate_pr    | variable | Enable pull request annotation with deployment URL. Requires pull_request_number to work.                                                                              | No       | `true`                    |
+| docker_registry       | variable | Docker registry where built images will be pushed. By default uses Docker Hub.                                                                                         | No       | `registry.hub.docker.com` |
+| docker_username       | variable | Username for authenticating with provided Docker registry                                                                                                              | No       | -                         |
+| do_cluster_id         | variable | Kubernetes cluster ID on DigitalOcean if deploying on DOKS                                                                                                             | No       | -                         |
+| pull_request_number   | variable | Pull request number running the workflow against a pull request                                                                                                        | No       | -                         |
+| aws_access_key_id     | secret   | Access key ID for AWS if deploying on EKS                                                                                                                              | No       | -                         |
+| aws_secret_access_key | secret   | Access key Secret for AWS if deploying on EKS                                                                                                                          | No       | -                         |
+| build_secrets         | secret   | Build secrets provided to the docker daemon when building docker image                                                                                                 | No       | -                         |
+| docker_password       | secret   | Password for authenticating with provided Docker registry                                                                                                              | No       | -                         |
+| do_access_token       | secret   | DigitalOcean access token if deploying on DOKS                                                                                                                         | No       | -                         |
+| doppler_token         | secret   | Doppler token for accessing environment variables                                                                                                                      | No       | -                         |
+| sonar_token           | secret   | Authentication token for SonarQube                                                                                                                                     | No       | -                         |
 
 **Outputs**
 
-TBA
+| Name       | Description                         | Example                        |
+|------------|-------------------------------------|--------------------------------|
+| deploy_url | 'URL where application was deployed | `https://production.myapp.com` |
 
 ## Clean
 
