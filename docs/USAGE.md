@@ -806,6 +806,7 @@ spec:
 
 - When building against a Pull Request, the workflow also supports providing the link to the deployed app using a GitHub comment.
 - For this to work, `permissions.pull-requests` with `write` permissions and `pull_request_number` parameter is required.
+- To turn this off, set `deploy_annotate_pr` parameter to `false`.
 
 Example:
 
