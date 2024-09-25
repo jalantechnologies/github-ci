@@ -7,22 +7,25 @@ on:
       app_name:
         required: true
         type: string
+        description: 'Application name based on which docker repository and kube namespace would be selected'
       app_env:
         required: true
         type: string
+        description: 'Application environment based on which kube namespace and kube spec files would be selected'
       branch:
         required: true
         type: string
+        description: 'Branch from which this workflow was run'
 
       # optional
       aws_cluster_name:
         required: false
         type: string
-        description: 'AWS EKS Cluster Name'
+        description: 'Kubernetes cluster name if deploying on EKS'
       aws_region:
         required: false
         type: string
-        description: 'Region for AWS'
+        description: 'Kubernetes cluster region if deploying on EKS'
         default: 'us-east-1'
       deploy_root:
         required: false
@@ -32,7 +35,7 @@ on:
       docker_registry:
         required: false
         type: string
-        description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
+        description: 'Docker registry where built images were pushed. By default uses Docker Hub.'
         default: registry.hub.docker.com
       docker_username:
         required: false
@@ -41,21 +44,21 @@ on:
       do_cluster_id:
         required: false
         type: string
-        description: 'Kubernetes cluster ID on DigitalOcean'
+        description: 'Kubernetes cluster ID on DigitalOcean if deploying on DOKS'
 
     secrets:
       aws_access_key_id:
         required: false
-        description: 'Access key ID for AWS'
+        description: 'Access key ID for AWS if deploying on EKS'
       aws_secret_access_key:
         required: false
-        description: 'Access key Secret for AWS'
+        description: 'Access key Secret for AWS if deploying on EKS'
       docker_password:
         required: false
         description: 'Password for authenticating with provided Docker registry'
       do_access_token:
         required: false
-        description: 'DigitalOcean access token'
+        description: 'DigitalOcean access token if deploying on DOKS'
 
 jobs:
   clean:

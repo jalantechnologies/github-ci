@@ -18,6 +18,7 @@
   * [Clean](#clean)
     * [Cleaning up on DigitalOcean](#cleaning-up-on-digitalocean)
     * [Cleaning up on AWS](#cleaning-up-on-aws)
+    * [Adding Hooks](#adding-hooks-1)
     * [Reference](#reference-1)
 <!-- TOC -->
 
@@ -193,10 +194,10 @@ Upon successfully invocation, you will have:
 
 ### Configuring the Build
 
-- Use `build_context` param for changing the [build context](https://docs.docker.com/build/concepts/context/). By default, workflow builds from root of the repository.
-- Use `build_args` param for sending build arguments to the build.
+- Use `build_context` parameter for changing the [build context](https://docs.docker.com/build/concepts/context/). By default, workflow builds from root of the repository.
+- Use `build_args` parameter for sending build arguments to the build.
 - Use `build_secrets` for using sensitive config to the build. See [Using secrets with GitHub Actions](https://docs.docker.com/build/ci/github-actions/secrets/).
-- The build step uses the value for `app_name` param to obtain repository name.
+- The build step uses the value for `app_name` parameter to obtain repository name.
 
 **Example**
 
@@ -247,11 +248,11 @@ CMD [ "npm", "start" ]
 
 For authentication, following parameters are supported:
 
-| Name            | Type     | Description                                                                                                       |
-|-----------------|----------|-------------------------------------------------------------------------------------------------------------------|
-| docker_registry | variable | Registry to use with docker images. By default it uses Docker Hub (registry.hub.docker.com)                       |
-| docker_username | variable | Username for authenticating with docker, see [docker login](https://docs.docker.com/reference/cli/docker/login/). |
-| docker_password | secret   | Password for authenticating with docker, see [docker login](https://docs.docker.com/reference/cli/docker/login/). |
+| Name            | Type   | Description                                                                                                       |
+|-----------------|--------|-------------------------------------------------------------------------------------------------------------------|
+| docker_registry | input  | Registry to use with docker images. By default it uses Docker Hub (registry.hub.docker.com)                       |
+| docker_username | input  | Username for authenticating with docker, see [docker login](https://docs.docker.com/reference/cli/docker/login/). |
+| docker_password | secret | Password for authenticating with docker, see [docker login](https://docs.docker.com/reference/cli/docker/login/). |
 
 Using these parameters, workflow then creates a `Secret` with name `regcred` in default namespace which deployments can use to pull built images:
 
@@ -273,7 +274,7 @@ spec:
 
 If [ECR](https://aws.amazon.com/ecr/) support is required, it can be used in following ways:
 
-- Using AWS credentials - The recommended method fo using ECR where simply setting `aws_use_ecr` param to `true.` It will then simply use the provided AWS credentials (`aws_access_key_id`, `aws_secret_access_key`) to authenticate with the registry.
+- Using AWS credentials - The recommended method fo using ECR where simply setting `aws_use_ecr` parameter to `true.` It will then simply use the provided AWS credentials (`aws_access_key_id`, `aws_secret_access_key`) to authenticate with the registry.
 - Using Docker credentials - Simply generating docker credentials against ECR works but AWS does not allow long-lived tokens to be generated. This method is not recommended.
 
 When using AWS credentials, EKS role is used directly to pull docker images. See [Using Amazon ECR Images with Amazon EKS](https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_EKS.html) on how it works.
@@ -287,11 +288,11 @@ When using AWS credentials, EKS role is used directly to pull docker images. See
 ### Defining Kubernetes Resources
 
 - Kubernetes resources are applied using `kubectl apply -f` from `yaml` files.
-- Workflow by default looks in `lib/kube` directory from root for specification files. This can be changed via `deploy_root` param.
+- Workflow by default looks in `lib/kube` directory from root for specification files. This can be changed via `deploy_root` parameter.
 
 **Directory Structure**
 
-`deploy_root` param needs to have the following directory structure which is recognized by the workflow:
+`deploy_root` parameter needs to have the following directory structure which is recognized by the workflow:
 
 - `core` - Define Kubernetes resources which are to be applied in all environments but should be excluded from clean up (see - [Clean](#clean))
 - `shared` - Define Kubernetes resources which are to be applied in all environments and should be included in cleanup.
@@ -479,7 +480,7 @@ On every workflow run, following labels are applied to every resource that is be
 
 ### Hostname and TLS
 
-- The workflow accepts `app_hostname` param for injecting hostname values.
+- The workflow accepts `app_hostname` parameter for injecting hostname values.
 - Kubernetes specifications can use `KUBE_INGRESS_HOSTNAME` placeholders to inject hostname. See [Defining Kubernetes Resources](#defining-kubernetes-resources) for more info.
 
 **Example**
@@ -499,7 +500,7 @@ spec:
 
 The input can also accept placeholders as well to allow environment or branch based deployments. The supported placeholders are:
 
-- `{0}` - Value for `app_env` param.
+- `{0}` - Value for `app_env` parameter.
 - `{1}` - Branch ID generated from provided branch. See [Running on Branches and PullRequest](#running-on-branches-and-pullrequest) for more info.
 
 **Example**
@@ -560,7 +561,7 @@ spec:
 ### Adding Hooks
 
 - Workflow supports running bash scripts as hooks during deployment lifecycle.
-- Hooks can be defined under `scripts` directory residing within `deploy_root` param (So for example, if `deploy_root` = `lib/kube`, workflow will look for hooks under `lib/kube/scripts` directory).
+- Hooks can be defined under `scripts` directory residing within `deploy_root` parameter (So for example, if `deploy_root` = `lib/kube`, workflow will look for hooks under `lib/kube/scripts` directory).
 - If the hook fails with non 0 error code, it will fail the workflow run.
 - The bash scripts have same variables available for usage as same as Kubernetes resources, see [Defining Kubernetes Resources](#defining-kubernetes-resources) for list.
 
@@ -573,6 +574,7 @@ spec:
 
 ```shell
 #!/bin/bash
+# lib/kube/scripts/post-deploy.sh
 # this script waits for deployment to succeed
 # in case status could not be verified, the script would fail, thus failing the workflow run
 
@@ -587,13 +589,13 @@ kubectl rollout status deploy/"$KUBE_APP"-deployment -n "$KUBE_NS"
 
 **Parameters**
 
-| Name                | Type     | Description                                                                |
-|---------------------|----------|----------------------------------------------------------------------------|
-| sonar_host_url      | variable | URL to SonarQube instance                                                  |
-| sonar_token         | secret   | API token for accessing SonarQube instance                                 |
-| branch              | variable | Branch from which this workflow was run. See _Analysis Modes_ below.       |
-| analyze_base        | variable | Base branch for running incremental analysis. See _Analysis Modes_ below.  |
-| pull_request_number | variable | Pull request number to be used for providing incremental analysis details. |
+| Name                | Type   | Description                                                                |
+|---------------------|--------|----------------------------------------------------------------------------|
+| sonar_host_url      | input  | URL to SonarQube instance                                                  |
+| sonar_token         | secret | API token for accessing SonarQube instance                                 |
+| branch              | input  | Branch from which this workflow was run. See _Analysis Modes_ below.       |
+| analyze_base        | input  | Base branch for running incremental analysis. See _Analysis Modes_ below.  |
+| pull_request_number | input  | Pull request number to be used for providing incremental analysis details. |
 
 **Analysis Modes**
 
@@ -601,18 +603,18 @@ The SonarQube analysis can run in following modes:
 
 - Incremental Analysis
   - Analysis to be run on new code being added, usually run on short-lived branches other than `main`.
-  - This analysis is only run if `analyze_base` param was provided.
+  - This analysis is only run if `analyze_base` parameter was provided.
   - This analysis also uses `pull_request_number` if provided to provide analysis results.
   - See [Branch Analysis](https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/branch-analysis/introduction/) and [Pull Request Analysis](https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/pull-request-analysis/introduction/) for more info.
 
 - Full Analysis
   - Analysis to be run on whole code, usually run on long-lived branches like `main`.
-  - This analysis is only run if `analyze_base` param was not provided.
+  - This analysis is only run if `analyze_base` parameter was not provided.
 
 ### Enabling Checks
 
 - Workflow can also run checks such as test, lint etc. against the built image.
-- The `checks` input variable can be used to enable checks. The input accepts encoded json array of string values, example - `['npm:lint', 'compose:test', 'compose:e2e']`.
+- The `checks` parameter can be used to enable checks. The input accepts encoded json array of string values, example - `['npm:lint', 'compose:test', 'compose:e2e']`.
 - Each entry here can in the format - `scheme:input`, where:
   - `scheme` = `npm` - Can run the `input` script against `npm` to run the check. Basically `npm run input`.
     Example - `npm:lint` will run `npm run lint` against the built docker image.
@@ -826,7 +828,7 @@ Deployment (boilerplate-mern) is available at - https://a191a6e8889fc35.preview.
 
 **Example**
 
-On Doppler, you have a project with name "myapp" and an environment with name "production". You can inject configuration via:
+On Doppler, say you have a project with name `myapp` and an environment with name `production`. You can inject configuration via:
 
 ```yaml
 # lib/kube/shared/app.yml
@@ -874,32 +876,32 @@ Here's the complete reference of input/output supported by the workflow:
 
 **Inputs**
 
-| Name                  | Type     | Description                                                                                                                                                            | Required | Default                   |
-|-----------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------------------|
-| app_name              | variable | Application name based on which docker repository, doppler project and kube namespace would be selected                                                                | Yes      | -                         |
-| app_env               | variable | Application environment based on which doppler configuration, kube namespace and kube spec files would be selected                                                     | Yes      | -                         |
-| app_hostname          | variable | Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch. | Yes      | -                         |
-| branch                | variable | Branch from which this workflow was run                                                                                                                                | Yes      | -                         |
-| analyze_base          | variable | Base branch against with sonarqube will run code analysis                                                                                                              | No       | -                         |
-| aws_cluster_name      | variable | Kubernetes cluster name if deploying on EKS                                                                                                                            | No       | -                         |
-| aws_region            | variable | Kubernetes cluster region if deploying on EKS                                                                                                                          | No       | `us-east-1`               |
-| aws_use_ecr           | variable | Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.                                        | No       | `false`                   |
-| build_args            | variable | Build arguments provided to the docker daemon when building docker image                                                                                               | No       | -                         |
-| build_context         | variable | Build context to use with docker. Default to checked out Git directory.                                                                                                | No       | `.`                       |
-| checks                | variable | Checks to run. Provide here list of checks in scheme:input format where scheme can be - npm, compose.                                                                  | No       | -                         |
-| deploy_root           | variable | Directory where deployment would look for kubernetes specification files                                                                                               | No       | `lib/kube`                |
-| deploy_annotate_pr    | variable | Enable pull request annotation with deployment URL. Requires pull_request_number to work.                                                                              | No       | `true`                    |
-| docker_registry       | variable | Docker registry where built images will be pushed. By default uses Docker Hub.                                                                                         | No       | `registry.hub.docker.com` |
-| docker_username       | variable | Username for authenticating with provided Docker registry                                                                                                              | No       | -                         |
-| do_cluster_id         | variable | Kubernetes cluster ID on DigitalOcean if deploying on DOKS                                                                                                             | No       | -                         |
-| pull_request_number   | variable | Pull request number running the workflow against a pull request                                                                                                        | No       | -                         |
-| aws_access_key_id     | secret   | Access key ID for AWS if deploying on EKS                                                                                                                              | No       | -                         |
-| aws_secret_access_key | secret   | Access key Secret for AWS if deploying on EKS                                                                                                                          | No       | -                         |
-| build_secrets         | secret   | Build secrets provided to the docker daemon when building docker image                                                                                                 | No       | -                         |
-| docker_password       | secret   | Password for authenticating with provided Docker registry                                                                                                              | No       | -                         |
-| do_access_token       | secret   | DigitalOcean access token if deploying on DOKS                                                                                                                         | No       | -                         |
-| doppler_token         | secret   | Doppler token for accessing environment variables                                                                                                                      | No       | -                         |
-| sonar_token           | secret   | Authentication token for SonarQube                                                                                                                                     | No       | -                         |
+| Name                  | Type   | Description                                                                                                                                                            | Required | Default                   |
+|-----------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------------------------|
+| app_name              | input  | Application name based on which docker repository, doppler project and kube namespace would be selected                                                                | Yes      | -                         |
+| app_env               | input  | Application environment based on which doppler configuration, kube namespace and kube spec files would be selected                                                     | Yes      | -                         |
+| app_hostname          | input  | Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch. | Yes      | -                         |
+| branch                | input  | Branch from which this workflow was run                                                                                                                                | Yes      | -                         |
+| analyze_base          | input  | Base branch against with sonarqube will run code analysis                                                                                                              | No       | -                         |
+| aws_cluster_name      | input  | Kubernetes cluster name if deploying on EKS                                                                                                                            | No       | -                         |
+| aws_region            | input  | Kubernetes cluster region if deploying on EKS                                                                                                                          | No       | `us-east-1`               |
+| aws_use_ecr           | input  | Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.                                        | No       | `false`                   |
+| build_args            | input  | Build arguments provided to the docker daemon when building docker image                                                                                               | No       | -                         |
+| build_context         | input  | Build context to use with docker. Default to checked out Git directory.                                                                                                | No       | `.`                       |
+| checks                | input  | Checks to run. Provide here list of checks in scheme:input format where scheme can be - npm, compose.                                                                  | No       | -                         |
+| deploy_root           | input  | Directory where deployment would look for kubernetes specification files                                                                                               | No       | `lib/kube`                |
+| deploy_annotate_pr    | input  | Enable pull request annotation with deployment URL. Requires pull_request_number to work.                                                                              | No       | `true`                    |
+| docker_registry       | input  | Docker registry where built images will be pushed. By default uses Docker Hub.                                                                                         | No       | `registry.hub.docker.com` |
+| docker_username       | input  | Username for authenticating with provided Docker registry                                                                                                              | No       | -                         |
+| do_cluster_id         | input  | Kubernetes cluster ID on DigitalOcean if deploying on DOKS                                                                                                             | No       | -                         |
+| pull_request_number   | input  | Pull request number running the workflow against a pull request                                                                                                        | No       | -                         |
+| aws_access_key_id     | secret | Access key ID for AWS if deploying on EKS                                                                                                                              | No       | -                         |
+| aws_secret_access_key | secret | Access key Secret for AWS if deploying on EKS                                                                                                                          | No       | -                         |
+| build_secrets         | secret | Build secrets provided to the docker daemon when building docker image                                                                                                 | No       | -                         |
+| docker_password       | secret | Password for authenticating with provided Docker registry                                                                                                              | No       | -                         |
+| do_access_token       | secret | DigitalOcean access token if deploying on DOKS                                                                                                                         | No       | -                         |
+| doppler_token         | secret | Doppler token for accessing environment variables                                                                                                                      | No       | -                         |
+| sonar_token           | secret | Authentication token for SonarQube                                                                                                                                     | No       | -                         |
 
 **Outputs**
 
@@ -909,15 +911,134 @@ Here's the complete reference of input/output supported by the workflow:
 
 ## Clean
 
-`.github/workflows/clean.yml` - This is the cleanup workflow which takes care of cleaning up resources.
+`.github/workflows/clean.yml` - This is the cleanup workflow which takes care of cleaning up resources. This workflow is typically useful for cleaning up short-lived environments.
+See [Running on Branches and PullRequest](#running-on-branches-and-pullrequest) for setup instructions for the same.
+
+**How this works?**
+
+- The cleanup workflow basically runs `kubectl delete` against resources found in the `deploy_root/shared` and `deploy_root/app_env` directories.
+- The resources are matched against the `name`, so it's important to follow the naming convention including the Branch ID as defined in [Running on Branches and PullRequest](#running-on-branches-and-pullrequest).
 
 ### Cleaning up on DigitalOcean
 
-TBA
+```yaml
+# .github/workflows/clean.yml
+# this workflow takes care of cleaning up resources upon PR merge
+# the cleanup workflow makes sure to only remove resources associated by the branch
+
+name: clean
+
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  clean:
+    uses: jalantechnologies/github-ci/.github/workflows/clean.yml@v2.5
+    with:
+      app_name: myapp
+      app_env: preview
+      branch: ${{ github.event.pull_request.head.ref }}
+      docker_registry: 'registry.hub.docker.com'
+      docker_username: '<docker_username>'
+      do_cluster_id: '<digital_ocean_cluster_id>'
+    secrets:
+      docker_password: '<docker_password>'
+      do_access_token: '<digital_ocean_access_token'
+```
+
+```yaml
+# lib/kube/shared/app.yml
+# notice name - it follows the convention of using KUBE_APP which includes Branch ID
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $KUBE_APP-deployment
+  namespace: $KUBE_NS
+  labels:
+    app: $KUBE_APP
+spec:
+#  ...
+```
+
+```yaml
+# lib/kube/preview/app.yml
+# same resource following the same convention but in different app_env specific directory
+# this will get deleted as well if app_env = preview
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $KUBE_APP-deployment
+  namespace: $KUBE_NS
+  labels:
+    app: $KUBE_APP
+spec:
+#  ...
+```
 
 ### Cleaning up on AWS
 
-TBA
+```yaml
+# .github/workflows/clean.yml
+
+name: clean
+
+on:
+  pull_request:
+    types: [ closed ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  clean:
+    uses: jalantechnologies/github-ci/.github/workflows/clean.yml@v2.5
+    with:
+      app_name: myapp
+      app_env: preview
+      aws_cluster_name: '<aws_cluster_name>'
+      aws_region: '<aws_region>'
+      branch: ${{ github.event.ref }}
+    secrets:
+      aws_access_key_id: '<aws_access_key_id>'
+      aws_secret_access_key: '<aws_access_secret_key>'
+```
+
+### Adding Hooks
+
+- Workflow supports running bash scripts as hooks during cleanup lifecycle.
+- Hooks can be defined under `scripts` directory residing within `deploy_root` parameter (So for example, if `deploy_root` = `lib/kube`, workflow will look for hooks under `lib/kube/scripts` directory).
+- If the hook fails with non 0 error code, it will fail the workflow run.
+- The bash scripts along with the Kubernetes specifications have same variables available for usage, see the list _Placeholders_ below.
+
+**Available Hooks**
+
+- `pre-clean.sh` - Hook to be run before any Kubernetes resources are deleted.
+- `post-clean.sh` - Hook to be run after all Kubernetes resources have been deleted.
+
+**Example**
+
+```shell
+#!/bin/bash
+# lib/kube/scripts/post-clean.sh
+# this script deletes a custom resource
+
+kubectl delete pvc mycustompvc -n "$KUBE_NS"
+```
+
+**Placeholders**
+
+Following placeholders are available for use within scripts and Kubernetes specifications:
+
+| Key       | Description                                                                                                                                     | Example                            |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| KUBE_ROOT | Value for `deploy_root` input.                                                                                                                  | `lib/kube`                         |
+| KUBE_NS   | Combination of `app_name` and `app_env` inputs.                                                                                                 | `myapp-production`                 |
+| KUBE_APP  | Combination of `app_name` and `app_env` inputs with branch ID. See [Running on Branches and PullRequest](#running-on-branches-and-pullrequest). | `myapp-production-6905caad90e785f` |
+| KUBE_ENV  | Value for `app_env` input.                                                                                                                      | `production`                       |
 
 ### Reference
 
@@ -925,7 +1046,21 @@ Here's the complete reference of input/output supported by the workflow:
 
 **Inputs**
 
-TBA
+| Name                  | Type   | Description                                                                                 | Required | Default                   |
+|-----------------------|--------|---------------------------------------------------------------------------------------------|----------|---------------------------|
+| app_name              | input  | Application name based on which docker repository and kube namespace would be selected      | Yes      | -                         |
+| app_env               | input  | Application environment based on which kube namespace and kube spec files would be selected | Yes      | -                         |
+| branch                | input  | Branch from which this workflow was run                                                     | Yes      | -                         |
+| aws_cluster_name      | input  | Kubernetes cluster name if deploying on EKS                                                 | No       | -                         |
+| aws_region            | input  | Kubernetes cluster region if deploying on EKS                                               | No       | `us-east-1`               |
+| deploy_root           | input  | Directory where deployment would look for kubernetes specification files                    | No       | `lib/kube`                |
+| docker_registry       | input  | Docker registry where built images were pushed. By default uses Docker Hub.                 | No       | `registry.hub.docker.com` |
+| docker_username       | input  | Username for authenticating with provided Docker registry                                   | No       | -                         |
+| do_cluster_id         | input  | Kubernetes cluster ID on DigitalOcean if deploying on DOKS                                  | No       | -                         |
+| aws_access_key_id     | secret | Access key ID for AWS if deploying on EKS                                                   | No       | -                         |
+| aws_secret_access_key | secret | Access key Secret for AWS if deploying on EKS                                               | No       | -                         |
+| docker_password       | secret | Password for authenticating with provided Docker registry                                   | No       | -                         |
+| do_access_token       | secret | DigitalOcean access token if deploying on DOKS                                              | No       | -                         |
 
 **Outputs**
 
