@@ -31,7 +31,7 @@
 **Pre-requirements**
 
 - Account on DigitalOcean and API token with read/write access (See [How to Create a Personal Access Token](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for help).
-- Kubernetes cluster on DigitalOcean with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [How To Set Up an Nginx Ingress on DigitalOcean Kubernetes Using Helm](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm) for help.)
+- Kubernetes cluster on DigitalOcean with nginx configured and mapped to domain (This example assumes - `production.myapp.com` is mapped to your load balancer. See [How To Set Up an Nginx Ingress on DigitalOcean Kubernetes Using Helm](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-on-digitalocean-kubernetes-using-helm) for help.)
 - Access and credentials for a Docker registry (This example uses Docker Hub - `registry.hub.docker.com` and assumes provided credentials have access to the repository named - `myapp`)
 - A valid `Dockerfile` on root of your project with entrypoint (See [Dockerfile](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
 
@@ -150,7 +150,7 @@ Upon successfully invocation, you will have:
 **Pre-requirements**
 
 - Account on AWS and credentials (Access key and secret). For required permissions, see [iam.tf](https://github.com/jalantechnologies/platform-aws-tf/blob/main/iam.tf).
-- Kubernetes cluster on AWS with nginx configured and mapped to domain (This example assumes - `production.myapp.com` to your load balancer. See [Exposing Kubernetes Applications, Part 3: Ingress-Nginx Controller](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-3-nginx-ingress-controller/) for help.)
+- Kubernetes cluster on AWS with nginx configured and mapped to domain (This example assumes - `production.myapp.com` is mapped to your load balancer. See [Exposing Kubernetes Applications, Part 3: Ingress-Nginx Controller](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-3-nginx-ingress-controller/) for help.)
 - Access and credentials for a Docker registry (This example uses ECR and assumes provided credentials have access to the ECR repository named - `myapp`).
 - A valid `Dockerfile` on root of your project with entrypoint (See [Dockerfile](https://github.com/jalantechnologies/boilerplate-mern/blob/main/Dockerfile) for example).
 
@@ -292,7 +292,7 @@ When using AWS credentials, EKS role is used directly to pull docker images. See
 
 **Directory Structure**
 
-`deploy_root` parameter needs to have the following directory structure which is recognized by the workflow:
+Directory defined in `deploy_root` parameter needs to have the following structure which is recognized by the workflow:
 
 - `core` - Define Kubernetes resources which are to be applied in all environments but should be excluded from clean up (see - [Clean](#clean))
 - `shared` - Define Kubernetes resources which are to be applied in all environments and should be included in cleanup.
@@ -632,7 +632,7 @@ The SonarQube analysis can run in following modes:
 ### Controlling Concurrency
 
 - Ideally you'd want to run only one instance of the CI workflow to run for a branch.
-- The concurrency control is in hands of the caller - The ci workflow itself does not control it.
+- The concurrency control is in hands of the caller - The workflow itself does not control it.
 - Read [Control the concurrency of workflows and jobs](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs) for more info.
 
 **Examples**
@@ -912,7 +912,7 @@ Here's the complete reference of input/output supported by the workflow:
 ## Clean
 
 `.github/workflows/clean.yml` - This is the cleanup workflow which takes care of cleaning up resources. This workflow is typically useful for cleaning up short-lived environments.
-See [Running on Branches and PullRequest](#running-on-branches-and-pullrequest) for setup instructions for the same.
+See [Running on Branches and PullRequest](#running-on-branches-and-pullrequest) for setup instructions.
 
 **How this works?**
 
