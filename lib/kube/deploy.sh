@@ -1,119 +1,125 @@
 #!/bin/bash
 
-# requires - kubectl
-# requires - KUBE_ROOT, KUBE_NS, KUBE_APP, KUBE_ENV, KUBE_DEPLOYMENT_IMAGE, KUBE_INGRESS_HOSTNAME
-# optional - DOCKER_REGISTRY, DOCKER_USERNAME, DOCKER_PASSWORD
-# optional - DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
+# Requires: kubectl
+# Environment Variables:
+# Mandatory: KUBE_ROOT, KUBE_NS, KUBE_APP, KUBE_ENV, KUBE_DEPLOYMENT_IMAGE, KUBE_INGRESS_HOSTNAME
+# Optional: DOCKER_REGISTRY, DOCKER_USERNAME, DOCKER_PASSWORD, DOPPLER_TOKEN, DOPPLER_TOKEN_SECRET_NAME, DOPPLER_MANAGED_SECRET_NAME, KUBE_LABELS
 
-# custom vars
+# Enable debug mode if DEBUG is set to true
+DEBUG=${DEBUG:-false}
+if [ "$DEBUG" = true ]; then
+    set -x
+fi
 
-echo "deploy :: starting deployment procedure"
-echo "deploy :: kube root - $KUBE_ROOT"
-echo "deploy :: kube namespace - $KUBE_NS"
-echo "deploy :: kube app - $KUBE_APP"
-echo "deploy :: kube env - $KUBE_ENV"
-echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
-echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
-echo "deploy :: kube deploy id - $KUBE_DEPLOY_ID"
+# Function to log sensitive data safely
+safe_log() {
+    local message=$1
+    echo "$message" | sed -E "s/(DOCKER_PASSWORD=|DOPPLER_TOKEN=)[^ ]+/\1[MASKED]/g"
+}
+
+# Validate required environment variables
+REQUIRED_VARS=(KUBE_ROOT KUBE_NS KUBE_APP KUBE_ENV KUBE_DEPLOYMENT_IMAGE KUBE_INGRESS_HOSTNAME)
+for var in "${REQUIRED_VARS[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "deploy :: ERROR - Missing required environment variable: $var"
+        exit 1
+    fi
+done
+
+safe_log "deploy :: Starting deployment with namespace=$KUBE_NS, app=$KUBE_APP, env=$KUBE_ENV, image=$KUBE_DEPLOYMENT_IMAGE"
 
 kube_pre_deploy_script="$KUBE_ROOT/scripts/pre-deploy.sh"
 kube_post_deploy_script="$KUBE_ROOT/scripts/post-deploy.sh"
 kube_parsed_labels=""
 
-# kubernetes labels
-# we convert invalid label values to 'NA'
-# this breaks input on IFS
-for label in $KUBE_LABELS
-do
-    lKey=${label%=*}
-    lValue=${label#*=}
-
+# Parse and validate Kubernetes labels
+for label in $KUBE_LABELS; do
+    lKey="${label%=*}"
+    lValue="${label#*=}"
     if ! [[ $lValue =~ ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$ ]]; then
-        echo "deploy :: value for label - $lKey is not valid - $lValue"
+        echo "deploy :: WARNING - Invalid label value for $lKey, setting to 'NA'"
         lValue="NA"
     fi
-
     kube_parsed_labels+="$lKey=$lValue "
 done
 
-echo "deploy :: parsed labels - $kube_parsed_labels"
-
-# deployment pre deploy hook
+# Run pre-deployment script if available
 if [ -f "$kube_pre_deploy_script" ]; then
-    echo "deploy :: running pre deploy hook - $kube_pre_deploy_script"
-    # shellcheck disable=SC1090
-    source "$kube_pre_deploy_script"
+    safe_log "deploy :: Running pre-deploy script - $kube_pre_deploy_script"
+    if ! source "$kube_pre_deploy_script"; then
+        echo "deploy :: ERROR - Pre-deploy script failed"
+        exit 1
+    fi
 fi
 
-# kubernetes namespace
-# only created once
-kubectl get namespace "$KUBE_NS" || kubectl create namespace "$KUBE_NS"
+# Ensure Kubernetes namespace exists
+if ! kubectl get namespace "$KUBE_NS" > /dev/null 2>&1; then
+    if ! kubectl create namespace "$KUBE_NS"; then
+        echo "deploy :: ERROR - Failed to create namespace $KUBE_NS"
+        exit 1
+    fi
+fi
 
-# doppler secret - allowing resources to access secrets on doppler
-# see - https://docs.doppler.com/docs/kubernetes-operator
-# created if does not exists, updates in place if updated
+# Create or update Doppler secret
 if [[ -n "$DOPPLER_TOKEN" ]]; then
-    kubectl create secret generic "$DOPPLER_TOKEN_SECRET_NAME" --namespace doppler-operator-system --from-literal=serviceToken="$DOPPLER_TOKEN" \
-        --save-config \
-        --dry-run=client \
-        -o yaml | \
-    kubectl apply -f -
+    safe_log "deploy :: Creating Doppler token secret"
+    if ! kubectl create secret generic "$DOPPLER_TOKEN_SECRET_NAME" \
+        --namespace doppler-operator-system \
+        --from-literal=serviceToken="$DOPPLER_TOKEN" \
+        --save-config --dry-run=client -o yaml | kubectl apply -f -; then
+        echo "deploy :: ERROR - Failed to create/update Doppler secret"
+        exit 1
+    fi
 fi
 
-# docker registry secret - allowing resources to access private registries
-# see - https://stackoverflow.com/questions/45879498/how-can-i-update-a-secret-on-kubernetes-when-it-is-generated-from-a-file
-# created if does not exists, updates in place if updated
-if [[ -n "$DOCKER_USERNAME" ]]; then
-    kubectl create secret docker-registry regcred --docker-server="$DOCKER_REGISTRY" --docker-username="$DOCKER_USERNAME" --docker-password="$DOCKER_PASSWORD" -n "$KUBE_NS" \
-        --save-config \
-        --dry-run=client \
-        -o yaml | \
-    kubectl apply -f -
+# Create or update Docker registry secret
+if [[ -n "$DOCKER_USERNAME" && -n "$DOCKER_PASSWORD" ]]; then
+    safe_log "deploy :: Creating Docker registry secret"
+    if kubectl get secret regcred -n "$KUBE_NS" > /dev/null 2>&1; then
+        kubectl delete secret regcred -n "$KUBE_NS"
+    fi
+    if ! kubectl create secret docker-registry regcred \
+        --docker-server="$DOCKER_REGISTRY" \
+        --docker-username="$DOCKER_USERNAME" \
+        --docker-password="$DOCKER_PASSWORD" \
+        -n "$KUBE_NS"; then
+        echo "deploy :: ERROR - Failed to create Docker registry secret"
+        exit 1
+    fi
 fi
 
-# kubernetes config (core / shared / env)
-kube_core_dir="$KUBE_ROOT/core"
-kube_shared_dir="$KUBE_ROOT/shared"
-kube_env_dir="$KUBE_ROOT/$KUBE_ENV"
+# Apply Kubernetes configurations
+deploy_configs() {
+    local config_dir=$1
+    if [ -d "$config_dir" ]; then
+        for file in "$config_dir"/*; do
+            echo "deploy :: Applying configuration from $file"
+            if ! envsubst <"$file" | kubectl apply -f -; then
+                echo "deploy :: ERROR - Failed to apply configuration $file"
+                exit 1
+            fi
+            if [ -n "$kube_parsed_labels" ]; then
+                if ! kubectl label --overwrite -f - $(echo $kube_parsed_labels); then
+                    echo "deploy :: ERROR - Failed to apply labels to $file"
+                    exit 1
+                fi
+            fi
+        done
+    fi
+}
 
-if [ -d "$kube_core_dir" ]; then
-    for file in "$kube_core_dir"/*; do
-        echo "deploy :: deploying from core config - $kube_core_dir/$file"
-        envsubst <"$file" | kubectl apply -f -
+deploy_configs "$KUBE_ROOT/core"
+deploy_configs "$KUBE_ROOT/shared"
+deploy_configs "$KUBE_ROOT/$KUBE_ENV"
 
-        if [ -n "$kube_parsed_labels" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
-        fi
-    done
-fi
-
-if [ -d "$kube_shared_dir" ]; then
-    for file in "$kube_shared_dir"/*; do
-        echo "deploy :: deploying from shared config - $kube_shared_dir/$file"
-        envsubst <"$file" | kubectl apply -f -
-
-        if [ -n "$kube_parsed_labels" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
-        fi
-    done
-fi
-
-if [ -d "$kube_env_dir" ]; then
-    for file in "$kube_env_dir"/*; do
-        echo "deploy :: deploying from env config - $kube_env_dir/$file"
-        envsubst <"$file" | kubectl apply -f -
-
-        if [ -n "$kube_parsed_labels" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
-        fi
-    done
-fi
-
-# deployment post deploy hook
+# Run post-deployment script if available
 if [ -f "$kube_post_deploy_script" ]; then
-    echo "deploy :: running post deploy hook - $kube_post_deploy_script"
-    # shellcheck disable=SC1090
-    source "$kube_post_deploy_script"
+    safe_log "deploy :: Running post-deploy script - $kube_post_deploy_script"
+    if ! source "$kube_post_deploy_script"; then
+        echo "deploy :: ERROR - Post-deploy script failed"
+        exit 1
+    fi
 fi
 
-echo "deploy :: deployment finished - $KUBE_INGRESS_HOSTNAME"
+echo "deploy :: Deployment completed successfully for $KUBE_INGRESS_HOSTNAME"
+
