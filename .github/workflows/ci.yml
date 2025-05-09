@@ -114,6 +114,9 @@ on:
       deploy_url:
         description: 'URL where application was deployed'
         value: ${{ jobs.deploy.outputs.url }}
+      temporal_dashboard_url:
+        description: 'URL for Temporal Dashboard'
+        value: ${{ jobs.deploy.outputs.temporal_dashboard_url }}
 
 jobs:
   analyze:
@@ -254,6 +257,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.deploy.outputs.url }}
+      temporal_dashboard_url: ${{ steps.temporal.outputs.temporal_dashboard_url }}
     steps:
       - name: Checkout (app)
         uses: actions/checkout@v3
