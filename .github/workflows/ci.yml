@@ -114,6 +114,9 @@ on:
       deploy_url:
         description: 'URL where application was deployed'
         value: ${{ jobs.deploy.outputs.url }}
+      temporal_dashboard_url:
+        description: 'URL for Temporal Dashboard'
+        value: ${{ jobs.deploy.outputs.temporal_dashboard_url }}
 
 jobs:
   analyze:
@@ -254,6 +257,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.deploy.outputs.url }}
+      temporal_dashboard_url: ${{ steps.temporal.outputs.temporal_dashboard_url }}
     steps:
       - name: Checkout (app)
         uses: actions/checkout@v3
@@ -290,6 +294,14 @@ jobs:
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
 
+      - name: Extract and format Temporal Dashboard URL
+        id: temporal
+        run: |
+          full_url="${{ steps.deploy.outputs.url }}"
+          domain="${full_url#https://}"
+          temporal_dashboard_url="https://workers-dashboard.${domain}"
+          echo "temporal_dashboard_url=$temporal_dashboard_url" >> $GITHUB_OUTPUT
+
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
         if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
@@ -300,3 +312,4 @@ jobs:
           number: ${{ inputs.pull_request_number }}
           message: |
             Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
+            Temporal Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
