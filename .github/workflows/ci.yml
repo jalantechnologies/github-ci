@@ -311,5 +311,6 @@ jobs:
           hide_classify: "OUTDATED"
           number: ${{ inputs.pull_request_number }}
           message: |
-            Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
-            Temporal Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+            Deployment (${{ inputs.app_name }}) is available -
+            Web App: ${{ steps.deploy.outputs.url }}
+            Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
