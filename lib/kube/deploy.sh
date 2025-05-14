@@ -14,6 +14,13 @@ echo "deploy :: kube app - $KUBE_APP"
 echo "deploy :: kube env - $KUBE_ENV"
 echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
 echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
+
+# compute workers-dashboard hostname by inserting at index 1
+_orig="$KUBE_INGRESS_HOSTNAME"
+_first="${_orig%%.*}"      # first label (before first dot)
+_rest="${_orig#*.}"        # rest of the hostname (after first dot)
+export KUBE_INGRESS_WORKER_HOSTNAME="$_first.workers-dashboard.$_rest"
+echo "deploy :: kube ingress worker hostname - $KUBE_INGRESS_WORKER_HOSTNAME"
 echo "deploy :: kube deploy id - $KUBE_DEPLOY_ID"
 
 kube_pre_deploy_script="$KUBE_ROOT/scripts/pre-deploy.sh"
