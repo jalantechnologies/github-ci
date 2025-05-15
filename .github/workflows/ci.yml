@@ -297,10 +297,16 @@ jobs:
       - name: Extract and format Temporal Dashboard URL
         id: temporal
         run: |
-            full_url="${{ steps.deploy.outputs.url }}"
-            domain="${full_url#https://}"
-            temporal_dashboard_url="https://workers-dashboard.${domain}"
-            echo "temporal_dashboard_url=$temporal_dashboard_url" >> $GITHUB_OUTPUT
+          full_url="${{ steps.deploy.outputs.url }}"
+          domain="${full_url#*://}"
+
+          first_label="${domain%%.*}"
+
+          rest="${domain#*.}"
+
+          temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
+
+          echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided

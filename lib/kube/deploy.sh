@@ -15,11 +15,17 @@ echo "deploy :: kube env - $KUBE_ENV"
 echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
 echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 
-# compute workers-dashboard hostname by inserting at index 1
+# compute workers-dashboard hostname by inserting at index 1 only for preview hosts
 _orig="$KUBE_INGRESS_HOSTNAME"
 _first="${_orig%%.*}"      # first label (before first dot)
 _rest="${_orig#*.}"        # rest of the hostname (after first dot)
-export KUBE_INGRESS_WORKER_HOSTNAME="$_first.workers-dashboard.$_rest"
+
+if [[ "$_orig" == *preview* ]]; then
+    export KUBE_INGRESS_WORKER_HOSTNAME="$_first.workers-dashboard.$_rest"
+else
+    export KUBE_INGRESS_WORKER_HOSTNAME="workers-dashboard.$_orig"
+fi
+
 echo "deploy :: kube ingress worker hostname - $KUBE_INGRESS_WORKER_HOSTNAME"
 echo "deploy :: kube deploy id - $KUBE_DEPLOY_ID"
 
