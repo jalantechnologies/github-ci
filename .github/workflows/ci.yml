@@ -4,6 +4,10 @@ on:
   workflow_call:
     inputs:
       # required
+      hosting_provider:
+        required: true
+        type: string
+        description: 'The cloud provider to use for hosting. Options: AWS or DIGITAL_OCEAN'
 
       app_name:
         required: true
@@ -271,8 +275,29 @@ jobs:
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
-      - name: Deploy
+      - name: Deploy to DigitalOcean
+        if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         id: deploy
+        uses: ./platform/.github/actions/deploy
+        with:
+          app_name: ${{ inputs.app_name }}
+          app_env: ${{ inputs.app_env }}
+          app_hostname: ${{ inputs.app_hostname }}
+          branch: ${{ inputs.branch }}
+          deploy_id: ${{ github.run_number }}
+          deploy_root: app/${{ inputs.deploy_root }}
+          deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
+          deploy_image: ${{ needs.build.outputs.image_ref }}
+          docker_registry: ${{ inputs.docker_registry }}
+          docker_username: ${{ inputs.docker_username }}
+          docker_password: ${{ secrets.docker_password }}
+          do_access_token: ${{ secrets.do_access_token }}
+          do_cluster_id: ${{ inputs.do_cluster_id }}
+          doppler_token: ${{ secrets.doppler_token }}
+
+      - name: Deploy to AWS
+        if: inputs.hosting_provider == 'AWS'
+        id: deploy_aws
         uses: ./platform/.github/actions/deploy
         with:
           app_name: ${{ inputs.app_name }}
@@ -285,13 +310,11 @@ jobs:
           branch: ${{ inputs.branch }}
           deploy_id: ${{ github.run_number }}
           deploy_root: app/${{ inputs.deploy_root }}
-          deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }} gh/workflow-run=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+          deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
           deploy_image: ${{ needs.build.outputs.image_ref }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
-          do_access_token: ${{ secrets.do_access_token }}
-          do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
 
       - name: Extract and format Temporal Dashboard URL
