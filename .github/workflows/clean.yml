@@ -4,6 +4,10 @@ on:
   workflow_call:
     inputs:
       # required
+      hosting_provider:
+        required: true
+        type: string
+        description: 'The cloud provider to use for cleanup. Options: AWS or DIGITAL_OCEAN'
       app_name:
         required: true
         type: string
@@ -128,6 +132,14 @@ jobs:
           AWS_REGION: ${{ inputs.aws_region }}
         if: "${{ env.AWS_CLUSTER_NAME != '' }}"
         run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
+
+      - name: Clean DigitalOcean resources
+        if: inputs.hosting_provider == 'DIGITAL_OCEAN'
+        run: echo "Cleaning DigitalOcean resources..."
+
+      - name: Clean AWS resources
+        if: inputs.hosting_provider == 'AWS'
+        run: echo "Cleaning AWS resources..."
 
       - name: Kubernetes clean
         env:
