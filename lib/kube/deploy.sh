@@ -122,11 +122,38 @@ if [ -d "$kube_env_dir" ]; then
     done
 fi
 
-# deployment post deploy hook
+# deployment post deploy hook or fallback
 if [ -f "$kube_post_deploy_script" ]; then
     echo "deploy :: running post deploy hook - $kube_post_deploy_script"
     # shellcheck disable=SC1090
     source "$kube_post_deploy_script"
+else
+    DEPLOYMENT_NAME="${KUBE_APP}-deployment"
+    echo "deploy :: no post-deploy script found — running default rollout check"
+
+    echo "Waiting for deployment rollout: $DEPLOYMENT_NAME in $KUBE_NS..."
+
+    if ! kubectl rollout status deployment "$DEPLOYMENT_NAME" -n "$KUBE_NS" --timeout=100s; then
+        echo "Deployment rollout failed for $DEPLOYMENT_NAME"
+
+        echo "Checking for non-running pods in namespace: $KUBE_NS"
+        failing_pods=$(kubectl get pods -n "$KUBE_NS" --field-selector=status.phase!=Running -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep "^$KUBE_APP")
+
+        if [ -z "$failing_pods" ]; then
+            echo "No non-running pods found — rollout may have failed for another reason."
+        else
+            for pod in $failing_pods; do
+                echo -e "\n Logs for pod: $pod\n"
+                kubectl describe pod "$pod" -n "$KUBE_NS" || echo "Failed to describe pod $pod"
+                echo -e "\n Container logs for $pod:\n"
+                kubectl logs "$pod" -n "$KUBE_NS" --all-containers=true || echo "Failed to fetch logs for $pod"
+            done
+        fi
+
+        exit 1
+    else
+        echo "Deployment successfully rolled out!"
+    fi
 fi
 
 echo "deploy :: deployment finished - $KUBE_INGRESS_HOSTNAME"
