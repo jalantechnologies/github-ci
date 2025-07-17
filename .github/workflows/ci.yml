@@ -5,9 +5,10 @@ on:
     inputs:
       # required
       hosting_provider:
-        required: true
+        required: false
         type: string
         description: 'The cloud provider to use for hosting. Options: AWS or DIGITAL_OCEAN'
+        default: 'DIGITAL_OCEAN'
 
       app_name:
         required: true
