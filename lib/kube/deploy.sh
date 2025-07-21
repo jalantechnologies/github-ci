@@ -113,6 +113,7 @@ fi
 
 if [ -d "$kube_env_dir" ]; then
     for file in "$kube_env_dir"/*; do
+        # TODO: https://github.com/jalantechnologies/github-ci/issues/77
         # Skip temporal deployment ONLY in preview
         if [[ "$KUBE_ENV" == "preview" && "$file" == *temporal-deployment.yaml ]]; then
             echo "deploy :: skipping temporal deployment in preview env - $file"

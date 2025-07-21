@@ -30,6 +30,7 @@ fi
 
 if [ -d "$kube_env_dir" ]; then
     for file in "$kube_env_dir"/*; do
+        # TODO: https://github.com/jalantechnologies/github-ci/issues/77
         if [[ "$KUBE_ENV" == "preview" && "$file" == *temporal-deployment.yaml ]]; then
             echo "clean :: skipping temporal cleanup in preview env - $file"
             continue
