@@ -113,6 +113,12 @@ fi
 
 if [ -d "$kube_env_dir" ]; then
     for file in "$kube_env_dir"/*; do
+        # Skip temporal deployment ONLY in preview
+        if [[ "$KUBE_ENV" == "preview" && "$file" == *temporal-deployment.yaml ]]; then
+            echo "deploy :: skipping temporal deployment in preview env - $file"
+            continue
+        fi
+
         echo "deploy :: deploying from env config - $kube_env_dir/$file"
         envsubst <"$file" | kubectl apply -f -
 
@@ -121,6 +127,7 @@ if [ -d "$kube_env_dir" ]; then
         fi
     done
 fi
+
 
 # deployment post deploy hook
 if [ -f "$kube_post_deploy_script" ]; then
