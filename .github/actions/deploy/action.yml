@@ -120,12 +120,12 @@ runs:
       run: |
         pip install pyyaml
         echo "== Debug: checking file location =="
-        ls -al "$GITHUB_WORKSPACE/.github/scripts"
+        ls -al "$GITHUB_WORKSPACE/leadgenai/.github/scripts"
         echo "== Debug: previewing script =="
-        cat "$GITHUB_WORKSPACE/.github/scripts/patch_node_selector.py"
+        cat "$GITHUB_WORKSPACE/leadgenai/.github/scripts/patch_node_selector.py"
 
         echo "== Running patch_node_selector.py =="
-        python "$GITHUB_WORKSPACE/.github/scripts/patch_node_selector.py"
+        python "$GITHUB_WORKSPACE/leadgenai/.github/scripts/patch_node_selector.py"
       env:
         hosting_provider: ${{ inputs.hosting_provider }}
         app_env: ${{ inputs.app_env }}

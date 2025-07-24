@@ -276,6 +276,13 @@ jobs:
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
+      - name: Checkout (leadgenai)
+        uses: actions/checkout@v3
+        with:
+          repository: jalantechnologies/leadgenai
+          ref: ${{ inputs.branch }}
+          path: leadgenai
+
       - name: Deploy to DigitalOcean
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         id: deploy
