@@ -119,7 +119,13 @@ runs:
       shell: bash
       run: |
         pip install pyyaml
-        python .github/scripts/patch_node_selector.py
+        echo "== Debug: checking file location =="
+        ls -al "$GITHUB_WORKSPACE/.github/scripts"
+        echo "== Debug: previewing script =="
+        cat "$GITHUB_WORKSPACE/.github/scripts/patch_node_selector.py"
+
+        echo "== Running patch_node_selector.py =="
+        python "$GITHUB_WORKSPACE/.github/scripts/patch_node_selector.py"
       env:
         hosting_provider: ${{ inputs.hosting_provider }}
         app_env: ${{ inputs.app_env }}
