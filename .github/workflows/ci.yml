@@ -297,6 +297,8 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
+          node_selector_key: ${{ vars.NODE_SELECTOR_KEY_DO }}
+          node_selector_value: ${{ vars.NODE_SELECTOR_VALUE_DO }}
 
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
@@ -321,6 +323,8 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
+          node_selector_key: ${{ vars.NODE_SELECTOR_KEY_AWS }}
+          node_selector_value: ${{ vars.NODE_SELECTOR_VALUE_AWS }}
 
       - name: Extract and format Temporal Dashboard URL
         id: temporal

@@ -56,6 +56,12 @@ inputs:
   doppler_token:
     required: false
     description: 'Doppler token for accessing environment variables'
+  node_selector_key:
+    required: false
+    description: 'Node selector key for Kubernetes scheduling'
+  node_selector_value:
+    required: false
+    description: 'Node selector value for Kubernetes scheduling'
 outputs:
   url:
     description: 'URL where application has been deployed'
@@ -117,10 +123,8 @@ runs:
       env:
         hosting_provider: ${{ inputs.hosting_provider }}
         app_env: ${{ inputs.app_env }}
-        NODE_SELECTOR_KEY_AWS: ${{ vars.NODE_SELECTOR_KEY_AWS }}
-        NODE_SELECTOR_VALUE_AWS: ${{ vars.NODE_SELECTOR_VALUE_AWS }}
-        NODE_SELECTOR_KEY_DO: ${{ vars.NODE_SELECTOR_KEY_DO }}
-        NODE_SELECTOR_VALUE_DO: ${{ vars.NODE_SELECTOR_VALUE_DO }}
+        NODE_SELECTOR_KEY: ${{ inputs.node_selector_key }}
+        NODE_SELECTOR_VALUE: ${{ inputs.node_selector_value }}
 
     - name: Kubernetes deploy
       shell: bash
