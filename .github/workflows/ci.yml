@@ -280,6 +280,8 @@ jobs:
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         id: deploy
         uses: ./platform/.github/actions/deploy
+        env:
+          hosting_provider: ${{ inputs.hosting_provider }}
         with:
           app_name: ${{ inputs.app_name }}
           app_env: ${{ inputs.app_env }}
@@ -300,6 +302,8 @@ jobs:
         if: inputs.hosting_provider == 'AWS'
         id: deploy_aws
         uses: ./platform/.github/actions/deploy
+        env:
+          hosting_provider: ${{ inputs.hosting_provider }}
         with:
           app_name: ${{ inputs.app_name }}
           app_env: ${{ inputs.app_env }}

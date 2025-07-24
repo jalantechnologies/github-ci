@@ -109,6 +109,19 @@ runs:
       if: "${{ env.AWS_CLUSTER_NAME != '' }}"
       run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
+    - name: Patch deployment.yaml with correct node selector
+      shell: bash
+      run: |
+        pip install pyyaml
+        python .github/scripts/patch_node_selector.py
+      env:
+        hosting_provider: ${{ inputs.hosting_provider }}
+        app_env: ${{ inputs.app_env }}
+        NODE_SELECTOR_KEY_AWS: ${{ vars.NODE_SELECTOR_KEY_AWS }}
+        NODE_SELECTOR_VALUE_AWS: ${{ vars.NODE_SELECTOR_VALUE_AWS }}
+        NODE_SELECTOR_KEY_DO: ${{ vars.NODE_SELECTOR_KEY_DO }}
+        NODE_SELECTOR_VALUE_DO: ${{ vars.NODE_SELECTOR_VALUE_DO }}
+
     - name: Kubernetes deploy
       shell: bash
       id: deploy
