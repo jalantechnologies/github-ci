@@ -122,9 +122,9 @@ runs:
       env:
         DOPPLER_TOKEN: ${{ inputs.doppler_token }}
         KUBE_NS: ${{ env.KUBE_NS }}
-      if: "${{ env.DOPPLER_TOKEN != '' }}"  
+      if: "${{ env.DOPPLER_TOKEN != '' }}"
       run: |
-        doppler secrets download --format kubernetes --no-file | kubectl apply -f - -n $KUBE_NS
+        doppler secrets download --format yaml --no-file | kubectl apply -f - -n $KUBE_NS
 
     - name: Kubernetes deploy
       shell: bash
