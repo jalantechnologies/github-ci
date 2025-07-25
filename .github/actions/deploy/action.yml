@@ -114,6 +114,15 @@ runs:
       with:
         version: v3.12.0
 
+    - name: Sync Doppler secrets to Kubernetes
+      shell: bash
+      env:
+        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
+      if: "${{ env.DOPPLER_TOKEN != '' }}"
+      run: |
+        curl -sLf --retry 3 --retry-delay 2 https://cli.doppler.com/install.sh | sh
+        doppler secrets download --format kubernetes --no-file | kubectl apply -f - -n $KUBE_NS
+
     - name: Kubernetes deploy
       shell: bash
       id: deploy
@@ -143,5 +152,5 @@ runs:
           --set ingressHost=$KUBE_INGRESS_HOSTNAME \
           --set deployId=$KUBE_DEPLOY_ID \
           --set gitSha=$GITHUB_SHA
-          
+
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
