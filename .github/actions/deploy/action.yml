@@ -126,6 +126,10 @@ runs:
       run: |
         doppler secrets download --format yaml --no-file | kubectl apply -f - -n $KUBE_NS
 
+    - name: Apply DopplerSecret manifest
+      shell: bash
+      run: kubectl apply -f lib/kube/leadgenai-chart/secrets/doppler-secret.yaml
+
     - name: Kubernetes deploy
       shell: bash
       id: deploy
