@@ -117,15 +117,6 @@ runs:
     - name: Setup Doppler CLI
       uses: dopplerhq/cli-action@v2
 
-    - name: Sync Doppler secrets to Kubernetes
-      shell: bash
-      env:
-        DOPPLER_TOKEN: ${{ inputs.doppler_token }}
-        KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
-      if: "${{ env.DOPPLER_TOKEN != '' }}"
-      run: |
-        doppler secrets download --format yaml --no-file | kubectl apply -f - -n $KUBE_NS
-
     - name: Apply DopplerSecret manifest
       shell: bash
       run: kubectl apply -f lib/kube/leadgenai-chart/secrets/doppler-secret.yaml
