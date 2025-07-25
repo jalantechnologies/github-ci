@@ -114,13 +114,17 @@ runs:
       with:
         version: v3.12.0
 
+    - name: Setup Doppler CLI
+      uses: dopplerhq/cli-action@v2
+      with:
+        doppler-token: ${{ inputs.doppler_token }}
+
     - name: Sync Doppler secrets to Kubernetes
       shell: bash
       env:
         DOPPLER_TOKEN: ${{ inputs.doppler_token }}
       if: "${{ env.DOPPLER_TOKEN != '' }}"
       run: |
-        curl -sLf --retry 3 --retry-delay 2 https://cli.doppler.com/install.sh | sh
         doppler secrets download --format kubernetes --no-file | kubectl apply -f - -n $KUBE_NS
 
     - name: Kubernetes deploy
