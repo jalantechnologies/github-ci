@@ -117,6 +117,11 @@ runs:
     - name: Setup Doppler CLI
       uses: dopplerhq/cli-action@v2
 
+    - name: Show working directory and files
+      run: |
+        pwd
+        ls -l lib/kube/leadgenai-chart/secrets/
+
     - name: Apply DopplerSecret manifest
       shell: bash
       run: kubectl apply -f lib/kube/leadgenai-chart/secrets/doppler-secret.yaml
