@@ -121,7 +121,7 @@ runs:
       shell: bash
       env:
         DOPPLER_TOKEN: ${{ inputs.doppler_token }}
-        KUBE_NS: ${{ env.KUBE_NS }}
+        KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
       if: "${{ env.DOPPLER_TOKEN != '' }}"
       run: |
         doppler secrets download --format yaml --no-file | kubectl apply -f - -n $KUBE_NS
