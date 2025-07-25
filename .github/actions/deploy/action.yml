@@ -109,6 +109,11 @@ runs:
       if: "${{ env.AWS_CLUSTER_NAME != '' }}"
       run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0
+
     - name: Kubernetes deploy
       shell: bash
       id: deploy
@@ -130,5 +135,13 @@ runs:
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
-        source platform/lib/kube/deploy.sh
+        helm upgrade --install $KUBE_APP $KUBE_ROOT/leadgenai-chart \
+          -n $KUBE_NS --create-namespace \
+          -f $KUBE_ROOT/leadgenai-chart/values-${KUBE_ENV}.yaml \
+          --set image.tag=$(echo $KUBE_DEPLOYMENT_IMAGE | cut -d: -f2) \
+          --set image.repository=$(echo $KUBE_DEPLOYMENT_IMAGE | cut -d: -f1) \
+          --set ingressHost=$KUBE_INGRESS_HOSTNAME \
+          --set deployId=$KUBE_DEPLOY_ID \
+          --set gitSha=$GITHUB_SHA
+          
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
