@@ -304,12 +304,12 @@ jobs:
           docker run --rm \
             --entrypoint temporal-sql-tool \
             temporalio/admin-tools:1.27.2-tctl-1.18 \
-            --plugin postgres12 \
-            --ep "$POSTGRES_SEEDS" \
-            --port "$DB_PORT" \
-            --db "$DBNAME" \
-            --user "$POSTGRES_USER" \
-            --password "$POSTGRES_PWD" \
+            --pl postgres12 \
+            --ep $POSTGRES_SEEDS \
+            -p $DB_PORT \
+            --db $DBNAME \
+            -u $POSTGRES_USER \
+            --pw $POSTGRES_PWD \
             --tls \
             --tls-disable-host-verification \
             update-schema -v 1.16 \
@@ -320,12 +320,12 @@ jobs:
             docker run --rm \
               --entrypoint temporal-sql-tool \
               temporalio/admin-tools:1.27.2-tctl-1.18 \
-              --plugin postgres12 \
-              --ep "$POSTGRES_SEEDS" \
-              --port "$DB_PORT" \
-              --db "$DBNAME" \
-              --user "$POSTGRES_USER" \
-              --password "$POSTGRES_PWD" \
+              --pl postgres12 \
+              --ep $POSTGRES_SEEDS \
+              -p $DB_PORT \
+              --db $DBNAME \
+              -u $POSTGRES_USER \
+              --pw $POSTGRES_PWD \
               --tls \
               --tls-disable-host-verification \
               setup-schema -v 0.0
