@@ -300,11 +300,11 @@ jobs:
             --entrypoint temporal-sql-tool \
             temporalio/admin-tools:1.27.2-tctl-1.18 \
             --plugin postgres12 \
-            --ep "$POSTGRES_SEEDS" \
-            --port "$DB_PORT" \
-            --db "$DBNAME" \
-            --user "$POSTGRES_USER" \
-            --password "$POSTGRES_PWD" \
+            --ep $POSTGRES_SEEDS \
+            --port $DB_PORT \
+            --db $DBNAME \
+            --user $POSTGRES_USER \
+            --password $POSTGRES_PWD \
             --tls \
             --tls-disable-host-verification \
             update-schema -v 1.16 \
@@ -318,11 +318,11 @@ jobs:
               --entrypoint temporal-sql-tool \
               temporalio/admin-tools:1.27.2-tctl-1.18 \
               --plugin postgres12 \
-              --ep "$POSTGRES_SEEDS" \
-              --port "$DB_PORT" \
-              --db "$DBNAME" \
-              --user "$POSTGRES_USER" \
-              --password "$POSTGRES_PWD" \
+              --ep $POSTGRES_SEEDS \
+              --port $DB_PORT \
+              --db $DBNAME \
+              --user $POSTGRES_USER \
+              --password $POSTGRES_PWD \
               --tls \
               --tls-disable-host-verification \
               setup-schema -v 0.0
