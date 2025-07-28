@@ -142,6 +142,7 @@ runs:
           --set image.repository=$(echo $KUBE_DEPLOYMENT_IMAGE | cut -d: -f1) \
           --set ingressHost=$KUBE_INGRESS_HOSTNAME \
           --set deployId=$KUBE_DEPLOY_ID \
+          --set namespace=$KUBE_NS \
           --set gitSha=$GITHUB_SHA
 
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
