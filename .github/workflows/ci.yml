@@ -296,15 +296,14 @@ jobs:
         run: |
           echo "Checking if Temporal schema is already applied"
           docker run --rm \
-            --env-file tmp/temporal.env \
             --entrypoint temporal-sql-tool \
             temporalio/admin-tools:1.27.2-tctl-1.18 \
             --plugin postgres12 \
-            --ep $POSTGRES_SEEDS \
-            --port $DB_PORT \
-            --db $DBNAME \
-            --user $POSTGRES_USER \
-            --password $POSTGRES_PWD \
+            --ep "${{ secrets.POSTGRES_SEEDS }}" \
+            --port "${{ secrets.DB_PORT }}" \
+            --db "${{ secrets.DBNAME }}" \
+            --user "${{ secrets.POSTGRES_USER }}" \
+            --password "${{ secrets.POSTGRES_PWD }}" \
             --tls \
             --tls-disable-host-verification \
             update-schema -v 1.16 \
@@ -314,15 +313,14 @@ jobs:
             echo "Schema not found or mismatched. Running setup-schema"
 
             docker run --rm \
-              --env-file tmp/temporal.env \
               --entrypoint temporal-sql-tool \
               temporalio/admin-tools:1.27.2-tctl-1.18 \
               --plugin postgres12 \
-              --ep $POSTGRES_SEEDS \
-              --port $DB_PORT \
-              --db $DBNAME \
-              --user $POSTGRES_USER \
-              --password $POSTGRES_PWD \
+              --ep "${{ secrets.POSTGRES_SEEDS }}" \
+              --port "${{ secrets.DB_PORT }}" \
+              --db "${{ secrets.DBNAME }}" \
+              --user "${{ secrets.POSTGRES_USER }}" \
+              --password "${{ secrets.POSTGRES_PWD }}" \
               --tls \
               --tls-disable-host-verification \
               setup-schema -v 0.0
