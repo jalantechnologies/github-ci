@@ -293,17 +293,23 @@ jobs:
           grep -E '^(DBNAME|POSTGRES_SEEDS|DB_PORT|POSTGRES_USER)=' tmp/temporal.env || echo "No DB-related keys found"
 
       - name: Setup Temporal DB schema
+        env:
+          POSTGRES_SEEDS: ${{ secrets.POSTGRES_SEEDS }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DBNAME: ${{ secrets.DBNAME }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PWD: ${{ secrets.POSTGRES_PWD }}
         run: |
           echo "Checking if Temporal schema is already applied"
           docker run --rm \
             --entrypoint temporal-sql-tool \
             temporalio/admin-tools:1.27.2-tctl-1.18 \
             --plugin postgres12 \
-            --ep "${{ secrets.POSTGRES_SEEDS }}" \
-            --port "${{ secrets.DB_PORT }}" \
-            --db "${{ secrets.DBNAME }}" \
-            --user "${{ secrets.POSTGRES_USER }}" \
-            --password "${{ secrets.POSTGRES_PWD }}" \
+            --ep "$POSTGRES_SEEDS" \
+            --port "$DB_PORT" \
+            --db "$DBNAME" \
+            --user "$POSTGRES_USER" \
+            --password "$POSTGRES_PWD" \
             --tls \
             --tls-disable-host-verification \
             update-schema -v 1.16 \
@@ -311,16 +317,15 @@ jobs:
           && echo "Schema is already initialized" \
           || (
             echo "Schema not found or mismatched. Running setup-schema"
-
             docker run --rm \
               --entrypoint temporal-sql-tool \
               temporalio/admin-tools:1.27.2-tctl-1.18 \
               --plugin postgres12 \
-              --ep "${{ secrets.POSTGRES_SEEDS }}" \
-              --port "${{ secrets.DB_PORT }}" \
-              --db "${{ secrets.DBNAME }}" \
-              --user "${{ secrets.POSTGRES_USER }}" \
-              --password "${{ secrets.POSTGRES_PWD }}" \
+              --ep "$POSTGRES_SEEDS" \
+              --port "$DB_PORT" \
+              --db "$DBNAME" \
+              --user "$POSTGRES_USER" \
+              --password "$POSTGRES_PWD" \
               --tls \
               --tls-disable-host-verification \
               setup-schema -v 0.0
