@@ -276,6 +276,46 @@ jobs:
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
+      - name: Install Doppler CLI
+        run: |
+          curl -sLf --retry 3 --retry-delay 2 https://cli.doppler.com/install.sh | sh
+          echo "$HOME/.doppler/bin" >> $GITHUB_PATH
+
+      - name: Export secrets from Doppler into env file
+        run: |
+          mkdir -p tmp
+          doppler secrets download --no-file --format env > tmp/temporal.env
+        env:
+          DOPPLER_TOKEN: ${{ secrets.doppler_token }}
+
+      - name: Setup Temporal DB schema
+        run: |
+          echo "Checking if schema exists"
+          docker run --rm \
+            --env-file tmp/temporal.env \
+            temporalio/admin-tools:1.27.2-tctl-1.18 \
+            temporal-sql-tool --plugin postgres \
+              --ep "$POSTGRES_SEEDS:$DB_PORT" \
+              --db "$DBNAME" \
+              --user "$POSTGRES_USER" \
+              --password "$POSTGRES_PWD" \
+              --tls \
+              --tls-enable-host-verification=false \
+              validate-schema-version || {
+            echo "Schema not found, setting up"
+            docker run --rm \
+              --env-file tmp/temporal.env \
+              temporalio/admin-tools:1.27.2-tctl-1.18 \
+              temporal-sql-tool --plugin postgres \
+                --ep "$POSTGRES_SEEDS:$DB_PORT" \
+                --db "$DBNAME" \
+                --user "$POSTGRES_USER" \
+                --password "$POSTGRES_PWD" \
+                --tls \
+                --tls-enable-host-verification=false \
+                setup-schema -v 0.0
+          }
+
       - name: Deploy to DigitalOcean
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         id: deploy
