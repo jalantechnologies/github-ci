@@ -135,7 +135,11 @@ runs:
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
-        helm dependency build $KUBE_ROOT/leadgenai-chart && \
+        helm repo add doppler https://helm.doppler.com || true
+        helm repo update
+
+        helm dependency build $KUBE_ROOT/leadgenai-chart
+        
         helm upgrade --install $KUBE_APP $KUBE_ROOT/leadgenai-chart \
           -n $KUBE_NS --create-namespace \
           -f $KUBE_ROOT/leadgenai-chart/values-${KUBE_ENV}.yaml \
