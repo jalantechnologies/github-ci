@@ -143,6 +143,7 @@ runs:
           --set ingressHost=$KUBE_INGRESS_HOSTNAME \
           --set deployId=$KUBE_DEPLOY_ID \
           --set namespace=$KUBE_NS \
-          --set gitSha=$GITHUB_SHA
+          --set gitSha=$GITHUB_SHA \
+           **--set doppler.token=$DOPPLER_TOKEN**
 
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
