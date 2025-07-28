@@ -277,9 +277,7 @@ jobs:
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
       - name: Install Doppler CLI
-        run: |
-          curl -sLf --retry 3 --retry-delay 2 https://cli.doppler.com/install.sh | sh
-          echo "$HOME/.doppler/bin" >> $GITHUB_PATH
+        uses: dopplerhq/cli-action@v3
 
       - name: Export secrets from Doppler into env file
         run: |
@@ -287,6 +285,12 @@ jobs:
           doppler secrets download --no-file --format env > tmp/temporal.env
         env:
           DOPPLER_TOKEN: ${{ secrets.doppler_token }}
+
+      - name: Verify temporal.env contents (Safe Verification)
+        shell: bash
+        run: |
+          echo "Injected keys in temporal.env:"
+          grep -E '^(DBNAME|POSTGRES_SEEDS|DB_PORT|POSTGRES_USER)=' tmp/temporal.env || echo "No DB-related keys found"
 
       - name: Setup Temporal DB schema
         run: |
