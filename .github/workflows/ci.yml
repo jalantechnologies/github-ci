@@ -294,36 +294,39 @@ jobs:
 
       - name: Setup Temporal DB schema
         run: |
-          echo "Checking if schema exists"
+          echo "Checking if Temporal schema is already applied"
           docker run --rm \
             --env-file tmp/temporal.env \
+            --entrypoint temporal-sql-tool \
             temporalio/admin-tools:1.27.2-tctl-1.18 \
-            temporal-sql-tool --plugin postgres12 \
-              --ep "$POSTGRES_SEEDS:$DB_PORT" \
+            --plugin postgres12 \
+            --ep "$POSTGRES_SEEDS" \
+            --port "$DB_PORT" \
+            --db "$DBNAME" \
+            --user "$POSTGRES_USER" \
+            --password "$POSTGRES_PWD" \
+            --tls \
+            --tls-disable-host-verification \
+            update-schema -v 1.16 \
+            --schema-dir /etc/temporal/schema/postgresql/v12/temporal \
+          && echo "Schema is already initialized" \
+          || (
+            echo "Schema not found or mismatched. Running setup-schema"
+
+            docker run --rm \
+              --env-file tmp/temporal.env \
+              --entrypoint temporal-sql-tool \
+              temporalio/admin-tools:1.27.2-tctl-1.18 \
+              --plugin postgres12 \
+              --ep "$POSTGRES_SEEDS" \
+              --port "$DB_PORT" \
               --db "$DBNAME" \
               --user "$POSTGRES_USER" \
               --password "$POSTGRES_PWD" \
               --tls \
               --tls-disable-host-verification \
-              update-schema -v 1.7 \
-              --dry-run \
-              --schema-dir /etc/temporal/schema/postgresql/v12/temporal \
-            && echo "Schema is already initialized" \
-            || (
-              echo "Schema not found or mismatched. Running setup-schema -v 0.0"
-
-              docker run --rm \
-                --env-file tmp/temporal.env \
-                temporalio/admin-tools:1.27.2-tctl-1.18 \
-                temporal-sql-tool --plugin postgres12 \
-                  --ep "$POSTGRES_SEEDS:$DB_PORT" \
-                  --db "$DBNAME" \
-                  --user "$POSTGRES_USER" \
-                  --password "$POSTGRES_PWD" \
-                  --tls \
-                  --tls-disable-host-verification \
-                  setup-schema -v 0.0
-            )
+              setup-schema -v 0.0
+          )
 
       - name: Deploy to DigitalOcean
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
