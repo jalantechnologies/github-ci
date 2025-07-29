@@ -114,13 +114,18 @@ runs:
       with:
         version: v3.12.0
 
-    - name: Install/Upgrade Doppler Operator
+    - name: Install Doppler Operator if not exists
       shell: bash
       run: |
-        helm repo add doppler https://helm.doppler.com || true
-        helm repo update
-        helm upgrade --install doppler-operator doppler/doppler-kubernetes-operator \
-          -n doppler-operator-system --create-namespace
+        if ! helm status doppler-operator -n doppler-operator-system &>/dev/null; then
+          echo "Doppler Operator not found. Installing..."
+          helm repo add doppler https://helm.doppler.com || true
+          helm repo update
+          helm upgrade --install doppler-operator doppler/doppler-kubernetes-operator \
+            -n doppler-operator-system --create-namespace
+        else
+          echo "Doppler Operator already installed. Skipping installation."
+        fi
 
     - name: Kubernetes deploy
       shell: bash
