@@ -114,6 +114,13 @@ runs:
       with:
         version: v3.12.0
 
+    - name: Install/Upgrade Doppler Operator
+      run: |
+        helm repo add doppler https://helm.doppler.com || true
+        helm repo update
+        helm upgrade --install doppler-operator doppler/doppler-kubernetes-operator \
+          -n doppler-operator-system --create-namespace
+
     - name: Kubernetes deploy
       shell: bash
       id: deploy
@@ -135,9 +142,6 @@ runs:
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
-        helm repo add doppler https://helm.doppler.com || true
-        helm repo update
-
         helm dependency build $KUBE_ROOT/leadgenai-chart
         
         helm upgrade --install $KUBE_APP $KUBE_ROOT/leadgenai-chart \
@@ -149,6 +153,7 @@ runs:
           --set deployId=$KUBE_DEPLOY_ID \
           --set namespace=$KUBE_NS \
           --set gitSha=$GITHUB_SHA \
-          --set doppler.token=${{ inputs.doppler_token }}
+          --set doppler.token=${{ inputs.doppler_token }} \
+          --set doppler.installOperator=false
 
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
