@@ -115,6 +115,7 @@ runs:
         version: v3.12.0
 
     - name: Install/Upgrade Doppler Operator
+      shell: bash
       run: |
         helm repo add doppler https://helm.doppler.com || true
         helm repo update
