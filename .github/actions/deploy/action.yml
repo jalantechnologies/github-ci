@@ -109,17 +109,20 @@ runs:
       if: "${{ env.AWS_CLUSTER_NAME != '' }}"
       run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
+    # Installing Helm (previously using shell script deploy.sh)
     - name: Install Helm
       uses: azure/setup-helm@v3
       with:
         version: v3.12.0
 
+    # Adding Doppler Helm repo
     - name: Add Doppler Helm Repo
       shell: bash
       run: |
         helm repo add doppler https://helm.doppler.com || true
         helm repo update
 
+    # Installing Doppler Operator via Helm (instead of static YAMLs)
     - name: Install Doppler Operator if not exists
       shell: bash
       run: |
@@ -131,6 +134,7 @@ runs:
           echo "Doppler Operator already installed. Skipping installation."
         fi
 
+    # Kubernetes deploy now uses Helm chart instead of deploy.sh script
     - name: Kubernetes deploy
       shell: bash
       id: deploy
@@ -153,7 +157,7 @@ runs:
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
         helm dependency build $KUBE_ROOT/leadgenai-chart
-        
+
         helm upgrade --install $KUBE_APP $KUBE_ROOT/leadgenai-chart \
           -n $KUBE_NS --create-namespace \
           -f $KUBE_ROOT/leadgenai-chart/values-${KUBE_ENV}.yaml \
