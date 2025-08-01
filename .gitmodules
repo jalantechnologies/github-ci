@@ -1,0 +1,3 @@
+[submodule "lib/kube/charts-external/leadgenai"]
+	path = lib/kube/charts-external/leadgenai
+	url = https://github.com/jalantechnologies/leadgenai.git
