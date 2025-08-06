@@ -323,7 +323,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # unique per run attempt; safe for re-runs and matrix
-          name: k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          name: k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ github.workflow }}
           path: ci_artifacts/**
           if-no-files-found: ignore
 
