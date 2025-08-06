@@ -296,6 +296,33 @@ jobs:
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
 
+      # Upload artifacts even if deploy failed
+      - name: Upload diagnostics artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8s-diagnostics-${{ github.run_id }}
+          path: |
+            ci_artifacts/**
+          if-no-files-found: ignore
+
+      # Optional: surface a friendly summary back on the PR
+      - name: Post diagnostics summary as PR comment
+        if: ${{ always() && inputs.deploy_annotate_pr == true && inputs.pull_request_number }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '';
+            try { body = fs.readFileSync('ci_artifacts/summary.md', 'utf8'); } catch (e) {}
+            if (!body) body = 'No diagnostics summary found. See job logs/artifacts.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pull_request_number }},
+              body
+            });
+
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
         id: deploy_aws
@@ -317,6 +344,33 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
+
+      # Upload artifacts even if deploy failed
+      - name: Upload diagnostics artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8s-diagnostics-${{ github.run_id }}
+          path: |
+            ci_artifacts/**
+          if-no-files-found: ignore
+
+      # Optional: surface a friendly summary back on the PR
+      - name: Post diagnostics summary as PR comment
+        if: ${{ always() && inputs.deploy_annotate_pr == true && inputs.pull_request_number }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '';
+            try { body = fs.readFileSync('ci_artifacts/summary.md', 'utf8'); } catch (e) {}
+            if (!body) body = 'No diagnostics summary found. See job logs/artifacts.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pull_request_number }},
+              body
+            });
 
       - name: Extract and format Temporal Dashboard URL
         id: temporal
