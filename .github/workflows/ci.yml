@@ -300,7 +300,7 @@ jobs:
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         uses: actions/upload-artifact@v4
         with:
-          name: k8s-diagnostics-${{ github.run_id }}
+          name: k8s-diagnostics-${{ github.run_id }}-DO
           path: ci_artifacts/**
           if-no-files-found: ignore
 
@@ -330,7 +330,7 @@ jobs:
         if: inputs.hosting_provider == 'AWS'
         uses: actions/upload-artifact@v4
         with:
-          name: k8s-diagnostics-${{ github.run_id }}
+          name: k8s-diagnostics-${{ github.run_id }}-AWS
           path: ci_artifacts/**
           if-no-files-found: ignore
 
