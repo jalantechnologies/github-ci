@@ -336,9 +336,10 @@ jobs:
         id: meta
         shell: bash
         run: |
-          rnd=$(printf '%06X\n' $(( RANDOM % 16777216 )))
-          echo "name=k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.hosting_provider || 'DO' }}-${rnd}" >> $GITHUB_OUTPUT
-          echo "Artifact name: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.hosting_provider || 'DO' }}-${rnd}"
+          ts=$(date +%s)
+          rnd=$(openssl rand -hex 4)
+          echo "name=k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.hosting_provider || 'DO' }}-${ts}-${rnd}" >> $GITHUB_OUTPUT
+          echo "Artifact name: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.hosting_provider || 'DO' }}-${ts}-${rnd}"
 
       - name: Upload diagnostics artifacts (single)
         if: always()
