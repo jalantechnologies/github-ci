@@ -332,6 +332,24 @@ jobs:
 
           echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
 
+      - name: Publish diagnostics to Job Summary
+        if: always()
+        run: cat ci_artifacts/summary.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Show diagnostics in logs
+        if: always()
+        run: |
+          echo "===== K8s Diagnostics (raw) ====="
+          if [ -d ci_artifacts ]; then
+            while IFS= read -r -d '' f; do
+              echo "::group::${f}"
+              cat "$f" || true
+              echo "::endgroup::"
+            done < <(find ci_artifacts -type f -print0 | sort -z)
+          else
+            echo "No diagnostics found."
+          fi
+
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
         if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
