@@ -296,14 +296,6 @@ jobs:
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
 
-      - name: Upload diagnostics artifacts (DO)
-        if: inputs.hosting_provider == 'DIGITAL_OCEAN'
-        uses: actions/upload-artifact@v4
-        with:
-          name: k8s-diagnostics-${{ github.run_id }}-DO
-          path: ci_artifacts/**
-          if-no-files-found: ignore
-
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
         id: deploy_aws
@@ -326,11 +318,12 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
 
-      - name: Upload diagnostics artifacts (AWS)
-        if: inputs.hosting_provider == 'AWS'
+      - name: Upload diagnostics artifacts (single)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k8s-diagnostics-${{ github.run_id }}-AWS
+          # unique per run attempt; safe for re-runs and matrix
+          name: k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
           path: ci_artifacts/**
           if-no-files-found: ignore
 
