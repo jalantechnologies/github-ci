@@ -318,32 +318,6 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
 
-      - name: Upload diagnostics artifacts (single)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          # unique per run attempt; safe for re-runs and matrix
-          name: k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ github.workflow }}
-          path: ci_artifacts/**
-          if-no-files-found: ignore
-
-      # Optional: surface a friendly summary back on the PR
-      - name: Post diagnostics summary as PR comment
-        if: ${{ always() && inputs.deploy_annotate_pr == true && inputs.pull_request_number }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let body = '';
-            try { body = fs.readFileSync('ci_artifacts/summary.md', 'utf8'); } catch (e) {}
-            if (!body) body = 'No diagnostics summary found. See job logs/artifacts.';
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ inputs.pull_request_number }},
-              body
-            });
-
       - name: Extract and format Temporal Dashboard URL
         id: temporal
         run: |
@@ -357,6 +331,24 @@ jobs:
           temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
 
           echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
+
+      - name: Compute artifact name
+        id: meta
+        shell: bash
+        run: |
+          rnd=$(printf '%06X\n' $(( RANDOM % 16777216 )))
+          echo "name=k8s-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.hosting_provider || 'DO' }}-${rnd}" >> $GITHUB_OUTPUT
+          echo "Artifact name: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.hosting_provider || 'DO' }}-${rnd}"
+
+      - name: Upload diagnostics artifacts (single)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.name }}
+          path: ci_artifacts/**
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
 
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
