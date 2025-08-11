@@ -332,10 +332,6 @@ jobs:
 
           echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
 
-      - name: Publish diagnostics to Job Summary
-        if: always()
-        run: cat ci_artifacts/summary.md >> "$GITHUB_STEP_SUMMARY" || true
-
       - name: Show diagnostics in logs
         if: always()
         run: |
