@@ -350,6 +350,15 @@ jobs:
             echo "No diagnostics found."
           fi
 
+      - name: Comment diagnostics summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: ci_artifacts/summary.md
+          header: diagnostics-summary
+          hide_and_recreate: true
+          hide_classify: "OUTDATED"
+
       - uses: marocchino/sticky-pull-request-comment@v2
         # only run this step if enabled and pull request number was provided
         if: inputs.deploy_annotate_pr == true && inputs.pull_request_number

@@ -15,6 +15,10 @@ echo "deploy :: kube env - $KUBE_ENV"
 echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
 echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 
+# Mask secrets in any accidental output
+[ -n "$DOPPLER_TOKEN" ] && echo "::add-mask::$DOPPLER_TOKEN"
+[ -n "$DOCKER_PASSWORD" ] && echo "::add-mask::$DOCKER_PASSWORD"
+
 # compute workers-dashboard hostname by inserting at index 1 only for preview hosts
 _orig="$KUBE_INGRESS_HOSTNAME"
 _first="${_orig%%.*}"      # first label (before first dot)
@@ -66,22 +70,24 @@ kubectl get namespace "$KUBE_NS" || kubectl create namespace "$KUBE_NS"
 # see - https://docs.doppler.com/docs/kubernetes-operator
 # created if does not exists, updates in place if updated
 if [[ -n "$DOPPLER_TOKEN" ]]; then
-    kubectl create secret generic "$DOPPLER_TOKEN_SECRET_NAME" --namespace doppler-operator-system --from-literal=serviceToken="$DOPPLER_TOKEN" \
-        --save-config \
-        --dry-run=client \
-        -o yaml | \
-    kubectl apply -f -
+    # Create doppler secret without exposing token in argv
+    printf '%s' "$DOPPLER_TOKEN" | kubectl create secret generic "$DOPPLER_TOKEN_SECRET_NAME" \
+        --namespace doppler-operator-system \
+        --from-file=serviceToken=/dev/stdin \
+        --dry-run=client -o yaml | kubectl apply -f -
 fi
 
 # docker registry secret - allowing resources to access private registries
 # see - https://stackoverflow.com/questions/45879498/how-can-i-update-a-secret-on-kubernetes-when-it-is-generated-from-a-file
 # created if does not exists, updates in place if updated
 if [[ -n "$DOCKER_USERNAME" ]]; then
-    kubectl create secret docker-registry regcred --docker-server="$DOCKER_REGISTRY" --docker-username="$DOCKER_USERNAME" --docker-password="$DOCKER_PASSWORD" -n "$KUBE_NS" \
-        --save-config \
-        --dry-run=client \
-        -o yaml | \
-    kubectl apply -f -
+    # Create dockerconfigjson via stdin (no password in argv)
+    jq -nc --arg u "$DOCKER_USERNAME" --arg p "$DOCKER_PASSWORD" --arg s "$DOCKER_REGISTRY" \
+    '{auths:{($s):{username:$u,password:$p,auth:(($u+":"+$p)|@base64)}}}' \
+    | kubectl create secret generic regcred \
+        --type=kubernetes.io/dockerconfigjson \
+        --from-file=.dockerconfigjson=/dev/stdin \
+        -n "$KUBE_NS" --dry-run=client -o yaml | kubectl apply -f -
 fi
 
 # kubernetes config (core / shared / env)
