@@ -333,7 +333,7 @@ jobs:
           echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
 
       - name: Show diagnostics in logs
-        if: always()
+        if: failure()
         run: |
           echo "===== K8s Diagnostics (raw) ====="
           if [ -d ci_artifacts ]; then
