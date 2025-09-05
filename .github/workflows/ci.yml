@@ -258,7 +258,7 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
 
   deploy:
-    needs: build
+    needs: [build, checks]
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.deploy.outputs.url }}
