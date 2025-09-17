@@ -80,7 +80,7 @@ jobs:
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/github-ci
+          repository: caliyan/github-ci   
           path: platform
           ref: ${{ steps.ci_workflow.outputs.version }}
 
@@ -108,7 +108,6 @@ jobs:
           DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
         if: "${{ env.DO_CLUSTER_ID != '' }}"
         run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
-
 
       - name: AWS setup
         uses: aws-actions/configure-aws-credentials@v1

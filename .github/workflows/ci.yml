@@ -123,7 +123,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          # important - for analyze to work, it needs a deep clone of the repository
           fetch-depth: 0
 
       - name: Get workflow version
@@ -137,7 +136,7 @@ jobs:
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/github-ci
+          repository: caliyan/github-ci
           path: platform
           ref: ${{ steps.ci_workflow.outputs.version }}
 
@@ -168,7 +167,6 @@ jobs:
     steps:
       - name: Checkout (app)
         uses: actions/checkout@v3
-        # make sure to keep checked in code at different directory to avoid colliding with docker caching
         with:
           path: app
 
@@ -183,7 +181,7 @@ jobs:
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/github-ci
+          repository: caliyan/github-ci
           path: platform
           ref: ${{ steps.ci_workflow.outputs.version }}
 
@@ -218,7 +216,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     strategy:
-      # turn off fail fast, let all the checks run irrespective of failures
       fail-fast: false
       matrix:
         check: ${{ fromJSON(inputs.checks) }}
@@ -231,7 +228,7 @@ jobs:
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/github-ci
+          repository: caliyan/github-ci
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
@@ -250,7 +247,7 @@ jobs:
           docker_password: ${{ secrets.docker_password }}
 
   deploy:
-    needs: build
+    needs: [build, checks]
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.deploy.outputs.url }}
@@ -263,7 +260,7 @@ jobs:
       - name: Checkout (platform)
         uses: actions/checkout@v3
         with:
-          repository: jalantechnologies/github-ci
+          repository: caliyan/github-ci
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
@@ -291,7 +288,6 @@ jobs:
           doppler_token: ${{ secrets.doppler_token }}
 
       - uses: marocchino/sticky-pull-request-comment@v2
-        # only run this step if enabled and pull request number was provided
         if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
         with:
           header: ${{ inputs.app_name }}
