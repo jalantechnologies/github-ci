@@ -17,6 +17,10 @@ on:
         required: true
         type: string
         description: 'Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch.'
+      gotenberg_hostname:
+        required: true
+        type: string
+        description: 'Gotenberg service hostname for PDF generation'
       branch:
         required: true
         type: string
@@ -271,6 +275,7 @@ jobs:
           app_name: ${{ inputs.app_name }}
           app_env: ${{ inputs.app_env }}
           app_hostname: ${{ inputs.app_hostname }}
+          gotenberg_hostname: ${{ inputs.gotenberg_hostname }}
           aws_cluster_name: ${{ inputs.aws_cluster_name }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
@@ -296,3 +301,4 @@ jobs:
           number: ${{ inputs.pull_request_number }}
           message: |
             Deployment (${{ inputs.app_name }}) is available at - ${{ steps.deploy.outputs.url }}
+            Gotenberg service is available at - https://${{ inputs.gotenberg_hostname }}

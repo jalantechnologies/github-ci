@@ -17,6 +17,12 @@ if [ -f "$kube_pre_clean_script" ]; then
     source "$kube_pre_clean_script"
 fi
 
+# Skip shared services like gotenberg
+if [[ "$KUBE_NS" == "gotenberg-preview" || "$KUBE_APP" == *"gotenberg"* ]]; then
+    echo "clean :: skipping cleanup for $KUBE_NS / $KUBE_APP (shared service)"
+    exit 0
+fi
+
 # kubernetes config (shared / env)
 kube_shared_dir="$KUBE_ROOT/shared"
 kube_env_dir="$KUBE_ROOT/$KUBE_ENV"

@@ -10,6 +10,9 @@ inputs:
   app_hostname:
     required: true
     description: 'Application hostname where application would be deployed. Available placeholders - {0} Provided application environment, {1} Branch ID generated from provided branch'
+  gotenberg_hostname:
+    required: true
+    description: 'Gotenberg service hostname for PDF generation'
   aws_access_key_id:
     required: false
     description: 'Access key ID for AWS'
@@ -127,6 +130,7 @@ runs:
         KUBE_ENV: ${{ inputs.app_env }}
         KUBE_DEPLOYMENT_IMAGE: ${{ inputs.deploy_image }}
         KUBE_INGRESS_HOSTNAME: ${{ format(inputs.app_hostname, inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
+        GOTENBERG_INGRESS_HOSTNAME: ${{ inputs.gotenberg_hostname }}
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
