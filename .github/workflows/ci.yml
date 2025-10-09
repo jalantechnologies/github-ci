@@ -1,3 +1,4 @@
+
 name: ci
 
 on:
@@ -276,6 +277,40 @@ jobs:
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
+      - name: DigitalOcean setup
+        env:
+          DO_ACCESS_TOKEN: ${{ secrets.do_access_token }}
+        if: "${{ env.DO_ACCESS_TOKEN != '' }}"
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.do_access_token }}
+
+      - name: DigitalOcean Kubernetes setup
+        shell: bash
+        env:
+          DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+        if: "${{ inputs.hosting_provider == 'DIGITAL_OCEAN' && env.DO_CLUSTER_ID != '' }}"
+        run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
+
+      - name: AWS setup
+        uses: aws-actions/configure-aws-credentials@v1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+        if: "${{ inputs.hosting_provider == 'AWS' && env.AWS_ACCESS_KEY_ID != '' }}"
+        with:
+          aws-access-key-id: ${{ secrets.aws_access_key_id }}
+          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+          aws-region: ${{ inputs.aws_region }}
+          mask-aws-account-id: 'false'
+
+      - name: AWS Kubernetes setup
+        shell: bash
+        env:
+          AWS_CLUSTER_NAME: ${{ inputs.aws_cluster_name }}
+          AWS_REGION: ${{ inputs.aws_region }}
+        if: "${{ inputs.hosting_provider == 'AWS' && env.AWS_CLUSTER_NAME != '' }}"
+        run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
+
       - name: Deploy to DigitalOcean
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         id: deploy
@@ -295,6 +330,7 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
+          hosting_provider: ${{ inputs.hosting_provider }}
 
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
@@ -317,6 +353,7 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
+          hosting_provider: ${{ inputs.hosting_provider }}
 
       - name: Extract and format Temporal Dashboard URL
         id: temporal

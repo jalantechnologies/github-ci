@@ -19,6 +19,30 @@ echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 [ -n "$DOPPLER_TOKEN" ] && echo "::add-mask::$DOPPLER_TOKEN"
 [ -n "$DOCKER_PASSWORD" ] && echo "::add-mask::$DOCKER_PASSWORD"
 
+# Set provider-specific node affinity dynamically
+case "${HOSTING_PROVIDER}" in
+  "DIGITAL_OCEAN")
+    export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
+    if [[ "$KUBE_ENV" == "production" ]]; then
+      export NODE_POOL_VALUE="platform-cluster-01-production-pool"
+    else
+      export NODE_POOL_VALUE="platform-cluster-01-staging-pool"
+    fi
+    ;;
+  "AWS")
+    export NODE_POOL_SELECTOR_KEY="kubernetes.githubci.com/nodegroup"
+    if [[ "$KUBE_ENV" == "production" ]]; then
+      export NODE_POOL_VALUE="ng-production-pool"
+    else
+      export NODE_POOL_VALUE="ng-preview-pool"
+    fi
+    ;;
+  *)
+    echo "deploy :: unsupported hosting provider - $HOSTING_PROVIDER"
+    exit 1
+    ;;
+esac
+
 # compute workers-dashboard hostname by inserting at index 1 only for preview hosts
 _orig="$KUBE_INGRESS_HOSTNAME"
 _first="${_orig%%.*}"      # first label (before first dot)
@@ -95,36 +119,38 @@ kube_core_dir="$KUBE_ROOT/core"
 kube_shared_dir="$KUBE_ROOT/shared"
 kube_env_dir="$KUBE_ROOT/$KUBE_ENV"
 
+# Define the list of variables to substitute
+SUBST_VARS='$NODE_POOL_SELECTOR_KEY,$NODE_POOL_VALUE,$KUBE_NS,$KUBE_APP,$KUBE_ENV,$KUBE_DEPLOYMENT_IMAGE,$KUBE_INGRESS_HOSTNAME,$KUBE_INGRESS_WORKER_HOSTNAME,$KUBE_DEPLOY_ID'
+
 if [ -d "$kube_core_dir" ]; then
     for file in "$kube_core_dir"/*; do
-        echo "deploy :: deploying from core config - $kube_core_dir/$file"
-        envsubst <"$file" | kubectl apply -f -
+        echo "deploy :: deploying from core config - $file"
+        envsubst "$SUBST_VARS" < "$file" | kubectl apply -f -
 
         if [ -n "$kube_parsed_labels" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
+        envsubst "$SUBST_VARS" < "$file" | kubectl label --overwrite -f - $kube_parsed_labels
         fi
     done
 fi
 
 if [ -d "$kube_shared_dir" ]; then
     for file in "$kube_shared_dir"/*; do
-        echo "deploy :: deploying from shared config - $kube_shared_dir/$file"
-        envsubst <"$file" | kubectl apply -f -
+        echo "deploy :: deploying from shared config - $file"
+        envsubst "$SUBST_VARS" < "$file" | kubectl apply -f -
 
         if [ -n "$kube_parsed_labels" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
+        envsubst "$SUBST_VARS" < "$file" | kubectl label --overwrite -f - $kube_parsed_labels
         fi
     done
 fi
 
 if [ -d "$kube_env_dir" ]; then
     for file in "$kube_env_dir"/*; do
-
-        echo "deploy :: deploying from env config - $kube_env_dir/$file"
-        envsubst <"$file" | kubectl apply -f -
+        echo "deploy :: deploying from env config - $file"
+        envsubst "$SUBST_VARS" < "$file" | kubectl apply -f -
 
         if [ -n "$kube_parsed_labels" ]; then
-            envsubst <"$file" | kubectl label --overwrite -f - $(echo $kube_parsed_labels)
+        envsubst "$SUBST_VARS" < "$file" | kubectl label --overwrite -f - $kube_parsed_labels
         fi
     done
 fi
@@ -132,9 +158,9 @@ fi
 
 # deployment post deploy hook
 if [ -f "$kube_post_deploy_script" ]; then
-    echo "deploy :: running post deploy hook - $kube_post_deploy_script"
-    # shellcheck disable=SC1090
-    source "$kube_post_deploy_script"
+  echo "deploy :: running post deploy hook - $kube_post_deploy_script"
+  # shellcheck disable=SC1090
+  source "$kube_post_deploy_script"
 fi
 
 echo "deploy :: deployment finished - $KUBE_INGRESS_HOSTNAME"

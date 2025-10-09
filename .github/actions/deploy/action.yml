@@ -1,3 +1,4 @@
+
 name: 'deploy'
 description: 'Deploy application to Kubernetes'
 inputs:
@@ -56,6 +57,10 @@ inputs:
   doppler_token:
     required: false
     description: 'Doppler token for accessing environment variables'
+  hosting_provider:
+    required: false
+    description: 'The cloud provider to use for hosting. Options: AWS or DIGITAL_OCEAN'
+    default: 'DIGITAL_OCEAN'
 outputs:
   url:
     description: 'URL where application has been deployed'
@@ -78,23 +83,24 @@ runs:
     - name: DigitalOcean setup
       env:
         DO_ACCESS_TOKEN: ${{ inputs.do_access_token }}
-      if: "${{ env.DO_ACCESS_TOKEN != '' }}"
+      if: "${{ inputs.hosting_provider == 'DIGITAL_OCEAN' && env.DO_ACCESS_TOKEN != '' }}"
+      uses: digitalocean/action-doctl@v2
       with:
         token: ${{ inputs.do_access_token }}
-      uses: digitalocean/action-doctl@v2
+        
 
     - name: DigitalOcean Kubernetes setup
       shell: bash
       env:
         DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
-      if: "${{ env.DO_CLUSTER_ID != '' }}"
+      if: "${{ inputs.hosting_provider == 'DIGITAL_OCEAN' && env.DO_CLUSTER_ID != '' }}"
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
     - name: AWS setup
       uses: aws-actions/configure-aws-credentials@v1
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
-      if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
+      if: "${{ inputs.hosting_provider == 'AWS' && env.AWS_ACCESS_KEY_ID != '' }}"
       with:
         aws-access-key-id: ${{ inputs.aws_access_key_id }}
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
@@ -106,7 +112,7 @@ runs:
       env:
         AWS_CLUSTER_NAME: ${{ inputs.aws_cluster_name }}
         AWS_REGION: ${{ inputs.aws_region }}
-      if: "${{ env.AWS_CLUSTER_NAME != '' }}"
+      if: "${{ inputs.hosting_provider == 'AWS' && env.AWS_CLUSTER_NAME != '' }}"
       run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
     - name: Kubernetes deploy
@@ -129,6 +135,7 @@ runs:
         KUBE_INGRESS_HOSTNAME: ${{ format(inputs.app_hostname, inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
+        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
       run: |
         source platform/lib/kube/deploy.sh
         echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
