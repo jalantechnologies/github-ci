@@ -16,7 +16,17 @@ echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
 echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 
 # Mask secrets in any accidental output
-[ -n "$DOPPLER_TOKEN" ] && echo "::add-mask::$DOPPLER_TOKEN"
+[ -n "$DOPPLER_TOKEN" ] && echo "::add-mask# ...existing code...
+
+# Define the list of variables to substitute
+SUBST_VARS='$NODE_POOL_SELECTOR_KEY,$NODE_POOL_VALUE,$KUBE_NS,$KUBE_APP,$KUBE_ENV,$KUBE_DEPLOYMENT_IMAGE,$KUBE_INGRESS_HOSTNAME,$KUBE_INGRESS_WORKER_HOSTNAME,$KUBE_DEPLOY_ID,$GITHUB_SHA,$DOPPLER_MANAGED_SECRET_NAME'
+
+# Ensure DOPPLER_MANAGED_SECRET_NAME is set
+if [[ -z "${DOPPLER_MANAGED_SECRET_NAME:-}" ]]; then
+    export DOPPLER_MANAGED_SECRET_NAME="doppler-secret-$KUBE_APP"
+fi
+
+# ...existing code...::$DOPPLER_TOKEN"
 [ -n "$DOCKER_PASSWORD" ] && echo "::add-mask::$DOCKER_PASSWORD"
 
 # Set provider-specific node affinity dynamically — only if not already set
