@@ -19,29 +19,40 @@ echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 [ -n "$DOPPLER_TOKEN" ] && echo "::add-mask::$DOPPLER_TOKEN"
 [ -n "$DOCKER_PASSWORD" ] && echo "::add-mask::$DOCKER_PASSWORD"
 
-# Set provider-specific node affinity dynamically
-case "${HOSTING_PROVIDER}" in
-  "DIGITAL_OCEAN")
-    export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
-    if [[ "$KUBE_ENV" == "production" ]]; then
-      export NODE_POOL_VALUE="platform-cluster-01-production-pool"
-    else
-      export NODE_POOL_VALUE="platform-cluster-01-staging-pool"
-    fi
-    ;;
-  "AWS")
-    export NODE_POOL_SELECTOR_KEY="kubernetes.githubci.com/nodegroup"
-    if [[ "$KUBE_ENV" == "production" ]]; then
-      export NODE_POOL_VALUE="ng-production-pool"
-    else
-      export NODE_POOL_VALUE="ng-preview-pool"
-    fi
-    ;;
-  *)
-    echo "deploy :: unsupported hosting provider - $HOSTING_PROVIDER"
-    exit 1
-    ;;
-esac
+# Set provider-specific node affinity dynamically — only if not already set
+if [[ -z "${NODE_POOL_SELECTOR_KEY:-}" ]]; then
+  case "${HOSTING_PROVIDER}" in
+    "DIGITAL_OCEAN")
+      export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
+      ;;
+    "AWS")
+      export NODE_POOL_SELECTOR_KEY="kubernetes.githubci.com/nodegroup"
+      ;;
+    *)
+      echo "deploy :: unsupported hosting provider - $HOSTING_PROVIDER"
+      exit 1
+      ;;
+  esac
+fi
+
+if [[ -z "${NODE_POOL_VALUE:-}" ]]; then
+  case "${HOSTING_PROVIDER}" in
+    "DIGITAL_OCEAN")
+      if [[ "$KUBE_ENV" == "production" ]]; then
+        export NODE_POOL_VALUE="platform-cluster-01-production-pool"
+      else
+        export NODE_POOL_VALUE="platform-cluster-01-staging-pool"
+      fi
+      ;;
+    "AWS")
+      if [[ "$KUBE_ENV" == "production" ]]; then
+        export NODE_POOL_VALUE="ng-production-pool"
+      else
+        export NODE_POOL_VALUE="ng-preview-pool"
+      fi
+      ;;
+  esac
+fi
 
 # compute workers-dashboard hostname by inserting at index 1 only for preview hosts
 _orig="$KUBE_INGRESS_HOSTNAME"
