@@ -132,7 +132,7 @@ runs:
       with:
         sarif_file: 'trivy-results.sarif'
         category: 'container-security'
-        commit_sha: ${{ github.sha }}
+        sha: ${{ github.sha }}
         ref: ${{ github.ref }}
 
     - name: Display Trivy summary
