@@ -127,7 +127,6 @@ runs:
       with:
         sarif_file: 'trivy-results.sarif'
         category: 'container-security'
-        checkout_path: app
 
     - name: Display Trivy summary
       if: always()
