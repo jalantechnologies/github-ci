@@ -178,8 +178,11 @@ jobs:
         uses: actions/checkout@v3
         # make sure to keep checked in code at different directory to avoid colliding with docker caching
         with:
+          repository: ${{ github.repository }}  # 👈 caller repo
+          ref: ${{ github.ref }} 
           path: app
-
+          fetch-depth: 0
+          
       - name: Get workflow version
         id: ci_workflow
         run: |
