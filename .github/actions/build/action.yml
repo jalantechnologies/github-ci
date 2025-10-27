@@ -126,6 +126,11 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/build
+      with:
+        app_name: my-app
+
     - name: Upload Trivy results to GitHub Security
       uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
       if: always()
