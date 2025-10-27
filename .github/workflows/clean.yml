@@ -125,6 +125,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
           aws-region: ${{ inputs.aws_region }}
           mask-aws-account-id: 'false'
+      
+      # Added step for AWS ECR login / authentication
+      - name: AWS ECR login
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+        if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
+        uses: aws-actions/amazon-ecr-login@v1 
 
       - name: AWS Kubernetes setup
         shell: bash
@@ -168,11 +175,45 @@ jobs:
 
           echo "::set-output name=token::$(echo $response | jq -r '.token')"
 
+      # Added step to get registry type so we can determine which registry cleanup to perform.        
+      - name: Determine registry type
+        id: registry_type
+        shell: bash
+        run: |
+          if [[ "${{ inputs.docker_registry }}" == *"ecr"* ]] || [[ "${{ inputs.hosting_provider }}" == "AWS" ]]; then
+            echo "##[set-output name=type;]ecr"
+          else
+            echo "##[set-output name=type;]dockerhub"  
+          fi
+
       - name: Clean - DockerHub
         env:
           DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
-        if: env.DOCKER_TOKEN != ''
+        if: env.DOCKER_TOKEN != '' && steps.registry_type.outputs.type == 'dockerhub'
         shell: bash
         run: |
+          echo "Cleaning DockerHub image: ${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}"
           curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
           --header "Authorization: Bearer $DOCKER_TOKEN"
+      
+      # Added main step to clean AWS ECR and handle errors associated with e.g. WHat if image doesn't exist.
+      - name: Clean - AWS ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_REGION: ${{ inputs.aws_region }}
+        if: env.AWS_ACCESS_KEY_ID != '' && steps.registry_type.outputs.type == 'ecr'
+        shell: bash
+        run: |
+          echo "Cleaning ECR image: ${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}"
+          # Delete image from ECR repository with error handling
+          aws ecr batch-delete-image \
+            --repository-name ${{ inputs.app_name }} \
+            --region $AWS_REGION \
+            --image-ids imageTag=${{ steps.extract_branch.outputs.branch_hash }} \
+            --output text 2>&1 || {
+              echo "ECR cleanup failed - this may be expected if:"
+              echo "1. Image was never pushed to ECR"
+              echo "2. Image was already deleted" 
+              echo "3. Repository doesn't exist"
+              echo "Continuing with cleanup..."
+            }
