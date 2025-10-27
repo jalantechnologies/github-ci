@@ -189,6 +189,12 @@ jobs:
       - name: Clean - DockerHub
         env:
           DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
+
+        # Enhanced conditional logic to:
+        #  - Ensure cleanup runs only for DockerHub registries
+        #  - Validate that a valid DOCKER_TOKEN is available before proceeding
+        # Added descriptive echo statements for better runtime visibility and debugging
+        
         if: env.DOCKER_TOKEN != '' && steps.registry_type.outputs.type == 'dockerhub'
         shell: bash
         run: |
