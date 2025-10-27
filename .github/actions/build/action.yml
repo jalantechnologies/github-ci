@@ -107,7 +107,7 @@ runs:
         outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
-        
+
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.16.1  # Pin to specific SHA in production
       if: inputs.trivy_severity != ''
@@ -127,6 +127,7 @@ runs:
       with:
         sarif_file: 'trivy-results.sarif'
         category: 'container-security'
+        checkout_path: /home/runner/work/flask-react-template
 
     - name: Display Trivy summary
       if: always()
