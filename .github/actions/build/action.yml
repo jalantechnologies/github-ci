@@ -126,15 +126,14 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    - name: Checkout repository
-      uses: actions/checkout@v4 
-
     - name: Upload Trivy results to GitHub Security
       uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
         category: 'container-security'
+        commit_sha: ${{ github.sha }}
+        ref: ${{ github.ref }}
 
     - name: Display Trivy summary
       if: always()
