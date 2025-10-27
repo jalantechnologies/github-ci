@@ -31,6 +31,11 @@ inputs:
   tag:
     required: false
     description: 'If provided, can be used for tagging the image'
+  skip_security_audit:
+    required: false
+    description: 'Skip dependency security audit'
+    default: 'false'
+  
 runs:
   using: composite
   steps:
@@ -121,3 +126,41 @@ runs:
       with:
         recreate: true
         path: code-coverage-results.md
+        
+    - name: Run dependency security audit
+      if: inputs.skip_security_audit != 'true'
+      shell: bash
+      run: |
+        echo "Running dependency security audits..."
+
+        # NPM audit
+        if [ -f package.json ]; then
+          echo "::group::NPM Audit"
+          npm audit --production --audit-level=high || {
+            echo "::error ::NPM audit found vulnerabilities"
+            exit 1
+          }
+          echo "::endgroup::"
+        fi
+
+        # Python audit
+        if [ -f Pipfile.lock ] || [ -f requirements.txt ]; then
+          echo "::group::Python Audit"
+          pip install pip-audit
+
+          if [ -f Pipfile.lock ]; then
+            pipenv requirements > /tmp/requirements.txt
+            pip-audit -r /tmp/requirements.txt --vulnerability-service pypi || {
+              echo "::error ::pip-audit found vulnerabilities"
+              exit 1
+            }
+          elif [ -f requirements.txt ]; then
+            pip-audit -r requirements.txt --vulnerability-service pypi || {
+              echo "::error ::pip-audit found vulnerabilities"
+              exit 1
+            }
+          fi
+          echo "::endgroup::"
+        fi
+
+        echo "✅ Dependency security audit passed" >> $GITHUB_STEP_SUMMARY
