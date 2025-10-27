@@ -123,13 +123,13 @@ runs:
 
     - name: Upload Trivy results to GitHub Security
       uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
-      if: always()
+      if: inputs.trivy_severity != ''
       with:
         sarif_file: 'trivy-results.sarif'
         category: 'container-security'
 
     - name: Display Trivy summary
-      if: always()
+      if: inputs.trivy_severity != ''
       shell: bash
       run: |
         if [ -f trivy-results.sarif ]; then
