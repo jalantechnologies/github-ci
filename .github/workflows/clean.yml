@@ -172,8 +172,11 @@ jobs:
               "username": "'"$DOCKER_USERNAME"'",
               "password": "'"$DOCKER_PASSWORD"'"
             }')
-
-          echo "::set-output name=token::$(echo $response | jq -r '.token')"
+          
+          # Changed to "::set-output" syntax, as it is deprecrated
+          # Read here: https://github.blog/changelog/2022-10-10-github-actions-deprecating-save-state-and-set-output-commands/
+          
+          echo "token=$(echo $response | jq -r '.token')" >> $GITHUB_OUTPUT
 
       # Added step to get registry type so we can determine which registry cleanup to perform.        
       - name: Determine registry type
@@ -211,15 +214,20 @@ jobs:
         shell: bash
         run: |
           echo "Cleaning ECR image: ${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}"
-          # Delete image from ECR repository with error handling
-          aws ecr batch-delete-image \
+          output=$(aws ecr batch-delete-image \
             --repository-name ${{ inputs.app_name }} \
             --region $AWS_REGION \
             --image-ids imageTag=${{ steps.extract_branch.outputs.branch_hash }} \
-            --output text 2>&1 || {
-              echo "ECR cleanup failed - this may be expected if:"
-              echo "1. Image was never pushed to ECR"
-              echo "2. Image was already deleted" 
-              echo "3. Repository doesn't exist"
-              echo "Continuing with cleanup..."
-            }
+            --output json) || {
+              echo "AWS CLI command failed! Please check your credentials, region, or network connection."
+              exit 1
+          }
+          if echo "$output" | jq -e '.failures | length > 0' >/dev/null; then
+            echo "ECR cleanup encountered known issues:"
+            echo "1. Image might not have been pushed"
+            echo "2. Image might have been already deleted"
+            echo "3. Repository might not exist"
+          else
+            echo "Image deleted successfully or no errors returned."
+          fi
+          echo "Continuing with cleanup..."
