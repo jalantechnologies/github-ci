@@ -1065,3 +1065,30 @@ Here's the complete reference of input/output supported by the workflow:
 **Outputs**
 
 This workflow does not have any outputs
+
+
+## Security Scanning
+
+### Container Vulnerability Scanning
+
+The pipeline automatically scans Docker images for vulnerabilities using Trivy.
+
+**Default behavior:**
+- Scans for OS package vulnerabilities
+- Scans for language-specific vulnerabilities (npm, pip, etc.)
+- Scans for secrets in image layers
+- Scans for IaC misconfigurations
+- Fails build on CRITICAL or HIGH vulnerabilities
+
+**Configuration:**
+
+```yaml
+jobs:
+  ci:
+    uses: jalantechnologies/github-ci/.github/workflows/ci.yml@v3.3.0
+    with:
+      # Change severity threshold (optional)
+      trivy_severity: 'CRITICAL'  # Only fail on critical
+
+      # Or disable Trivy
+      trivy_severity: ''

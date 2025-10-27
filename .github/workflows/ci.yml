@@ -367,3 +367,8 @@ jobs:
             Deployment (${{ inputs.app_name }}) is available -
             Web App: ${{ steps.deploy.outputs.url }}
             Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+
+
+# Optional security scanning configuration:
+# - trivy_severity: Container vulnerability severity threshold (default: CRITICAL,HIGH)
+# - skip_security_audit: Skip dependency audits in checks (default: false)
