@@ -126,8 +126,12 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    - name: Checkout repository
-      uses: actions/checkout@v5    
+    - name: Checkout (caller repo)
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}  
+        ref: ${{ github.ref }}                
+        fetch-depth: 0      
 
     - name: Upload Trivy results to GitHub Security
       uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
