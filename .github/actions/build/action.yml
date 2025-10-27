@@ -107,3 +107,32 @@ runs:
         outputs: type=image,push=true
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
+        
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.16.1  # Pin to specific SHA in production
+      if: inputs.trivy_severity != ''
+      with:
+        image-ref: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: ${{ inputs.trivy_severity }}
+        exit-code: '1'
+        timeout: '10m'
+        vuln-type: 'os,library'
+        scanners: 'vuln,secret,config'
+
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        category: 'container-security'
+
+    - name: Display Trivy summary
+      if: always()
+      shell: bash
+      run: |
+        if [ -f trivy-results.sarif ]; then
+          echo "### Container Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "See Security tab for detailed findings" >> $GITHUB_STEP_SUMMARY
+        fi
