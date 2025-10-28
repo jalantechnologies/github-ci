@@ -114,9 +114,12 @@ on:
       sonar_token:
         required: false
         description: 'Authentication token for SonarQube'
-      token: 
+      sha: 
         required: true
-        description: 'Token for uploading SARIF files'
+        description: 'Commit id of repository'
+      ref: 
+        required: true
+        description: 'reference of repository branch'
 
     outputs:
       deploy_url:
