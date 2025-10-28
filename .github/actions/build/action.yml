@@ -42,12 +42,6 @@ inputs:
     required: false
     description: 'Fail build if vulnerabilities of this severity or higher are found'
     default: 'CRITICAL,HIGH'
-  sha: 
-    required: true
-    description: 'Commit id of repository'
-  ref: 
-    required: true
-    description: 'reference of repository branch'
 
 outputs:
   image_ref:
@@ -127,45 +121,20 @@ runs:
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: ${{ inputs.trivy_severity }}
-        exit-code: '0'
+        exit-code: '1'
         timeout: '10m'
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    - name: Preview Trivy SARIF results
+    - name: Checkout repository
+      uses: actions/checkout@v5    
+
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
       if: always()
-      shell: bash
-      run: |
-        if [ -f trivy-results.sarif ]; then
-          echo "Validating SARIF file structure..."
-          jq '.version' trivy-results.sarif
-          echo "First 5 findings:"
-          jq '.runs[].results[0:5] | [.[] | {ruleId: .ruleId, level: .level, message: .message.text}]' trivy-results.sarif
-          echo "SARIF file size: $(du -h trivy-results.sarif | cut -f1)"
-        else
-          echo "❌ No SARIF file found!"
-        fi
-
-
-    - name: Upload SARIF artifact
-      uses: actions/upload-artifact@v4
       with:
-          name: trivy-results
-          path: trivy-results.sarif
-    
-    # - name: Download Sarif file
-    #   uses: actions/download-artifact@v5
-    #   with:
-    #     name: trivy-results
-    #     path: trivy-results.sarif
-
-    # - name: Upload Trivy results to GitHub Security
-    #   uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
-    #   if: always()
-    #   with:
-    #     sarif_file: 'trivy-results.sarif'
-    #     category: 'container-security'
-        
+        sarif_file: 'trivy-results.sarif'
+        category: 'container-security'
         
     - name: Display Trivy summary
       if: always()
