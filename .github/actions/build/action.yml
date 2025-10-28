@@ -162,7 +162,7 @@ runs:
 
     - name: Upload SARIF via REST API
       env:
-          TOKEN: ${{ secrets.TOKEN }}
+          TOKEN: ${{ inputs.token }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
           COMMIT_SHA: ${{ github.sha }}
