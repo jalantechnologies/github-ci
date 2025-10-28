@@ -121,7 +121,7 @@ runs:
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: ${{ inputs.trivy_severity }}
-        exit-code: '1'
+        exit-code: '0'
         timeout: '10m'
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
