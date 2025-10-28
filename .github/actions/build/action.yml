@@ -151,7 +151,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y gzip base64 curl jq
+      run: sudo apt-get update && sudo apt-get install -y gzip curl jq
 
     - name: Compress and encode SARIF
       shell: bash
