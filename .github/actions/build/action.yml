@@ -42,10 +42,10 @@ inputs:
     required: false
     description: 'Fail build if vulnerabilities of this severity or higher are found'
     default: 'CRITICAL,HIGH'
-  github_token:
+  token:
     required: true
     description: "Token required for upload to repo"
-    
+
   
 outputs:
   image_ref:
