@@ -146,9 +146,11 @@ runs:
         fi
 
     - name: Install dependencies
+      shell: bash
       run: sudo apt-get update && sudo apt-get install -y gzip base64 curl jq
 
     - name: Compress and encode SARIF
+      shell: bash
       run: |
           gzip -c results.sarif > results.sarif.gz
           base64 -w 0 results.sarif.gz > results.b64
@@ -156,10 +158,11 @@ runs:
 
     - name: Upload SARIF via REST API
       env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.TOKEN }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
           COMMIT_SHA: ${{ github.sha }}
+      shell: bash
       run: |
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
