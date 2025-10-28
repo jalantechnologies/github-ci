@@ -146,14 +146,21 @@ runs:
           echo "❌ No SARIF file found!"
         fi
 
-    - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
-      if: always()
+
+    - name: Upload SARIF artifact
+      uses: actions/upload-artifact@v3
       with:
-        sarif_file: 'trivy-results.sarif'
-        category: 'container-security'
-        sha: ${{ inputs.sha }}
-        ref: ${{ inputs.ref }}
+          name: trivy-results
+          path: trivy-results.sarif
+          
+    # - name: Upload Trivy results to GitHub Security
+    #   uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
+    #   if: always()
+    #   with:
+    #     sarif_file: 'trivy-results.sarif'
+    #     category: 'container-security'
+    #     sha: ${{ inputs.sha }}
+    #     ref: ${{ inputs.ref }}
         
         
     - name: Display Trivy summary
