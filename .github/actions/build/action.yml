@@ -156,8 +156,8 @@ runs:
     - name: Compress and encode SARIF
       shell: bash
       run: |
-          gzip -c results.sarif > results.sarif.gz
-          base64 -w 0 results.sarif.gz > results.b64
+          gzip -c trivy-results.sarif > trivy-results.sarif.gz
+          base64 -w 0 trivy-results.sarif.gz > trivy-results.b64
       
 
     - name: Upload SARIF via REST API
@@ -168,11 +168,17 @@ runs:
           COMMIT_SHA: ${{ github.sha }}
       shell: bash
       run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $TOKEN" \
-            https://api.github.com/repos/$OWNER/$REPO/code-scanning/sarifs \
-            -d @- <<EOF
+        curl -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ inputs.github_token }}" \
+          https://api.github.com/repos/${{ github.repository }}/code-scanning/sarifs \
+          -d @- <<EOF
+{
+  "commit_sha": "${{ github.sha }}",
+  "ref": "refs/heads/main",
+  "sarif": "$(cat results.b64)"
+}
+EOF
 
     # - name: Upload Trivy results to GitHub Security
     #   uses: github/codeql-action/upload-sarif@v4  # Pin to specific SHA in production
