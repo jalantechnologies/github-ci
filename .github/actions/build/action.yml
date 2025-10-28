@@ -145,13 +145,34 @@ runs:
           echo "❌ No SARIF file found!"
         fi
 
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y gzip base64 curl jq
 
-    - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v4  # Pin to specific SHA in production
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-        category: 'container-security'
+    - name: Compress and encode SARIF
+      run: |
+          gzip -c results.sarif > results.sarif.gz
+          base64 -w 0 results.sarif.gz > results.b64
+      
+
+    - name: Upload SARIF via REST API
+      env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          COMMIT_SHA: ${{ github.sha }}
+      run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/$OWNER/$REPO/code-scanning/sarifs \
+            -d @- <<EOF
+
+    # - name: Upload Trivy results to GitHub Security
+    #   uses: github/codeql-action/upload-sarif@v4  # Pin to specific SHA in production
+    #   if: always()
+    #   with:
+    #     sarif_file: 'trivy-results.sarif'
+    #     category: 'container-security'
 
     - name: Display Trivy summary
       if: always()
