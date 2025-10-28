@@ -91,7 +91,15 @@ on:
         required: false
         type: string
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
-      
+      sha: 
+        required: true
+        type: string
+        description: 'Commit id of repository'
+      ref: 
+        required: true
+        type: string
+        description: 'reference of repository branch'
+
 
     secrets:
       aws_access_key_id:

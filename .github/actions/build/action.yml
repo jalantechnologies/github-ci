@@ -165,8 +165,6 @@ runs:
     #   with:
     #     sarif_file: 'trivy-results.sarif'
     #     category: 'container-security'
-    #     sha: ${{ inputs.sha }}
-    #     ref: ${{ inputs.ref }}
         
         
     - name: Display Trivy summary
