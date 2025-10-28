@@ -114,6 +114,9 @@ on:
       sonar_token:
         required: false
         description: 'Authentication token for SonarQube'
+      github_token: 
+        required: true
+        description: 'Token for uploading SARIF files'
 
     outputs:
       deploy_url:
