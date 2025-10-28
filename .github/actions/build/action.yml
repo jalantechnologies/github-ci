@@ -126,6 +126,19 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
+    - name: Preview Trivy SARIF results
+      if: always()
+      shell: bash
+      run: |
+        if [ -f trivy-results.sarif ]; then
+          echo "Validating SARIF file structure..."
+          jq '.version' trivy-results.sarif
+          echo "First 5 findings:"
+          jq '.runs[].results[0:5] | [.[] | {ruleId: .ruleId, level: .level, message: .message.text}]' trivy-results.sarif
+          echo "SARIF file size: $(du -h trivy-results.sarif | cut -f1)"
+        else
+          echo "❌ No SARIF file found!"
+        fi
 
     - name: Upload Trivy results to GitHub Security
       uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
