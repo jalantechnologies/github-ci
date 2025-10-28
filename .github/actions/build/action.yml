@@ -42,6 +42,14 @@ inputs:
     required: false
     description: 'Fail build if vulnerabilities of this severity or higher are found'
     default: 'CRITICAL,HIGH'
+  ref: 
+    required: false
+    description: 'Repository reference'
+    default: ''
+  sha: 
+    required: false
+    description: 'SHA of commit'
+    default: ''
 
 outputs:
   image_ref:
@@ -152,8 +160,8 @@ runs:
       with:
         sarif_file: 'trivy-results.sarif'
         category: 'container-security'
-        ref: ${{ github.ref }}
-        sha: ${{ github.sha }}
+        ref: ${{ inputs.ref || github.ref }}
+        sha: ${{ inputs.sha || github.sha }}
 
     - name: Display Trivy summary
       if: always()
