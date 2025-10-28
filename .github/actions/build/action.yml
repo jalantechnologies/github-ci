@@ -42,11 +42,13 @@ inputs:
     required: false
     description: 'Fail build if vulnerabilities of this severity or higher are found'
     default: 'CRITICAL,HIGH'
-  token:
+  sha: 
     required: true
-    description: "Token required for upload to repo"
+    description: 'Commit id of repository'
+  ref: 
+    required: true
+    description: 'reference of repository branch'
 
-  
 outputs:
   image_ref:
     description: 'Built docker image reference'
@@ -130,61 +132,30 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    - name: Preview all Trivy findings
+    - name: Preview Trivy SARIF results
       if: always()
       shell: bash
       run: |
         if [ -f trivy-results.sarif ]; then
-          echo "🔍 All Trivy findings:"
-          jq -r '.runs[].results[] | [
-              .ruleId,
-              .level,
-              (.message.text | gsub("\n"; " ")),
-              (.locations[0].physicalLocation.artifactLocation.uri // "N/A")
-            ] | @tsv' trivy-results.sarif | column -t -s $'\t'
-          echo "------------------------------------"
-          echo "Total findings: $(jq '[.runs[].results[]] | length' trivy-results.sarif)"
+          echo "Validating SARIF file structure..."
+          jq '.version' trivy-results.sarif
+          echo "First 5 findings:"
+          jq '.runs[].results[0:5] | [.[] | {ruleId: .ruleId, level: .level, message: .message.text}]' trivy-results.sarif
           echo "SARIF file size: $(du -h trivy-results.sarif | cut -f1)"
         else
           echo "❌ No SARIF file found!"
         fi
 
-    - name: Install dependencies
-      shell: bash
-      run: sudo apt-get update && sudo apt-get install -y gzip curl jq
-
-    - name: Compress and encode SARIF
-      shell: bash
-      run: |
-          gzip -c trivy-results.sarif > trivy-results.sarif.gz
-          base64 -w 0 trivy-results.sarif.gz > trivy-results.b64
-      
-
-    - name: Upload SARIF via REST API
-      env:
-          TOKEN: ${{ inputs.token }}
-          OWNER: ${{ github.repository_owner }}
-          REPO: ${{ github.event.repository.name }}
-          COMMIT_SHA: ${{ github.sha }}
-      shell: bash
-      run: |
-        curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ inputs.github_token }}" \
-          https://api.github.com/repos/${{ github.repository }}/code-scanning/sarifs \
-          -d {
-          "commit_sha": "${{ github.sha }}",
-          "ref": "refs/heads/main",
-          "sarif": "$(cat results.b64)"
-          }
-
-    # - name: Upload Trivy results to GitHub Security
-    #   uses: github/codeql-action/upload-sarif@v4  # Pin to specific SHA in production
-    #   if: always()
-    #   with:
-    #     sarif_file: 'trivy-results.sarif'
-    #     category: 'container-security'
-
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3  # Pin to specific SHA in production
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        category: 'container-security'
+        sha: ${{ inputs.sha }}
+        ref: ${{ inputs.ref }}
+        
+        
     - name: Display Trivy summary
       if: always()
       shell: bash
