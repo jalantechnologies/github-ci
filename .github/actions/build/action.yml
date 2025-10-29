@@ -42,6 +42,19 @@ inputs:
     required: false
     description: 'Fail build if vulnerabilities of this severity or higher are found'
     default: 'CRITICAL,HIGH'
+  target_repository:
+    required: false
+    description: 'Target repository to upload SARIF results (in owner/repo format)'
+  target_ref:
+    required: false
+    description: 'Target repository branch/ref for SARIF upload'
+  target_sha:
+    required: false
+    description: 'Target repository commit SHA for SARIF upload'
+  target_token:
+    required: false
+    description: 'GitHub token with security-events:write permission for target repository'
+
 
 outputs:
   image_ref:
@@ -136,15 +149,17 @@ runs:
     # - name: Checkout repository
     #   uses: actions/checkout@v5    
 
-    - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v4  # Pin to specific SHA in production
-      if: always()
-      sarif_file: path/to/trivy-results.sarif
-      token: ${{ secrets.TOKEN }} # Token with security-events:write permission on repo B
-      ref: ${{ github.ref }} # The branch/ref in repo B where you want to upload
-      sha: ${{ github.sha }} # The commit SHA in repo B
-      category: 'trivy-scan'   
+    - name: Upload SARIF to target repository
+      uses: github/codeql-action/upload-sarif@v2
+      if: inputs.target_repository != ''
+      with:
+        sarif_file: 'trivy-results.sarif'
+        token: ${{ inputs.target_token }}
+        ref: ${{ inputs.target_ref }}
+        sha: ${{ inputs.target_sha }}
+        category: 'trivy-scan'
 
+    
     - name: Display Trivy summary
       if: always()
       shell: bash
