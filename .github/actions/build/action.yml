@@ -141,9 +141,7 @@ runs:
         name: trivy-results
         path: trivy-results.sarif
 
-    - name: Checkout repository
-      uses: actions/checkout@v5
-
+  
     - name: Upload SARIF to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v3
       with:
