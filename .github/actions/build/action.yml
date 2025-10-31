@@ -128,14 +128,12 @@ runs:
       with:
         image-ref: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
         format: 'sarif'
-        output: ./platform/.github/actions/build/trivy-results.sarif
+        output: 'trivy-results.sarif'
         severity: ${{ inputs.trivy_severity }}
         exit-code: '0'
         timeout: '10m'
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
-
-   
 
     - name: Upload SARIF artifact
       uses: actions/upload-artifact@v4
@@ -151,7 +149,7 @@ runs:
     #   uses: github/codeql-action/upload-sarif@v3
     #   if: always()
     #   with:
-    #     sarif_file: ./platform/.github/actions/build/trivy-results.sarif
+    #     sarif_file: 'trivy-results.sarif'
     #     ref: ${{ inputs.target_ref }}
     #     sha: ${{ inputs.target_sha }}
     #     category: 'trivy-scan'
