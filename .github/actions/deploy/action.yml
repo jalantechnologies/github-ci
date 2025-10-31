@@ -70,10 +70,10 @@ runs:
         BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
         BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
 
-        echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
-        echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
-        echo "##[set-output name=branch_commit_hash;]$(echo $GITHUB_SHA)"
-        echo "##[set-output name=branch_actor;]$(echo $GITHUB_ACTOR)"
+        echo "branch=$(echo $BRANCH_NAME)" >> "$GITHUB_OUTPUT"
+        echo "branch_hash=$(echo $BRANCH_HASH)" >> "$GITHUB_OUTPUT"
+        echo "branch_commit_hash=$(echo $GITHUB_SHA)" >> "$GITHUB_OUTPUT"
+        echo "branch_actor=$(echo $GITHUB_ACTOR)" >> "$GITHUB_OUTPUT"
 
     - name: DigitalOcean setup
       env:
@@ -131,4 +131,4 @@ runs:
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
         source platform/lib/kube/deploy.sh
-        echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
+        echo "url=https://$KUBE_INGRESS_HOSTNAME" >> "$GITHUB_OUTPUT"
