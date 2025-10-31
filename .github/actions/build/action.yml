@@ -137,6 +137,7 @@ runs:
 
     - name: Verify Trivy output
       if: always()
+      shell: bash
       run: |
         echo "Checking if trivy-results.sarif exists..."
         ls -l ${{ github.workspace }}/trivy-results.sarif || echo "Trivy output not found!"
