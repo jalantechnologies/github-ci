@@ -1,12 +1,5 @@
 name: ci
 
-
-
-
-permissions:
-  contents: read
-  security-events: write
-
 on:
   workflow_call:
     inputs:
@@ -98,19 +91,7 @@ on:
         required: false
         type: string
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
-      target_repository:
-        required: false
-        type: string
-        description: 'Target repository to upload SARIF results (in owner/repo format)'
-      target_ref:
-        required: false
-        type: string
-        description: 'Target repository branch/ref for SARIF upload'
-      target_sha:
-        required: false
-        type: string
-        description: 'Target repository commit SHA for SARIF upload'
-          
+
     secrets:
       aws_access_key_id:
         required: false
@@ -133,7 +114,7 @@ on:
       sonar_token:
         required: false
         description: 'Authentication token for SonarQube'
-      
+
     outputs:
       deploy_url:
         description: 'URL where application was deployed'
@@ -239,10 +220,6 @@ jobs:
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
-          target_token: ${{ secrets.target_token }}
-          target_repository: ${{ inputs.target_repository }}
-          target_ref: ${{ inputs.target_ref }}
-          target_sha: ${{ inputs.target_sha }}
 
   checks:
     if: inputs.checks != ''
@@ -390,8 +367,3 @@ jobs:
             Deployment (${{ inputs.app_name }}) is available -
             Web App: ${{ steps.deploy.outputs.url }}
             Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
-
-
-# Optional security scanning configuration:
-# - trivy_severity: Container vulnerability severity threshold (default: CRITICAL,HIGH)
-# - skip_security_audit: Skip dependency audits in checks (default: false)
