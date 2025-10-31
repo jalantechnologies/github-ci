@@ -175,11 +175,11 @@ runs:
       #     echo "Extracted files:"
       #     find artifacts -type f -maxdepth 3 -print
 
-      # - name: Upload SARIF to GitHub Code Scanning
-      #   uses: github/codeql-action/upload-sarif@v2
-      #   with:
-      #     # supports globs; adjust path if your SARIF sits in a subfolder
-      #     sarif_file: artifacts/**/*.sarif
+    - name: Upload SARIF to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        # supports globs; adjust path if your SARIF sits in a subfolder
+        sarif_file: trivy-results.sarif
 # 
 
 
