@@ -128,7 +128,7 @@ runs:
       with:
         image-ref: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
         format: 'sarif'
-        output: 'trivy-results.sarif'
+        output: ./platform/.github/actions/build/trivy-results.sarif
         severity: ${{ inputs.trivy_severity }}
         exit-code: '0'
         timeout: '10m'
@@ -157,7 +157,7 @@ runs:
       uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: '/home/runner/work/flask-react-template/flask-react-template/trivy-results.sarif'
+        sarif_file: ./platform/.github/actions/build/trivy-results.sarif
         ref: ${{ inputs.target_ref }}
         sha: ${{ inputs.target_sha }}
         category: 'trivy-scan'
