@@ -157,7 +157,7 @@ runs:
       uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
-        sarif_file: 'trivy-results.sarif'
+        sarif_file: '/home/runner/work/flask-react-template/flask-react-template/trivy-results.sarif'
         ref: ${{ inputs.target_ref }}
         sha: ${{ inputs.target_sha }}
         category: 'trivy-scan'
