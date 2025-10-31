@@ -142,8 +142,8 @@ runs:
     #     path: trivy-results.sarif
 
 
-    # - name: Checkout repository
-    #   uses: actions/checkout@v5    
+    - name: Checkout repository
+      uses: actions/checkout@v5    
 
     - name: Upload SARIF to target repository
       uses: github/codeql-action/upload-sarif@v3
