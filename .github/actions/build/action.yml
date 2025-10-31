@@ -126,7 +126,7 @@ runs:
       uses: aquasecurity/trivy-action@0.16.1  # Pin to specific SHA in production
       if: inputs.trivy_severity != ''
       with:
-        image-ref: registry.hub.docker.com/jalantechnologies/flask-react-app:dd2e4b052aeef0c
+        image-ref: registry.hub.docker.com/jalantechnologies/flask-react-template:dd2e4b052aeef0c
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: ${{ inputs.trivy_severity }}
