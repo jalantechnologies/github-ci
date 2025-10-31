@@ -143,6 +143,7 @@ runs:
 
    
     - name: Ensure tools
+      shell: bash
       run: |
         sudo apt-get update
         sudo apt-get install -y jq unzip
