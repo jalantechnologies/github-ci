@@ -133,9 +133,6 @@ on:
       sonar_token:
         required: false
         description: 'Authentication token for SonarQube'
-      target_token:
-        required: false
-        description: 'GitHub token with security-events:write permission for target repository'
       
     outputs:
       deploy_url:

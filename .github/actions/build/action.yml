@@ -51,10 +51,6 @@ inputs:
   target_sha:
     required: false
     description: 'Target repository commit SHA for SARIF upload'
-  target_token:
-    required: false
-    description: 'GitHub token with security-events:write permission for target repository'
-
 
 outputs:
   image_ref:
@@ -154,7 +150,6 @@ runs:
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
-        token: ${{ inputs.target_token }}
         ref: ${{ inputs.target_ref }}
         sha: ${{ inputs.target_sha }}
         category: 'trivy-scan'
