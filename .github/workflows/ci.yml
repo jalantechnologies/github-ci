@@ -114,6 +114,9 @@ on:
       sonar_token:
         required: false
         description: 'Authentication token for SonarQube'
+      target_token:
+        required: false
+        description: 'GitHub token to use for uploading SARIF results to target repository'
 
     outputs:
       deploy_url:
@@ -220,7 +223,7 @@ jobs:
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
-          token: ${{ secrets.TOKEN }}
+          target_token: ${{ inputs.target_token }}
 
   checks:
     if: inputs.checks != ''
