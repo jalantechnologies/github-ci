@@ -91,6 +91,19 @@ on:
         required: false
         type: string
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
+      target_repository:
+        required: false
+        type: string
+        description: 'Target repository to upload SARIF results (in owner/repo format)'
+      target_ref:
+        required: false
+        type: string
+        description: 'Target repository branch/ref for SARIF upload'
+      target_sha:
+        required: false
+        type: string
+        description: 'Target repository commit SHA for SARIF upload'
+ 
 
     secrets:
       aws_access_key_id:
