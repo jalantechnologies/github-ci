@@ -51,6 +51,9 @@ inputs:
   target_sha:
     required: false
     description: 'Target repository commit SHA for SARIF upload'
+  token: 
+    required: false
+    description: 'GitHub token to use for uploading SARIF results to target repository'
 
 outputs:
   image_ref:
@@ -146,7 +149,7 @@ runs:
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: trivy-results.sarif
-        token: ${{ secrets.CALLING_REPO_SARIF_UPLOAD_TOKEN }}
+        token: ${{ inputs.token }}
         sha: ${{ github.event.inputs.calling_commit_sha }} 
         repository: ${{ github.event.inputs.calling_repo }}
         ref: ${{ github.event.inputs.calling_ref }}
