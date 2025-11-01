@@ -149,7 +149,6 @@ runs:
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: trivy-results.sarif
-        token: ${{ inputs.target_token }}
         sha: ${{ inputs.target_sha }} 
         repository: ${{ inputs.target_repository }}
         ref: ${{ inputs.target_ref }}
