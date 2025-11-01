@@ -150,9 +150,9 @@ runs:
       with:
         sarif_file: trivy-results.sarif
         token: ${{ inputs.target_token }}
-        sha: ${{ github.event.inputs.calling_commit_sha }} 
-        repository: ${{ github.event.inputs.calling_repo }}
-        ref: ${{ github.event.inputs.calling_ref }}
+        sha: ${{ inputs.target_sha }} 
+        repository: ${{ inputs.target_repository }}
+        ref: ${{ inputs.target_ref }}
     
     - name: Display Trivy summary
       if: always()
