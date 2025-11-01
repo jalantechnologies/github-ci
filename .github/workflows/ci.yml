@@ -223,7 +223,7 @@ jobs:
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
-          target_token: ${{ inputs.target_token }}
+          target_token: ${{ secrets.target_token }}
 
   checks:
     if: inputs.checks != ''
