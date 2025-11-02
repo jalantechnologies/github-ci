@@ -149,9 +149,9 @@ runs:
         base64 -w0 results.sarif.gz > sarif.b64
         jq -n \
             --arg commit_sha "$GITHUB_COMMIT_SHA" \
-            --arg ref "refs/head/main" \
+            --arg ref "refs/heads/main" \
             --rawfile sarif sarif.b64 \
-            '{ commit_sha: $commit_sha, ref: "refs/head/main", sarif: $sarif }' > payload.json
+            '{ commit_sha: $commit_sha, ref: "refs/heads/main", sarif: $sarif }' > payload.json
 
         HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
             -H "Accept: application/vnd.github+json" \
