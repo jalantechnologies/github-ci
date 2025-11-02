@@ -145,10 +145,10 @@ runs:
         gzip -c trivy-results.sarif > results.sarif.gz
         base64 -w0 results.sarif.gz > sarif.b64
         jq -n \
-            --arg commit_sha "$GITHUB_SHA" \
+            --arg commit_sha "${{ inputs.target_sha }}" \
             --arg ref refs/head/main \
             --rawfile sarif sarif.b64 \
-            '{ commit_sha: ${{ inputs.target_sha }}, ref: refs/head/main, sarif: $sarif }' > payload.json
+            '{ commit_sha: $commit_sha, ref: refs/head/main, sarif: $sarif }' > payload.json
 
 
     - name: Upload SARIF artifact
