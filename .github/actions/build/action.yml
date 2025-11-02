@@ -143,6 +143,7 @@ runs:
       env:
         GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
         GITHUB_TOKEN: ${{ inputs.target_token }}
+        GITHUB_REPOSITORY: ${{ inputs.target_repository }}
       run: |
         # Encode SARIF file to base64 (no line wrapping)
         gzip -c trivy-results.sarif > results.sarif.gz
@@ -158,7 +159,7 @@ runs:
             -H "Authorization: token  $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
             --data-binary @payload.json \
-            "https://api.github.com/repos/jalantechnologies/flask-react-template/code-scanning/sarifs")
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs")
           
         echo "HTTP status: $HTTP_STATUS"
         echo "API response:"
