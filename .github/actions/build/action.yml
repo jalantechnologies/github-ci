@@ -138,7 +138,7 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    - name: gzip files to confirm path
+    - name: Uplaod SARIF to GitHub Code Scanning
       shell: bash
       env:
         GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
