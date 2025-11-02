@@ -144,6 +144,7 @@ runs:
         GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
         GITHUB_TOKEN: ${{ inputs.target_token }}
         GITHUB_REPOSITORY: ${{ inputs.target_repository }}
+        GITHUB_REF: ${{ inputs.target_ref }}
       run: |
         # Encode SARIF file to base64 (no line wrapping)
         gzip -c trivy-results.sarif > results.sarif.gz
