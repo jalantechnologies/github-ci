@@ -148,9 +148,9 @@ runs:
         base64 -w0 results.sarif.gz > sarif.b64
         jq -n \
             --arg commit_sha "$GITHUB_COMMIT_SHA" \
-            --arg ref refs/head/main \
+            --arg ref "refs/head/main" \
             --rawfile sarif sarif.b64 \
-            '{ commit_sha: $commit_sha, ref: refs/head/main, sarif: $sarif }' > payload.json
+            '{ commit_sha: $commit_sha, ref: "refs/head/main", sarif: $sarif }' > payload.json
 
 
     # - name: Upload SARIF artifact
