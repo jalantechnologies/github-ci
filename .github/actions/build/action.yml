@@ -153,7 +153,7 @@ runs:
             --arg commit_sha "$GITHUB_COMMIT_SHA" \
             --arg ref "$GITHUB_REF" \
             --rawfile sarif sarif.b64 \
-            '{ commit_sha: $commit_sha, ref: $ref, sarif: $sarif }' > payload.json
+            '{ commit_sha: $commit_sha, ref: refs/heads/main, sarif: $sarif, category: "container-security" }' > payload.json
 
         HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
             -H "Accept: application/vnd.github+json" \
