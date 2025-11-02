@@ -138,24 +138,26 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    # - name: gzip files to confirm path
-    #   shell: bash
-    #   run: |
-    #     # Encode SARIF file to base64 (no line wrapping)
-    #     gzip -c trivy-results.sarif > results.sarif.gz
-    #     base64 -w0 results.sarif.gz > sarif.b64
-    #     jq -n \
-    #         --arg commit_sha "${{ inputs.target_sha }}" \
-    #         --arg ref refs/head/main \
-    #         --rawfile sarif sarif.b64 \
-    #         '{ commit_sha: $commit_sha, ref: refs/head/main, sarif: $sarif }' > payload.json
+    - name: gzip files to confirm path
+      shell: bash
+      env:
+        GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
+      run: |
+        # Encode SARIF file to base64 (no line wrapping)
+        gzip -c trivy-results.sarif > results.sarif.gz
+        base64 -w0 results.sarif.gz > sarif.b64
+        jq -n \
+            --arg commit_sha "$GITHUB_COMMIT_SHA" \
+            --arg ref refs/head/main \
+            --rawfile sarif sarif.b64 \
+            '{ commit_sha: $commit_sha, ref: refs/head/main, sarif: $sarif }' > payload.json
 
 
-    - name: Upload SARIF artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: trivy-results
-        path: trivy-results.sarif
+    # - name: Upload SARIF artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: trivy-results
+    #     path: trivy-results.sarif
 
   
     # - name: Upload SARIF to GitHub Code Scanning
