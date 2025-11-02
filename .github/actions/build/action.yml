@@ -143,11 +143,11 @@ runs:
       run: gzip -c trivy-results.sarif > results.sarif.gz
 
 
-    # - name: Upload SARIF artifact
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: trivy-results
-    #     path: trivy-results.sarif
+    - name: Upload SARIF artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: trivy-results
+        path: trivy-results.sarif
 
   
     # - name: Upload SARIF to GitHub Code Scanning
