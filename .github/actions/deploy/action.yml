@@ -143,6 +143,7 @@ runs:
       run: |
         source platform/lib/kube/deploy.sh
         echo "url=https://$KUBE_INGRESS_HOSTNAME" >> "$GITHUB_OUTPUT"
+        echo "temporal_dashboard_url=https://$KUBE_INGRESS_HOSTNAME" >> "$GITHUB_OUTPUT"
 
     - name: Extract and format Temporal Dashboard URL
       id: temporal
