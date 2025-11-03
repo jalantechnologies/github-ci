@@ -190,6 +190,9 @@ jobs:
     outputs:
       image_ref: ${{ steps.build.outputs.image_ref }}
       workflow_ci_version: ${{ steps.ci_workflow.outputs.version }}
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout (app)
         uses: actions/checkout@v3
