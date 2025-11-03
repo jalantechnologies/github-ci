@@ -178,6 +178,13 @@ runs:
         header: diagnostics-summary
         hide_and_recreate: true
         hide_classify: "OUTDATED"
+    
+    - name: Debug GITHUB_OUTPUT
+      shell: bash
+      run: |
+        echo "===== Debugging GITHUB_OUTPUT ====="
+        cat $GITHUB_OUTPUT || echo "No GITHUB_OUTPUT file found."
+
 
     - name: Comment deployment URLs on PR
       if: ${{ inputs.deploy_annotate_pr == true && inputs.pull_request_number }}
