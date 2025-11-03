@@ -142,9 +142,7 @@ runs:
 
     - name: Uplaod SARIF to GitHub Code Scanning
       shell: bash
-      permissions:
-        contents: read
-        security-events: write
+      
       env:
         GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
         GITHUB_TOKEN: ${{ inputs.target_token }}
@@ -169,16 +167,6 @@ runs:
         echo "HTTP status: $HTTP_STATUS"
         echo "API response:"
         cat response.json | jq .
-
-    - name: Upload SARIF to GitHub Code Scanning 
-      uses: github/codeql-action/upload-sarif@v3 
-      with: 
-        sarif_file: trivy-results.sarif 
-        sha: ${{ inputs.target_sha }} 
-        ref: ${{ inputs.target_ref }}
-        token: ${{ inputs.target_token }}
-
-
     
     - name: Display Trivy summary
       if: always()
