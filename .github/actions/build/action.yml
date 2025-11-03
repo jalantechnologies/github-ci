@@ -140,42 +140,32 @@ runs:
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
 
-    # - name: Uplaod SARIF to GitHub Code Scanning
-    #   shell: bash
-    #   env:
-    #     GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
-    #     GITHUB_TOKEN: ${{ inputs.target_token }}
-    #   run: |
-    #     # Encode SARIF file to base64 (no line wrapping)
-    #     gzip -c trivy-results.sarif > results.sarif.gz
-    #     base64 -w0 results.sarif.gz > sarif.b64
-    #     env
-    #     jq -n \
-    #         --arg commit_sha "$GITHUB_COMMIT_SHA" \
-    #         --arg ref "$GITHUB_REF" \
-    #         --rawfile sarif sarif.b64 \
-    #         '{ commit_sha: $commit_sha, ref: "refs/heads/main", sarif: $sarif }' > payload.json
+    - name: Uplaod SARIF to GitHub Code Scanning
+      shell: bash
+      env:
+        GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
+        GITHUB_TOKEN: ${{ inputs.target_token }}
+      run: |
+        # Encode SARIF file to base64 (no line wrapping)
+        gzip -c trivy-results.sarif > results.sarif.gz
+        base64 -w0 results.sarif.gz > sarif.b64
+        env
+        jq -n \
+            --arg commit_sha "$GITHUB_COMMIT_SHA" \
+            --arg ref "$GITHUB_REF" \
+            --rawfile sarif sarif.b64 \
+            '{ commit_sha: $commit_sha, ref: "refs/heads/main", sarif: $sarif }' > payload.json
 
-    #     HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
-    #         -H "Accept: application/vnd.github+json" \
-    #         -H "Authorization: token  $GITHUB_TOKEN" \
-    #         -H "Content-Type: application/json" \
-    #         --data-binary @payload.json \
-    #         "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs")
+        HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token  $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary @payload.json \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs")
           
-    #     echo "HTTP status: $HTTP_STATUS"
-    #     echo "API response:"
-    #     cat response.json | jq .
-
-    - name: Upload SARIF to GitHub Code Scanning 
-      uses: github/codeql-action/upload-sarif@v3 
-      with: 
-        sarif_file: trivy-results.sarif 
-        sha: ${{ inputs.target_sha }} 
-        ref: ${{ inputs.target_ref }}
-        token: ${{ inputs.target_token }}
-
-
+        echo "HTTP status: $HTTP_STATUS"
+        echo "API response:"
+        cat response.json | jq .
     
     - name: Display Trivy summary
       if: always()
