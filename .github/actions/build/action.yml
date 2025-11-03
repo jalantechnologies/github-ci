@@ -111,7 +111,7 @@ runs:
 
     - name: Docker build
       id: build
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v6
       with:
         context: ${{ inputs.context }}
         tags: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
