@@ -204,6 +204,11 @@ jobs:
 
           echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
 
+      - name: Debug build config
+        run: |
+          echo "hosting_provider=${{ inputs.hosting_provider }}"
+          echo "aws_use_ecr=${{ inputs.hosting_provider == 'AWS' && 'true' || 'false' }}"
+
       - name: Build application
         id: build
         uses: ./platform/.github/actions/build
