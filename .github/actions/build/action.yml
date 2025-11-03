@@ -114,7 +114,6 @@ runs:
       uses: docker/build-push-action@v6
       with:
         context: ${{ inputs.context }}
-        push: false
         tags: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
         build-args: ${{ inputs.build_args }}
         # @see - https://docs.docker.com/build/ci/github-actions/cache/#github-cache
