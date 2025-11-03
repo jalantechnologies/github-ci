@@ -1,5 +1,6 @@
 name: ci
 
+
 on:
   workflow_call:
     inputs:
@@ -91,6 +92,19 @@ on:
         required: false
         type: string
         description: 'SonarQube server URL. If not provided, analysis will not be performed.'
+      target_repository:
+        required: false
+        type: string
+        description: 'Target repository to upload SARIF results (in owner/repo format)'
+      target_ref:
+        required: false
+        type: string
+        description: 'Target repository branch/ref for SARIF upload'
+      target_sha:
+        required: false
+        type: string
+        description: 'Target repository commit SHA for SARIF upload'
+ 
 
     secrets:
       aws_access_key_id:
@@ -114,6 +128,9 @@ on:
       sonar_token:
         required: false
         description: 'Authentication token for SonarQube'
+      target_token:
+        required: false
+        description: 'GitHub token to use for uploading SARIF results to target repository'
 
     outputs:
       deploy_url:
@@ -173,6 +190,7 @@ jobs:
     outputs:
       image_ref: ${{ steps.build.outputs.image_ref }}
       workflow_ci_version: ${{ steps.ci_workflow.outputs.version }}
+    
     steps:
       - name: Checkout (app)
         uses: actions/checkout@v3
@@ -220,7 +238,10 @@ jobs:
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
-
+          target_token: ${{ secrets.target_token }}
+          target_repository: ${{ inputs.target_repository }}
+          target_ref: ${{ inputs.target_ref }}
+          target_sha: ${{ inputs.target_sha }}
   checks:
     if: inputs.checks != ''
     needs: build
