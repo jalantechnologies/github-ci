@@ -143,7 +143,7 @@ runs:
     - name: Uplaod SARIF to GitHub Code Scanning
       shell: bash
       env:
-        # GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
+        GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
         GITHUB_TOKEN: ${{ inputs.target_token }}
         # GITHUB_REPOSITORY: ${{ inputs.target_repository }}
         # GITHUB_REF: ${{ inputs.target_ref }}
