@@ -176,9 +176,7 @@ runs:
   
     - name: Upload SARIF to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v3
-      permissions:
-        security-events: write
-        contents: read
+      
       with:
         sarif_file: trivy-results.sarif
         sha: ${{ inputs.target_sha }} 
