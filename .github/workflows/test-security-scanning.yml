@@ -1,0 +1,35 @@
+name: Test Security Scanning
+
+on:
+  pull_request:
+    paths:
+      - '.github/actions/build/**'
+      - 'tests/test-vulnerable-image/**'
+
+jobs:
+  test-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Test Trivy scanning (should fail)
+        uses: ./.github/actions/build
+        id: build
+        continue-on-error: true
+        with:
+          app_name: test-vulnerable
+          tag: test
+          context: tests/test-vulnerable-image
+          trivy_severity: 'HIGH,CRITICAL'
+
+      - name: Verify scan failed
+        if: steps.build.outcome == 'success'
+        run: |
+          echo "::error ::Trivy scan should have failed on vulnerable image"
+          exit 1
+
+      - name: Success
+        if: steps.build.outcome == 'failure'
+        run: echo "✅ Trivy correctly detected vulnerabilities"
