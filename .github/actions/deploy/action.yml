@@ -56,6 +56,13 @@ inputs:
   doppler_token:
     required: false
     description: 'Doppler token for accessing environment variables'
+  pull_request_number:
+    required: false
+    description: 'Pull request number running the workflow against a pull request'
+  deploy_annotate_pr:
+    required: false
+    description: 'Enable pull request annotation with deployment URL. Requires pull_request_number to work.'
+
 outputs:
   url:
     description: 'URL where application has been deployed'
