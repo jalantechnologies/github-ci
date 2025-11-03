@@ -52,23 +52,10 @@ runs:
     - name: Docker setup
       uses: docker/setup-buildx-action@v2
 
-    - name: Docker login
-      uses: docker/login-action@v2
-      env:
-        DOCKER_USERNAME: ${{ inputs.docker_username }}
-        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
-      if: "${{ env.DOCKER_USERNAME != '' && env.HOSTING_PROVIDER != 'AWS' }}"
-      with:
-        registry: ${{ inputs.docker_registry }}
-        username: ${{ inputs.docker_username }}
-        password: ${{ inputs.docker_password }}
-
+    # Configure AWS first so any subsequent steps have valid credentials
     - name: AWS setup
       uses: aws-actions/configure-aws-credentials@v1
-      env:
-        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
-        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.HOSTING_PROVIDER == 'AWS' || env.AWS_USE_ECR == 'true' }}"
+      if: ${{ inputs.hosting_provider == 'AWS' || inputs.aws_use_ecr == 'true' }}
       with:
         aws-access-key-id: ${{ inputs.aws_access_key_id }}
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
@@ -76,22 +63,33 @@ runs:
         mask-aws-account-id: 'false'
 
     - name: AWS ECR login
-      env:
-        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
-        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.HOSTING_PROVIDER == 'AWS' || env.AWS_USE_ECR == 'true' }}"
+      if: ${{ inputs.hosting_provider == 'AWS' || inputs.aws_use_ecr == 'true' }}
       id: aws_ecr_login
       uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Docker login
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.docker_registry }}
+        username: ${{ inputs.docker_username }}
+        password: ${{ inputs.docker_password }}
+      if: ${{ inputs.docker_username != '' && inputs.hosting_provider != 'AWS' && !contains(inputs.docker_registry, 'amazonaws.com') }}
+
+    # (moved AWS setup/login earlier)
 
     - name: Debug registry selection
       shell: bash
       env:
         HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
         IN_AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
       run: |
         echo "hosting_provider=$HOSTING_PROVIDER"
         echo "inputs.aws_use_ecr=$IN_AWS_USE_ECR"
         echo "ecr_registry=${{ steps.aws_ecr_login.outputs.registry }}"
+        echo "docker_registry=$DOCKER_REGISTRY"
+        echo "docker_username=$DOCKER_USERNAME"
 
     - name: Docker build tag
       shell: bash
@@ -99,14 +97,27 @@ runs:
       env:
         HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
         AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+        DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+        DOCKER_USERNAME: ${{ inputs.docker_username }}
       run: |
-        if [[ "$HOSTING_PROVIDER" == 'AWS' || "$AWS_USE_ECR" == 'true' ]]; then
-          TAG=${{ steps.aws_ecr_login.outputs.registry }}/${{ inputs.app_name }}
+        is_ecr=false
+        if [[ "$HOSTING_PROVIDER" == 'AWS' || "$AWS_USE_ECR" == 'true' || "$DOCKER_REGISTRY" == *amazonaws.com* ]]; then
+          is_ecr=true
+        fi
+
+        if [[ "$is_ecr" == 'true' ]]; then
+          if [[ -n "${{ steps.aws_ecr_login.outputs.registry }}" ]]; then
+            REG="${{ steps.aws_ecr_login.outputs.registry }}"
+          else
+            REG="$DOCKER_REGISTRY"
+          fi
+          TAG="$REG/${{ inputs.app_name }}"
         else
-          TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
+          TAG="$DOCKER_REGISTRY/$DOCKER_USERNAME/${{ inputs.app_name }}"
         fi
 
         echo "##[set-output name=value;]$(echo $TAG)"
+        echo "resolved_tag=$TAG"
 
     - name: Docker build
       id: build
