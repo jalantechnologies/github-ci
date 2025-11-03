@@ -143,10 +143,10 @@ runs:
     - name: Uplaod SARIF to GitHub Code Scanning
       shell: bash
       env:
-        GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
+        # GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
         GITHUB_TOKEN: ${{ inputs.target_token }}
         # GITHUB_REPOSITORY: ${{ inputs.target_repository }}
-        GITHUB_REF: ${{ inputs.target_ref }}
+        # GITHUB_REF: ${{ inputs.target_ref }}
       run: |
         # Encode SARIF file to base64 (no line wrapping)
         gzip -c trivy-results.sarif > results.sarif.gz
@@ -177,14 +177,14 @@ runs:
     #     path: trivy-results.sarif
 
   
-    - name: Upload SARIF to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v3
+    # - name: Upload SARIF to GitHub Code Scanning
+    #   uses: github/codeql-action/upload-sarif@v3
       
-      with:
-        sarif_file: trivy-results.sarif
-        sha: ${{ inputs.target_sha }} 
-        ref: "refs/heads/main"
-        token: ${{ inputs.target_token }}
+    #   with:
+    #     sarif_file: trivy-results.sarif
+    #     sha: ${{ inputs.target_sha }} 
+    #     ref: "refs/heads/main"
+    #     token: ${{ inputs.target_token }}
     
     - name: Display Trivy summary
       if: always()
