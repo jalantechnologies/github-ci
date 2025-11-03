@@ -67,12 +67,9 @@ outputs:
   url:
     description: 'URL where application has been deployed'
     value: ${{ steps.deploy.outputs.url }}
-  deploy_url:
-    description: 'URL where application was deployed'
-    value: ${{ jobs.deploy.outputs.url }}
   temporal_dashboard_url:
     description: 'URL for Temporal Dashboard'
-    value: ${{ jobs.deploy.outputs.temporal_dashboard_url }}
+    value: ${{ steps.deploy.outputs.temporal_dashboard_url }}
 
 runs:
   using: composite
