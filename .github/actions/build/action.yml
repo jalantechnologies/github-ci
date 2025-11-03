@@ -185,6 +185,3 @@ runs:
           echo "### Container Security Scan Results" >> $GITHUB_STEP_SUMMARY
           echo "See Security tab for detailed findings" >> $GITHUB_STEP_SUMMARY
         fi
-
-
-        z
