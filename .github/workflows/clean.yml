@@ -144,6 +144,7 @@ jobs:
 
       - name: Kubernetes clean
         env:
+          HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
           KUBE_ROOT: app/${{ inputs.deploy_root }}
           KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
           KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
