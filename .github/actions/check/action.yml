@@ -31,10 +31,6 @@ inputs:
   tag:
     required: false
     description: 'If provided, can be used for tagging the image'
-  skip_security_audit:
-    required: false
-    description: 'Skip dependency security audit'
-    default: 'false'
 
 runs:
   using: composite
