@@ -69,7 +69,7 @@ outputs:
     value: ${{ steps.deploy.outputs.url }}
   temporal_dashboard_url:
     description: 'URL for Temporal Dashboard'
-    value: ${{ steps.temporal_export.outputs.temporal_dashboard_url }}
+    value: ${{ steps.outputs.temporal_dashboard_url }}
 
 runs:
   using: composite
@@ -154,14 +154,7 @@ runs:
         first_label="${domain%%.*}"
         rest="${domain#*.}"
         temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> temp_outputs.txt
-      continue-on-error: false
-
-    - name: Export Temporal URL output
-      id: temporal_export
-      shell: bash
-      run: |
-        cat temp_outputs.txt >> "$GITHUB_OUTPUT"
+        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
 
     - name: Show diagnostics in logs
       if: failure()
@@ -187,12 +180,6 @@ runs:
         hide_and_recreate: true
         hide_classify: "OUTDATED"
     
-    - name: Debug GITHUB_OUTPUT
-      shell: bash
-      run: |
-        echo "===== Debugging GITHUB_OUTPUT ====="
-        cat $GITHUB_OUTPUT || echo "No GITHUB_OUTPUT file found."
-
 
     - name: Comment deployment URLs on PR
       if: ${{ inputs.deploy_annotate_pr == true && inputs.pull_request_number }}
@@ -205,4 +192,4 @@ runs:
         message: |
           Deployment (${{ inputs.app_name }}) is available:
           - Web App: ${{ steps.deploy.outputs.url }}
-          - Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+          - Workers Dashboard: ${{ steps.outputs.temporal_dashboard_url }}
