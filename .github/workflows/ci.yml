@@ -212,13 +212,15 @@ jobs:
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
-          aws_use_ecr: ${{ inputs.aws_use_ecr }}
+          # push to ECR when hosting on AWS; else use Docker registry
+          aws_use_ecr: ${{ inputs.hosting_provider == 'AWS' }}
           tag: ${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
           context: app/${{ inputs.build_context }}
           docker_registry: ${{ inputs.docker_registry }}
-          docker_username: ${{ inputs.docker_username }}
+          # skip Docker Hub login when hosting on AWS (ECR path)
+          docker_username: ${{ inputs.hosting_provider == 'AWS' && '' || inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
 
   checks:
