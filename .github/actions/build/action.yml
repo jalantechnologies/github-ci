@@ -170,10 +170,10 @@ runs:
     - name: Upload SARIF to GitHub Code Scanning 
       uses: github/codeql-action/upload-sarif@v3 
       with: 
-      sarif_file: trivy-results.sarif 
-      sha: ${{ inputs.target_sha }} 
-      ref: ${{ inputs.target_ref }}
-      token: ${{ inputs.target_token }}
+        sarif_file: trivy-results.sarif 
+        sha: ${{ inputs.target_sha }} 
+        ref: ${{ inputs.target_ref }}
+        token: ${{ inputs.target_token }}
 
 
     
