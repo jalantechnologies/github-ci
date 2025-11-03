@@ -69,7 +69,7 @@ outputs:
     value: ${{ steps.deploy.outputs.url }}
   temporal_dashboard_url:
     description: 'URL for Temporal Dashboard'
-    value: ${{ steps.deploy.outputs.temporal_dashboard_url }}
+    value: ${{ steps.temporal_export.outputs.temporal_dashboard_url }}
 
 runs:
   using: composite
@@ -153,7 +153,14 @@ runs:
         first_label="${domain%%.*}"
         rest="${domain#*.}"
         temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
+        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> temp_outputs.txt
+      continue-on-error: false
+
+    - name: Export Temporal URL output
+      id: temporal_export
+      shell: bash
+      run: |
+        cat temp_outputs.txt >> "$GITHUB_OUTPUT"
 
     - name: Show diagnostics in logs
       if: failure()
