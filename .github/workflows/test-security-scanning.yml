@@ -1,13 +1,25 @@
 name: Test Security Scanning
 
 on:
-  pull_request:
-    paths:
-      - '.github/actions/build/**'
-      - 'tests/test-vulnerable-image/**'
+  workflow_call:
+    inputs:
+      docker_registry:
+        required: false
+        type: string
+        description: 'Docker registry where built images will be pushed. By default uses Docker Hub.'
+        default: registry.hub.docker.com
+      docker_username:
+        required: false
+        type: string
+        description: 'Username for authenticating with provided Docker registry'
+    secrets:
+      docker_password:
+        required: false
+        description: 'Password for authenticating with provided Docker registry'
+    
 
 jobs:
-  test-scanning:
+  test_scanning:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,6 +35,9 @@ jobs:
           tag: test
           context: tests/test-vulnerable-image
           trivy_severity: 'HIGH,CRITICAL'
+          docker_registry: ${{ inputs.docker_registry }}
+          docker_username: ${{ inputs.docker_username }}
+          docker_password: ${{ secrets.docker_password }}
 
       - name: Verify scan failed
         if: steps.build.outcome == 'success'
