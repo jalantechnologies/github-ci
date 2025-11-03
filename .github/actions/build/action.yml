@@ -59,6 +59,12 @@ outputs:
   image_ref:
     description: 'Built docker image reference'
     value: ${{ steps.tag.outputs.value }}@${{ steps.build.outputs.digest }}
+
+
+permissions:
+  contents: read
+  security-events: write
+
 runs:
   using: composite
   steps:

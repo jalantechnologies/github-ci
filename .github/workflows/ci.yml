@@ -1,8 +1,6 @@
 name: ci
 
-permissions:
-  contents: read
-  security-events: write
+
 on:
   workflow_call:
     inputs:
