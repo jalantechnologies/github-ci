@@ -1,5 +1,8 @@
 name: 'build'
 description: 'Build application from Dockerfile'
+permissions:
+  contents: read
+  security-events: write
 inputs:
   app_name:
     required: true
