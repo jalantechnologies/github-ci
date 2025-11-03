@@ -23,8 +23,7 @@ jobs:
           tag: test
           context: tests/test-vulnerable-image
           trivy_severity: 'HIGH,CRITICAL'
-          docker_registry: registry.hub.docker.com
-          docker_username: jalantechnologies
+          
 
       - name: Verify scan failed
         if: steps.build.outcome == 'success'
