@@ -127,6 +127,12 @@ runs:
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
 
+    - name: Uplaod SARIF to GitHub Code Scanning
+      shell: bash
+      run: |
+        echo "Built image: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}"
+        docker images
+
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.16.1  # Pin to specific SHA in production
       if: inputs.trivy_severity != ''
