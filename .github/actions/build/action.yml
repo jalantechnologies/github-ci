@@ -4,9 +4,13 @@ inputs:
   app_name:
     required: true
     description: "Application name based on which build is cached"
+  hosting_provider:
+    required: false
+    description: 'Cloud provider used for hosting. Options: AWS or DIGITAL_OCEAN'
+    default: 'DIGITAL_OCEAN'
   aws_use_ecr:
     required: false
-    description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
+    description: 'Deprecated: prefer using hosting_provider. If true, uses ECR.'
   aws_access_key_id:
     required: false
     description: 'Access key ID for AWS. Required if login using ECR is enabled.'
@@ -52,7 +56,8 @@ runs:
       uses: docker/login-action@v2
       env:
         DOCKER_USERNAME: ${{ inputs.docker_username }}
-      if: "${{ env.DOCKER_USERNAME != '' }}"
+        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
+      if: "${{ env.DOCKER_USERNAME != '' && env.HOSTING_PROVIDER != 'AWS' }}"
       with:
         registry: ${{ inputs.docker_registry }}
         username: ${{ inputs.docker_username }}
@@ -61,8 +66,9 @@ runs:
     - name: AWS setup
       uses: aws-actions/configure-aws-credentials@v1
       env:
+        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
         AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      if: "${{ env.HOSTING_PROVIDER == 'AWS' || env.AWS_USE_ECR == 'true' }}"
       with:
         aws-access-key-id: ${{ inputs.aws_access_key_id }}
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
@@ -71,18 +77,30 @@ runs:
 
     - name: AWS ECR login
       env:
+        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
         AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      if: "${{ env.HOSTING_PROVIDER == 'AWS' || env.AWS_USE_ECR == 'true' }}"
       id: aws_ecr_login
       uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Debug registry selection
+      shell: bash
+      env:
+        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
+        IN_AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
+      run: |
+        echo "hosting_provider=$HOSTING_PROVIDER"
+        echo "inputs.aws_use_ecr=$IN_AWS_USE_ECR"
+        echo "ecr_registry=${{ steps.aws_ecr_login.outputs.registry }}"
 
     - name: Docker build tag
       shell: bash
       id: tag
       env:
+        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
         AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
       run: |
-        if [[ "$AWS_USE_ECR" == 'true' ]]; then
+        if [[ "$HOSTING_PROVIDER" == 'AWS' || "$AWS_USE_ECR" == 'true' ]]; then
           TAG=${{ steps.aws_ecr_login.outputs.registry }}/${{ inputs.app_name }}
         else
           TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
