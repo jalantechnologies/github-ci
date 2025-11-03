@@ -213,7 +213,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
           # push to ECR when hosting on AWS; else use Docker registry
-          aws_use_ecr: ${{ inputs.hosting_provider == 'AWS' }}
+          aws_use_ecr: ${{ inputs.hosting_provider == 'AWS' && 'true' || 'false' }}
           tag: ${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
