@@ -204,11 +204,6 @@ jobs:
 
           echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
 
-      - name: Debug build config
-        run: |
-          echo "hosting_provider=${{ inputs.hosting_provider }}"
-          echo "aws_use_ecr=${{ inputs.hosting_provider == 'AWS' && 'true' || 'false' }}"
-
       - name: Build application
         id: build
         uses: ./platform/.github/actions/build
@@ -223,8 +218,7 @@ jobs:
           build_secrets: ${{ secrets.build_secrets }}
           context: app/${{ inputs.build_context }}
           docker_registry: ${{ inputs.docker_registry }}
-          # skip Docker Hub login when hosting on AWS (ECR path)
-          docker_username: ${{ inputs.hosting_provider == 'AWS' && '' || inputs.docker_username }}
+          docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
 
   checks:
