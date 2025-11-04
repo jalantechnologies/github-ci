@@ -7,9 +7,9 @@ inputs:
   image:
     required: true
     description: 'Image against which check will be performed'
-  aws_use_ecr:
+  hosting_provider:
     required: false
-    description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
+    description: 'Cloud provider used for hosting. Options: AWS or DIGITAL_OCEAN'
   aws_access_key_id:
     required: false
     description: 'Access key ID for AWS. Required if login using ECR is enabled.'
@@ -40,8 +40,10 @@ runs:
       env:
         CHECK: ${{ inputs.check }}
       run: |
-        echo "::set-output name=scheme::${CHECK%%:*}"
-        echo "::set-output name=input::${CHECK#*:}"
+        {
+          echo "scheme=${CHECK%%:*}"
+          echo "input=${CHECK#*:}"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Docker setup
       uses: docker/setup-buildx-action@v2
@@ -57,10 +59,8 @@ runs:
         password: ${{ inputs.docker_password }}
 
     - name: AWS setup
-      uses: aws-actions/configure-aws-credentials@v1
-      env:
-        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      uses: aws-actions/configure-aws-credentials@v4
+      if: inputs.hosting_provider == 'AWS'
       with:
         aws-access-key-id: ${{ inputs.aws_access_key_id }}
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
@@ -68,11 +68,9 @@ runs:
         mask-aws-account-id: 'false'
 
     - name: AWS ECR login
-      env:
-        AWS_USE_ECR: ${{ inputs.aws_use_ecr }}
-      if: "${{ env.AWS_USE_ECR == 'true' }}"
+      if: inputs.hosting_provider == 'AWS'
       id: aws_ecr_login
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
 
     - name: Docker pull
       shell: bash

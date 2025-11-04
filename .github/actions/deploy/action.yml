@@ -73,11 +73,12 @@ runs:
       run: |
         BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
         BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
-
-        echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
-        echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
-        echo "##[set-output name=branch_commit_hash;]$(echo $GITHUB_SHA)"
-        echo "##[set-output name=branch_actor;]$(echo $GITHUB_ACTOR)"
+        {
+          echo "branch=$BRANCH_NAME"
+          echo "branch_hash=$BRANCH_HASH"
+          echo "branch_commit_hash=$GITHUB_SHA"
+          echo "branch_actor=$GITHUB_ACTOR"
+        } >> "$GITHUB_OUTPUT"
 
     - name: DigitalOcean setup
       env:
@@ -95,7 +96,7 @@ runs:
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
     - name: AWS setup
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v4
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
       if: inputs.hosting_provider == 'AWS' && env.AWS_ACCESS_KEY_ID != ''
@@ -136,4 +137,4 @@ runs:
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
         source platform/lib/kube/deploy.sh
-        echo "##[set-output name=url;]$(echo https://$KUBE_INGRESS_HOSTNAME)"
+        echo "url=https://$KUBE_INGRESS_HOSTNAME" >> "$GITHUB_OUTPUT"

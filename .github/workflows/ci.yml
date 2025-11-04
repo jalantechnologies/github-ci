@@ -42,11 +42,6 @@ on:
         type: string
         description: 'Kubernetes cluster region if deploying on EKS'
         default: 'us-east-1'
-      aws_use_ecr:
-        required: false
-        type: boolean
-        description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
-        default: false
       build_args:
         required: false
         type: string
@@ -140,7 +135,7 @@ jobs:
           workflow_yaml=$(cat .github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=version;]$(echo $tag)"
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -155,9 +150,10 @@ jobs:
         run: |
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_BASE_NAME=$(echo ${{ inputs.analyze_base }} | sed -e 's/^refs\/heads\///g')
-
-          echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
-          echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
+          {
+            echo "branch=$BRANCH_NAME"
+            echo "branch_base=$BRANCH_BASE_NAME"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
@@ -186,7 +182,7 @@ jobs:
           workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=version;]$(echo $tag)"
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -201,8 +197,7 @@ jobs:
         run: |
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
-
-          echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+          echo "branch_hash=$BRANCH_HASH" >> "$GITHUB_OUTPUT"
 
       - name: Build application
         id: build
@@ -249,10 +244,10 @@ jobs:
           check: ${{ matrix.check }}
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
+          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
-          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
