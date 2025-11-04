@@ -81,10 +81,10 @@ runs:
         BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
         BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
 
-        echo "branch=$(echo $BRANCH_NAME)" >> "$GITHUB_OUTPUT"
-        echo "branch_hash=$(echo $BRANCH_HASH)" >> "$GITHUB_OUTPUT"
-        echo "branch_commit_hash=$(echo $GITHUB_SHA)" >> "$GITHUB_OUTPUT"
-        echo "branch_actor=$(echo $GITHUB_ACTOR)" >> "$GITHUB_OUTPUT"
+        echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
+        echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
+        echo "branch_commit_hash=$(echo $GITHUB_SHA)" >> $GITHUB_OUTPUT
+        echo "branch_actor=$(echo $GITHUB_ACTOR)" >> $GITHUB_OUTPUT
 
     - name: DigitalOcean setup
       env:
@@ -142,8 +142,8 @@ runs:
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
         source platform/lib/kube/deploy.sh
-        echo "url=https://$KUBE_INGRESS_HOSTNAME" >> "$GITHUB_OUTPUT"
-        echo "temporal_dashboard_url=https://$KUBE_INGRESS_WORKER_HOSTNAME" >> "$GITHUB_OUTPUT"
+        echo "url=https://$KUBE_INGRESS_HOSTNAME" >> $GITHUB_OUTPUT
+        echo "temporal_dashboard_url=https://$KUBE_INGRESS_WORKER_HOSTNAME" >> $GITHUB_OUTPUT
 
     - name: Extract and format Temporal Dashboard URL
       id: temporal

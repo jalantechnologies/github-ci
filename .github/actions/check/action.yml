@@ -40,8 +40,8 @@ runs:
       env:
         CHECK: ${{ inputs.check }}
       run: |
-        echo "scheme=${CHECK%%:*}" >> "$GITHUB_OUTPUT"
-        echo "input=${CHECK#*:}" >> "$GITHUB_OUTPUT"
+        echo "scheme=${CHECK%%:*}" >> $GITHUB_OUTPUT
+        echo "input=${CHECK#*:}" >> $GITHUB_OUTPUT
 
     - name: Docker setup
       uses: docker/setup-buildx-action@v2

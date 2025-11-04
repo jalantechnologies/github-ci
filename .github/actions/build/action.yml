@@ -88,7 +88,7 @@ runs:
           TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
         fi
 
-        echo "value=$(echo $TAG)" >> "$GITHUB_OUTPUT"
+        echo "value=$(echo $TAG)" >> $GITHUB_OUTPUT
 
     - name: Docker build
       id: build
