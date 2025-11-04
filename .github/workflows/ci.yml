@@ -297,74 +297,24 @@ jobs:
   #         do_cluster_id: ${{ inputs.do_cluster_id }}
   #         doppler_token: ${{ secrets.doppler_token }}
 
-  #     - name: Deploy to AWS
-  #       if: inputs.hosting_provider == 'AWS'
-  #       id: deploy_aws
-  #       uses: ./platform/.github/actions/deploy
-  #       with:
-  #         app_name: ${{ inputs.app_name }}
-  #         app_env: ${{ inputs.app_env }}
-  #         app_hostname: ${{ inputs.app_hostname }}
-  #         aws_cluster_name: ${{ inputs.aws_cluster_name }}
-  #         aws_access_key_id: ${{ secrets.aws_access_key_id }}
-  #         aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
-  #         aws_region: ${{ inputs.aws_region }}
-  #         branch: ${{ inputs.branch }}
-  #         deploy_id: ${{ github.run_number }}
-  #         deploy_root: app/${{ inputs.deploy_root }}
-  #         deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
-  #         deploy_image: ${{ needs.build.outputs.image_ref }}
-  #         docker_registry: ${{ inputs.docker_registry }}
-  #         docker_username: ${{ inputs.docker_username }}
-  #         docker_password: ${{ secrets.docker_password }}
-  #         doppler_token: ${{ secrets.doppler_token }}
-
-  #     - name: Extract and format Temporal Dashboard URL
-  #       id: temporal
-  #       run: |
-  #         full_url="${{ steps.deploy.outputs.url }}"
-  #         domain="${full_url#*://}"
-
-  #         first_label="${domain%%.*}"
-
-  #         rest="${domain#*.}"
-
-  #         temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-
-  #         echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
-
-  #     - name: Show diagnostics in logs
-        # if: failure()
-  #       run: |
-  #         echo "===== K8s Diagnostics (raw) ====="
-  #         if [ -d ci_artifacts ]; then
-  #           while IFS= read -r -d '' f; do
-  #             echo "::group::${f}"
-  #             cat "$f" || true
-  #             echo "::endgroup::"
-  #           done < <(find ci_artifacts -type f -print0 | sort -z)
-  #         else
-  #           echo "No diagnostics found."
-  #         fi
-
-  #     - name: Comment diagnostics summary on PR
-  #       if: always() && github.event_name == 'pull_request'
-  #       uses: marocchino/sticky-pull-request-comment@v2
-  #       with:
-  #         path: ci_artifacts/summary.md
-  #         header: diagnostics-summary
-  #         hide_and_recreate: true
-  #         hide_classify: "OUTDATED"
-
-  #     - uses: marocchino/sticky-pull-request-comment@v2
-        # only run this step if enabled and pull request number was provided
-        # if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
-        # with:
-        #   header: ${{ inputs.app_name }}
-        #   hide_and_recreate: true
-        #   hide_classify: "OUTDATED"
-        #   number: ${{ inputs.pull_request_number }}
-        #   message: |
-        #     Deployment (${{ inputs.app_name }}) is available -
-        #     Web App: ${{ steps.deploy.outputs.url }}
-        #     Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+      # - name: Deploy to AWS
+      #   if: inputs.hosting_provider == 'AWS'
+      #   id: deploy_aws
+      #   uses: ./platform/.github/actions/deploy
+      #   with:
+      #     app_name: ${{ inputs.app_name }}
+      #     app_env: ${{ inputs.app_env }}
+      #     app_hostname: ${{ inputs.app_hostname }}
+      #     aws_cluster_name: ${{ inputs.aws_cluster_name }}
+      #     aws_access_key_id: ${{ secrets.aws_access_key_id }}
+      #     aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+      #     aws_region: ${{ inputs.aws_region }}
+      #     branch: ${{ inputs.branch }}
+      #     deploy_id: ${{ github.run_number }}
+      #     deploy_root: app/${{ inputs.deploy_root }}
+      #     deploy_labels: gh/workflow-version=${{ needs.build.outputs.workflow_ci_version }}
+      #     deploy_image: ${{ needs.build.outputs.image_ref }}
+      #     docker_registry: ${{ inputs.docker_registry }}
+      #     docker_username: ${{ inputs.docker_username }}
+      #     docker_password: ${{ secrets.docker_password }}
+      #     doppler_token: ${{ secrets.doppler_token }}
