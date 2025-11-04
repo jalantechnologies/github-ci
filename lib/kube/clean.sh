@@ -13,7 +13,7 @@ echo "clean :: kube env - $KUBE_ENV"
 export NODE_POOL_SELECTOR_KEY=""
 export NODE_POOL_VALUE=""
 
-case "$HOSTING_PROVIDER" in
+case "$HOSTING_PROVIDER1" in
     "DIGITAL_OCEAN")
         export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
         if [[ "$KUBE_ENV" == "production" ]]; then
@@ -33,7 +33,7 @@ case "$HOSTING_PROVIDER" in
         echo "clean :: using AWS node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
         ;;
     *)
-        echo "clean :: warning - unknown or unset HOSTING_PROVIDER: $HOSTING_PROVIDER"
+        echo "clean :: warning - unknown or unset HOSTING_PROVIDER1: $HOSTING_PROVIDER1"
         echo "clean :: node selectors will be empty - cleanup may not work correctly"
         ;;
 esac

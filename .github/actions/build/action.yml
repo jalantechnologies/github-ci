@@ -79,9 +79,9 @@ runs:
       shell: bash
       id: tag
       env:
-        HOSTING_PROVIDER: ${{ inputs.hosting_provider }}
+        HOSTING_PROVIDER1: ${{ inputs.hosting_provider }}
       run: |
-        if [[ "$HOSTING_PROVIDER" == 'AWS' ]]; then
+        if [[ "$HOSTING_PROVIDER1" == 'AWS' ]]; then
           TAG="${{ steps.aws_ecr_login.outputs.registry }}/${{ inputs.app_name }}"
         else
           TAG="${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}"

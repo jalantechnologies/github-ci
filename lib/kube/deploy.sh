@@ -60,7 +60,7 @@ echo "deploy :: parsed labels - $kube_parsed_labels"
 export NODE_POOL_SELECTOR_KEY=""
 export NODE_POOL_VALUE=""
 
-case "$HOSTING_PROVIDER" in
+case "$HOSTING_PROVIDER1" in
     "DIGITAL_OCEAN")
         export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
         if [[ "$KUBE_ENV" == "production" ]]; then
@@ -80,7 +80,7 @@ case "$HOSTING_PROVIDER" in
         echo "deploy :: using AWS node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
         ;;
     *)
-        echo "deploy :: warning - unknown or unset HOSTING_PROVIDER: $HOSTING_PROVIDER"
+        echo "deploy :: warning - unknown or unset HOSTING_PROVIDER1: $HOSTING_PROVIDER1"
         echo "deploy :: node selectors will be empty - pods may not schedule correctly"
         ;;
 esac
