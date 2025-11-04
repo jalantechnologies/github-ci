@@ -182,6 +182,7 @@ runs:
     
 
     - name: Comment deployment URLs on PR
+      if: ${{ inputs.deploy_annotate_pr == 'true' && inputs.pull_request_number != '' }}
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: ${{ inputs.app_name }}
