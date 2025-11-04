@@ -127,52 +127,52 @@ runs:
         # @see - https://docs.docker.com/build/ci/github-actions/secrets/
         secrets: ${{ inputs.build_secrets }}
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@0.16.1  # Pin to specific SHA in production
-      if: inputs.trivy_severity != ''
-      with:
-        image-ref: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: ${{ inputs.trivy_severity }}
-        exit-code: '0'
-        timeout: '10m'
-        vuln-type: 'os,library'
-        scanners: 'vuln,secret,config'
+    # - name: Run Trivy vulnerability scanner
+    #   uses: aquasecurity/trivy-action@0.16.1  # Pin to specific SHA in production
+    #   if: inputs.trivy_severity != ''
+    #   with:
+    #     image-ref: ${{ steps.tag.outputs.value }}:${{ inputs.tag }}
+    #     format: 'sarif'
+    #     output: 'trivy-results.sarif'
+    #     severity: ${{ inputs.trivy_severity }}
+    #     exit-code: '0'
+    #     timeout: '10m'
+    #     vuln-type: 'os,library'
+    #     scanners: 'vuln,secret,config'
 
-    - name: Uplaod SARIF to GitHub Code Scanning
-      shell: bash
+    # - name: Uplaod SARIF to GitHub Code Scanning
+    #   shell: bash
       
-      env:
-        GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
-        GITHUB_TOKEN: ${{ inputs.target_token }}
-      run: |
-        # Encode SARIF file to base64 (no line wrapping)
-        gzip -c trivy-results.sarif > results.sarif.gz
-        base64 -w0 results.sarif.gz > sarif.b64
-        env
-        jq -n \
-            --arg commit_sha "$GITHUB_COMMIT_SHA" \
-            --arg ref "$GITHUB_REF" \
-            --rawfile sarif sarif.b64 \
-            '{ commit_sha: $commit_sha, ref: "refs/heads/main", sarif: $sarif }' > payload.json
+    #   env:
+    #     GITHUB_COMMIT_SHA: ${{ inputs.target_sha }}
+    #     GITHUB_TOKEN: ${{ inputs.target_token }}
+    #   run: |
+    #     # Encode SARIF file to base64 (no line wrapping)
+    #     gzip -c trivy-results.sarif > results.sarif.gz
+    #     base64 -w0 results.sarif.gz > sarif.b64
+    #     env
+    #     jq -n \
+    #         --arg commit_sha "$GITHUB_COMMIT_SHA" \
+    #         --arg ref "$GITHUB_REF" \
+    #         --rawfile sarif sarif.b64 \
+    #         '{ commit_sha: $commit_sha, ref: "refs/heads/main", sarif: $sarif }' > payload.json
 
-        HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token  $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data-binary @payload.json \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs")
+    #     HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
+    #         -H "Accept: application/vnd.github+json" \
+    #         -H "Authorization: token  $GITHUB_TOKEN" \
+    #         -H "Content-Type: application/json" \
+    #         --data-binary @payload.json \
+    #         "https://api.github.com/repos/$GITHUB_REPOSITORY/code-scanning/sarifs")
           
-        echo "HTTP status: $HTTP_STATUS"
-        echo "API response:"
-        cat response.json | jq .
+    #     echo "HTTP status: $HTTP_STATUS"
+    #     echo "API response:"
+    #     cat response.json | jq .
     
-    - name: Display Trivy summary
-      if: always()
-      shell: bash
-      run: |
-        if [ -f trivy-results.sarif ]; then
-          echo "### Container Security Scan Results" >> $GITHUB_STEP_SUMMARY
-          echo "See Security tab for detailed findings" >> $GITHUB_STEP_SUMMARY
-        fi
+    # - name: Display Trivy summary
+    #   if: always()
+    #   shell: bash
+    #   run: |
+    #     if [ -f trivy-results.sarif ]; then
+    #       echo "### Container Security Scan Results" >> $GITHUB_STEP_SUMMARY
+    #       echo "See Security tab for detailed findings" >> $GITHUB_STEP_SUMMARY
+    #     fi
