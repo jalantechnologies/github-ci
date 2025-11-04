@@ -140,7 +140,7 @@ jobs:
           workflow_yaml=$(cat .github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=version;]$(echo $tag)"
+          echo "version=$(echo $tag)" >> $GITHUB_OUTPUT
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -156,8 +156,8 @@ jobs:
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_BASE_NAME=$(echo ${{ inputs.analyze_base }} | sed -e 's/^refs\/heads\///g')
 
-          echo "##[set-output name=branch;]$(echo $BRANCH_NAME)"
-          echo "##[set-output name=branch_base;]$(echo $BRANCH_BASE_NAME)"
+          echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
+          echo "branch_base=$(echo $BRANCH_BASE_NAME)" >> $GITHUB_OUTPUT
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
@@ -186,7 +186,7 @@ jobs:
           workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "##[set-output name=version;]$(echo $tag)"
+          echo "version=$(echo $tag)" >> $GITHUB_OUTPUT
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -202,7 +202,7 @@ jobs:
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
 
-          echo "##[set-output name=branch_hash;]$(echo $BRANCH_HASH)"
+          echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
 
       - name: Build application
         id: build
@@ -317,53 +317,3 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
-
-      - name: Extract and format Temporal Dashboard URL
-        id: temporal
-        run: |
-          full_url="${{ steps.deploy.outputs.url }}"
-          domain="${full_url#*://}"
-
-          first_label="${domain%%.*}"
-
-          rest="${domain#*.}"
-
-          temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-
-          echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
-
-      - name: Show diagnostics in logs
-        if: failure()
-        run: |
-          echo "===== K8s Diagnostics (raw) ====="
-          if [ -d ci_artifacts ]; then
-            while IFS= read -r -d '' f; do
-              echo "::group::${f}"
-              cat "$f" || true
-              echo "::endgroup::"
-            done < <(find ci_artifacts -type f -print0 | sort -z)
-          else
-            echo "No diagnostics found."
-          fi
-
-      - name: Comment diagnostics summary on PR
-        if: always() && github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          path: ci_artifacts/summary.md
-          header: diagnostics-summary
-          hide_and_recreate: true
-          hide_classify: "OUTDATED"
-
-      - uses: marocchino/sticky-pull-request-comment@v2
-        # only run this step if enabled and pull request number was provided
-        if: inputs.deploy_annotate_pr == true && inputs.pull_request_number
-        with:
-          header: ${{ inputs.app_name }}
-          hide_and_recreate: true
-          hide_classify: "OUTDATED"
-          number: ${{ inputs.pull_request_number }}
-          message: |
-            Deployment (${{ inputs.app_name }}) is available -
-            Web App: ${{ steps.deploy.outputs.url }}
-            Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
