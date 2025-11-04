@@ -69,7 +69,7 @@ outputs:
     value: ${{ steps.deploy.outputs.url }}
   temporal_dashboard_url:
     description: 'URL for Temporal Dashboard'
-    value: ${{ steps.outputs.temporal_dashboard_url }}
+    value: ${{ steps.temporal.outputs.temporal_dashboard_url }}
 
 runs:
   using: composite
@@ -192,4 +192,4 @@ runs:
         message: |
           Deployment (${{ inputs.app_name }}) is available:
           - Web App: ${{ steps.deploy.outputs.url }}
-          - Workers Dashboard: ${{ steps.outputs.temporal_dashboard_url }}
+          - Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
