@@ -190,5 +190,5 @@ runs:
         number: ${{ inputs.pull_request_number }}
         message: |
           Deployment (${{ inputs.app_name }}) is available:
-          - Web App: ${{ steps.deploy.outputs.url }}
-          - Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+          Web App: ${{ steps.deploy.outputs.url }}
+          Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
