@@ -49,13 +49,10 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Docker setup
-      uses: docker/setup-buildx-action@v2
-
-    # Configure AWS first so any subsequent steps have valid credentials
+    # Configure AWS FIRST before any Docker operations
     - name: AWS setup
       uses: aws-actions/configure-aws-credentials@v1
-      if: ${{ inputs.hosting_provider == 'AWS' || inputs.aws_use_ecr == 'true' }}
+      if: inputs.hosting_provider == 'AWS' || inputs.aws_use_ecr == 'true'
       with:
         aws-access-key-id: ${{ inputs.aws_access_key_id }}
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
@@ -63,9 +60,12 @@ runs:
         mask-aws-account-id: 'false'
 
     - name: AWS ECR login
-      if: ${{ inputs.hosting_provider == 'AWS' || inputs.aws_use_ecr == 'true' }}
+      if: inputs.hosting_provider == 'AWS' || inputs.aws_use_ecr == 'true'
       id: aws_ecr_login
       uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Docker setup
+      uses: docker/setup-buildx-action@v2
 
     - name: Docker login
       uses: docker/login-action@v2
@@ -73,7 +73,7 @@ runs:
         registry: ${{ inputs.docker_registry }}
         username: ${{ inputs.docker_username }}
         password: ${{ inputs.docker_password }}
-      if: inputs.hosting_provider != 'AWS' && inputs.docker_username != ''
+      if: inputs.hosting_provider != 'AWS' && inputs.docker_username != '' && !contains(inputs.docker_registry, 'amazonaws.com')
 
     - name: Docker build tag
       shell: bash
