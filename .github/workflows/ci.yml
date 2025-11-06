@@ -261,7 +261,7 @@ jobs:
     needs: [build, checks]
     runs-on: ubuntu-latest
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.set_url.outputs.url }}
       temporal_dashboard_url: ${{ steps.temporal.outputs.temporal_dashboard_url }}
     steps:
       - name: Checkout (app)
@@ -295,6 +295,7 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
+          hosting_provider: ${{ inputs.hosting_provider }}
 
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
@@ -317,3 +318,29 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
+          hosting_provider: ${{ inputs.hosting_provider }}
+
+      - name: Set deployment URL
+        id: set_url
+        if: steps.deploy.outcome == 'success' || steps.deploy_aws.outcome == 'success'
+        run: |
+          if [ "${{ inputs.hosting_provider }}" == "AWS" ]; then
+            echo "url=${{ steps.deploy_aws.outputs.url }}" >> $GITHUB_OUTPUT
+          else
+            echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract and format Temporal Dashboard URL
+        id: temporal
+        if: steps.set_url.outputs.url != ''
+        run: |
+          full_url="${{ steps.set_url.outputs.url }}"
+          domain="${full_url#*://}"
+
+          first_label="${domain%%.*}"
+
+          rest="${domain#*.}"
+
+          temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
+
+          echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
