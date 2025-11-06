@@ -209,10 +209,10 @@ jobs:
         uses: ./platform/.github/actions/build
         with:
           app_name: ${{ inputs.app_name }}
+          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
-          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           tag: ${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
@@ -249,10 +249,10 @@ jobs:
           check: ${{ matrix.check }}
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
+          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
-          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
