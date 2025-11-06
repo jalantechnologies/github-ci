@@ -55,6 +55,36 @@ done
 
 echo "deploy :: parsed labels - $kube_parsed_labels"
 
+# provider-specific node selector configuration
+# set default values for backward compatibility
+export NODE_POOL_SELECTOR_KEY=""
+export NODE_POOL_VALUE=""
+
+case "$HOSTING_PROVIDER" in
+    "DIGITAL_OCEAN")
+        export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
+        if [[ "$KUBE_ENV" == "production" ]]; then
+            export NODE_POOL_VALUE="platform-cluster-01-production-pool"
+        else
+            export NODE_POOL_VALUE="platform-cluster-01-staging-pool"
+        fi
+        echo "deploy :: using DigitalOcean node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
+        ;;
+    "AWS")
+        export NODE_POOL_SELECTOR_KEY="kubernetes.githubci.com/nodegroup"
+        if [[ "$KUBE_ENV" == "production" ]]; then
+            export NODE_POOL_VALUE="aws-production-pool"
+        else
+            export NODE_POOL_VALUE="aws-preview-pool"
+        fi
+        echo "deploy :: using AWS node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
+        ;;
+    *)
+        echo "deploy :: warning - unknown or unset HOSTING_PROVIDER: $HOSTING_PROVIDER"
+        echo "deploy :: node selectors will be empty - pods may not schedule correctly"
+        ;;
+esac
+
 # deployment pre deploy hook
 if [ -f "$kube_pre_deploy_script" ]; then
     echo "deploy :: running pre deploy hook - $kube_pre_deploy_script"
