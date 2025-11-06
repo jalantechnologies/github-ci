@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # requires - KUBE_ROOT, KUBE_NS, KUBE_APP, KUBE_ENV
 
@@ -45,31 +46,44 @@ kube_post_clean_script="$KUBE_ROOT/scripts/post-clean.sh"
 if [ -f "$kube_pre_clean_script" ]; then
     echo "clean :: running pre clean up hook - $kube_pre_clean_script"
     source "$kube_pre_clean_script"
+else
+    echo "clean :: No pre-clean hook found, skipping."
 fi
 
-# kubernetes config (shared / env)
+# --- Define Directories ---
 kube_shared_dir="$KUBE_ROOT/shared"
 kube_env_dir="$KUBE_ROOT/$KUBE_ENV"
 
+# --- Delete Shared Resources ---
 if [ -d "$kube_shared_dir" ]; then
+    echo "clean :: Deleting shared resources from → $kube_shared_dir"
     for file in "$kube_shared_dir"/*; do
-        echo "clean :: cleaning from shared config - $kube_shared_dir/$file"
-        envsubst <"$file" | kubectl delete --ignore-not-found=true -f -
+        [ -f "$file" ] || continue
+        echo "clean :: deleting → $file"
+        envsubst < "$file" | kubectl delete -n "$KUBE_NS" --ignore-not-found=true -f - || true
     done
+else
+    echo "clean :: No shared config found."
 fi
 
+# --- Delete Environment-Specific Resources ---
 if [ -d "$kube_env_dir" ]; then
+    echo "clean :: Deleting environment resources from → $kube_env_dir"
     for file in "$kube_env_dir"/*; do
-        echo "clean :: cleaning from env config - $kube_env_dir/$file"
-        envsubst <"$file" | kubectl delete --ignore-not-found=true -f -
+        [ -f "$file" ] || continue
+        echo "clean :: deleting → $file"
+        envsubst < "$file" | kubectl delete -n "$KUBE_NS" --ignore-not-found=true -f - || true
     done
+else
+    echo "clean :: No environment config found."
 fi
 
-
-# deployment post clean hook
+# --- Run Post-Clean Hook ---
 if [ -f "$kube_post_clean_script" ]; then
-    echo "clean :: running post clean up hook - $kube_post_clean_script"
+    echo "clean :: Running post-clean hook → $kube_post_clean_script"
     source "$kube_post_clean_script"
+else
+    echo "clean :: No post-clean hook found, skipping."
 fi
 
-echo "clean :: clean up procedure finished"
+echo "clean :: cleanup procedure finished successfully."

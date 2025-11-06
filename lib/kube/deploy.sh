@@ -168,3 +168,4 @@ if [ -f "$kube_post_deploy_script" ]; then
 fi
 
 echo "deploy :: deployment finished - $KUBE_INGRESS_HOSTNAME"
+echo "deploy :: deployment finished - $KUBE_INGRESS_WORKER_HOSTNAME"

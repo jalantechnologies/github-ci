@@ -135,7 +135,7 @@ jobs:
           workflow_yaml=$(cat .github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "version=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$(echo $tag)" >> $GITHUB_OUTPUT
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -150,10 +150,9 @@ jobs:
         run: |
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_BASE_NAME=$(echo ${{ inputs.analyze_base }} | sed -e 's/^refs\/heads\///g')
-          {
-            echo "branch=$BRANCH_NAME"
-            echo "branch_base=$BRANCH_BASE_NAME"
-          } >> "$GITHUB_OUTPUT"
+
+          echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
+          echo "branch_base=$(echo $BRANCH_BASE_NAME)" >> $GITHUB_OUTPUT
 
       - name: Analyze application
         uses: ./platform/.github/actions/analyze
@@ -182,7 +181,7 @@ jobs:
           workflow_yaml=$(cat app/.github/workflows/${{ github.workflow }}.yml)
           uses_data=$(echo "$workflow_yaml" | grep 'uses:')
           tag=$(echo $uses_data | sed -n 's/.*@\(.*\)/\1/p')
-          echo "version=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$(echo $tag)" >> $GITHUB_OUTPUT
 
       - name: Checkout (platform)
         uses: actions/checkout@v3
@@ -197,7 +196,8 @@ jobs:
         run: |
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
-          echo "branch_hash=$BRANCH_HASH" >> "$GITHUB_OUTPUT"
+
+          echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
 
       - name: Build application
         id: build

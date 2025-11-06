@@ -56,6 +56,13 @@ inputs:
   doppler_token:
     required: false
     description: 'Doppler token for accessing environment variables'
+  pull_request_number:
+    required: false
+    description: 'Pull request number running the workflow against a pull request'
+  deploy_annotate_pr:
+    required: false
+    description: 'Enable pull request annotation with deployment URL. Requires pull_request_number to work.'
+
   hosting_provider:
     required: false
     description: 'The cloud provider to use for hosting. Options: AWS or DIGITAL_OCEAN'
@@ -64,6 +71,10 @@ outputs:
   url:
     description: 'URL where application has been deployed'
     value: ${{ steps.deploy.outputs.url }}
+  temporal_dashboard_url:
+    description: 'URL for Temporal Dashboard'
+    value: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+
 runs:
   using: composite
   steps:
@@ -73,12 +84,11 @@ runs:
       run: |
         BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
         BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
-        {
-          echo "branch=$BRANCH_NAME"
-          echo "branch_hash=$BRANCH_HASH"
-          echo "branch_commit_hash=$GITHUB_SHA"
-          echo "branch_actor=$GITHUB_ACTOR"
-        } >> "$GITHUB_OUTPUT"
+
+        echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
+        echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
+        echo "branch_commit_hash=$(echo $GITHUB_SHA)" >> $GITHUB_OUTPUT
+        echo "branch_actor=$(echo $GITHUB_ACTOR)" >> $GITHUB_OUTPUT
 
     - name: DigitalOcean setup
       env:
@@ -137,4 +147,54 @@ runs:
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}
       run: |
         source platform/lib/kube/deploy.sh
-        echo "url=https://$KUBE_INGRESS_HOSTNAME" >> "$GITHUB_OUTPUT"
+        echo "url=https://$KUBE_INGRESS_HOSTNAME" >> $GITHUB_OUTPUT
+        echo "temporal_dashboard_url=https://$KUBE_INGRESS_WORKER_HOSTNAME" >> $GITHUB_OUTPUT
+
+    - name: Extract and format Temporal Dashboard URL
+      id: temporal
+      shell: bash
+      run: |
+        full_url="${{ steps.deploy.outputs.url }}"
+        domain="${full_url#*://}"
+        first_label="${domain%%.*}"
+        rest="${domain#*.}"
+        temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
+        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
+
+    - name: Show diagnostics in logs
+      if: failure()
+      shell: bash
+      run: |
+        echo "===== K8s Diagnostics (raw) ====="
+        if [ -d ci_artifacts ]; then
+          while IFS= read -r -d '' f; do
+            echo "::group::${f}"
+            cat "$f" || true
+            echo "::endgroup::"
+          done < <(find ci_artifacts -type f -print0 | sort -z)
+        else
+          echo "No diagnostics found."
+        fi
+
+    - name: Comment diagnostics summary on PR
+      if: always() && github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        path: ci_artifacts/summary.md
+        header: diagnostics-summary
+        hide_and_recreate: true
+        hide_classify: "OUTDATED"
+    
+
+    - name: Comment deployment URLs on PR
+      if: ${{ inputs.deploy_annotate_pr == 'true' && inputs.pull_request_number != '' }}
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: ${{ inputs.app_name }}
+        hide_and_recreate: true
+        hide_classify: "OUTDATED"
+        number: ${{ inputs.pull_request_number }}
+        message: |
+          Deployment (${{ inputs.app_name }}) is available:
+          Web App: ${{ steps.deploy.outputs.url }}
+          Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
