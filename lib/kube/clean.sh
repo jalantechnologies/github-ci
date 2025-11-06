@@ -11,8 +11,15 @@ echo "clean :: kube env - $KUBE_ENV"
 
 # provider-specific node selector configuration
 # set default values for backward compatibility
+# provider-specific node selector configuration
+# set default values for backward compatibility
 export NODE_POOL_SELECTOR_KEY=""
 export NODE_POOL_VALUE=""
+
+if [[ -z "$HOSTING_PROVIDER" ]]; then
+    echo "clean :: error - HOSTING_PROVIDER not set. Must be one of [DIGITAL_OCEAN, AWS]."
+    exit 1
+fi
 
 case "$HOSTING_PROVIDER" in
     "DIGITAL_OCEAN")
@@ -34,10 +41,12 @@ case "$HOSTING_PROVIDER" in
         echo "clean :: using AWS node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
         ;;
     *)
-        echo "clean :: warning - unknown or unset HOSTING_PROVIDER: $HOSTING_PROVIDER"
-        echo "clean :: node selectors will be empty - cleanup may not work correctly"
+        echo "clean :: error - unknown HOSTING_PROVIDER: $HOSTING_PROVIDER"
+        echo "clean :: valid values are [DIGITAL_OCEAN, AWS]"
+        exit 1
         ;;
 esac
+
 
 kube_pre_clean_script="$KUBE_ROOT/scripts/pre-clean.sh"
 kube_post_clean_script="$KUBE_ROOT/scripts/post-clean.sh"

@@ -57,8 +57,15 @@ echo "deploy :: parsed labels - $kube_parsed_labels"
 
 # provider-specific node selector configuration
 # set default values for backward compatibility
+# provider-specific node selector configuration
+# set default values for backward compatibility
 export NODE_POOL_SELECTOR_KEY=""
 export NODE_POOL_VALUE=""
+
+if [[ -z "$HOSTING_PROVIDER" ]]; then
+    echo "deploy :: error - HOSTING_PROVIDER not set. Must be one of [DIGITAL_OCEAN, AWS]."
+    exit 1
+fi
 
 case "$HOSTING_PROVIDER" in
     "DIGITAL_OCEAN")
@@ -80,8 +87,9 @@ case "$HOSTING_PROVIDER" in
         echo "deploy :: using AWS node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
         ;;
     *)
-        echo "deploy :: warning - unknown or unset HOSTING_PROVIDER: $HOSTING_PROVIDER"
-        echo "deploy :: node selectors will be empty - pods may not schedule correctly"
+        echo "deploy :: error - unknown HOSTING_PROVIDER: $HOSTING_PROVIDER"
+        echo "deploy :: valid values are [DIGITAL_OCEAN, AWS]"
+        exit 1
         ;;
 esac
 
