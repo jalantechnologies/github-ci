@@ -42,6 +42,11 @@ on:
         type: string
         description: 'Kubernetes cluster region if deploying on EKS'
         default: 'us-east-1'
+      aws_use_ecr:
+        required: false
+        type: boolean
+        description: 'Whether or not ECR login is required. If enabled, provided AWS credentials will be used to authenticating with docker registry.'
+        default: false
       build_args:
         required: false
         type: string
@@ -204,10 +209,10 @@ jobs:
         uses: ./platform/.github/actions/build
         with:
           app_name: ${{ inputs.app_name }}
-          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
+          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           tag: ${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
@@ -244,10 +249,10 @@ jobs:
           check: ${{ matrix.check }}
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
-          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
+          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
@@ -256,7 +261,7 @@ jobs:
     needs: [build, checks]
     runs-on: ubuntu-latest
     outputs:
-      url: ${{ steps.set_url.outputs.url }}
+      url: ${{ steps.deploy.outputs.url }}
       temporal_dashboard_url: ${{ steps.temporal.outputs.temporal_dashboard_url }}
     steps:
       - name: Checkout (app)
@@ -290,7 +295,6 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
-          hosting_provider: ${{ inputs.hosting_provider }}
 
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
@@ -313,4 +317,3 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
-          hosting_provider: ${{ inputs.hosting_provider }}

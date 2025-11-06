@@ -116,7 +116,7 @@ jobs:
 
 
       - name: AWS setup
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
         if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
@@ -144,7 +144,6 @@ jobs:
 
       - name: Kubernetes clean
         env:
-          HOSTING_PROVIDER1: ${{ inputs.hosting_provider }}
           KUBE_ROOT: app/${{ inputs.deploy_root }}
           KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
           KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
