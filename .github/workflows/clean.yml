@@ -171,7 +171,7 @@ jobs:
             }')
           token=$(echo $response | jq -r '.token')
           if [ "$token" == "null" ] || [ -z "$token" ]; then
-            echo "❌ DockerHub authentication failed"
+            echo "DockerHub authentication failed"
             exit 1
           fi
           echo "token=$token" >> $GITHUB_OUTPUT
