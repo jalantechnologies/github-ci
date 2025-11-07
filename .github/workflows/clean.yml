@@ -91,6 +91,11 @@ jobs:
           echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
           echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
 
+      - name: Debug Hosting Provider
+        run: |
+          echo "Workflow input hosting_provider: ${{ inputs.hosting_provider }}"
+          echo "Environment variable HOSTING_PROVIDER1: $HOSTING_PROVIDER1"
+
 
       # ================================
       # DIGITAL OCEAN CLEANUP SECTION

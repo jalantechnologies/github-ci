@@ -276,6 +276,11 @@ jobs:
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
 
+      - name: Debug Hosting Provider
+        run: |
+          echo "Workflow input hosting_provider: ${{ inputs.hosting_provider }}"
+          echo "Environment variable HOSTING_PROVIDER1: $HOSTING_PROVIDER1"
+
       - name: Deploy to DigitalOcean
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
         id: deploy
