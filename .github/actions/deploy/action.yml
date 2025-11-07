@@ -56,9 +56,6 @@ inputs:
   doppler_token:
     required: false
     description: 'Doppler token for accessing environment variables'
-  hosting_provider:
-    required: false
-    description: 'The cloud provider to use for hosting. Options: AWS or DIGITAL_OCEAN'
   pull_request_number:
     required: false
     description: 'Pull request number running the workflow against a pull request'
@@ -92,7 +89,7 @@ runs:
     - name: DigitalOcean setup
       env:
         DO_ACCESS_TOKEN: ${{ inputs.do_access_token }}
-      if: inputs.hosting_provider == 'DIGITAL_OCEAN' && inputs.do_access_token != ''
+      if: "${{ env.DO_ACCESS_TOKEN != '' }}"
       with:
         token: ${{ inputs.do_access_token }}
       uses: digitalocean/action-doctl@v2
@@ -101,14 +98,14 @@ runs:
       shell: bash
       env:
         DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
-      if: inputs.hosting_provider == 'DIGITAL_OCEAN' && inputs.do_cluster_id != ''
+      if: "${{ env.DO_CLUSTER_ID != '' }}"
       run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
     - name: AWS setup
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v1
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
-      if: inputs.hosting_provider == 'AWS' && env.AWS_ACCESS_KEY_ID != ''
+      if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
       with:
         aws-access-key-id: ${{ inputs.aws_access_key_id }}
         aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
@@ -120,7 +117,7 @@ runs:
       env:
         AWS_CLUSTER_NAME: ${{ inputs.aws_cluster_name }}
         AWS_REGION: ${{ inputs.aws_region }}
-      if: inputs.hosting_provider == 'AWS' && inputs.aws_cluster_name != ''
+      if: "${{ env.AWS_CLUSTER_NAME != '' }}"
       run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
     - name: Kubernetes deploy
@@ -135,7 +132,6 @@ runs:
         DOPPLER_TOKEN: ${{ inputs.doppler_token }}
         DOPPLER_TOKEN_SECRET_NAME: doppler-${{ inputs.app_name }}-${{ inputs.app_env }}-token-secret
         DOPPLER_MANAGED_SECRET_NAME: doppler-${{ inputs.app_name }}-${{ inputs.app_env }}-managed-secret
-        HOSTING_PROVIDER1: ${{ inputs.hosting_provider }}
         KUBE_ROOT: ${{ inputs.deploy_root }}
         KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
         KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}

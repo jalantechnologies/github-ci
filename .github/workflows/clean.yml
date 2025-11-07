@@ -3,6 +3,7 @@ name: clean
 on:
   workflow_call:
     inputs:
+      # required
       hosting_provider:
         required: false
         type: string
@@ -20,6 +21,8 @@ on:
         required: true
         type: string
         description: 'Branch from which this workflow was run'
+
+      # optional
       aws_cluster_name:
         required: false
         type: string
@@ -51,12 +54,16 @@ on:
     secrets:
       aws_access_key_id:
         required: false
+        description: 'Access key ID for AWS if deploying on EKS'
       aws_secret_access_key:
         required: false
+        description: 'Access key Secret for AWS if deploying on EKS'
       docker_password:
         required: false
+        description: 'Password for authenticating with provided Docker registry'
       do_access_token:
         required: false
+        description: 'DigitalOcean access token if deploying on DOKS'
 
 jobs:
   clean:
@@ -88,103 +95,84 @@ jobs:
         run: |
           BRANCH_NAME=$(echo ${{ inputs.branch }} | sed -e 's/^refs\/heads\///g')
           BRANCH_HASH=$(sha1sum < <(printf '%s' $BRANCH_NAME) | cut -c -15)
+
           echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
           echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
 
-      - name: Debug Hosting Provider
-        run: |
-          echo "Workflow input hosting_provider: ${{ inputs.hosting_provider }}"
-          echo "Environment variable HOSTING_PROVIDER1: $HOSTING_PROVIDER1"
-
-
-      # ================================
-      # DIGITAL OCEAN CLEANUP SECTION
-      # ================================
-      - name: DigitalOcean - Configure CLI
-        if: ${{ inputs.hosting_provider == 'DIGITAL_OCEAN' }}
+      - name: DigitalOcean setup
+        env:
+          DO_ACCESS_TOKEN: ${{ secrets.do_access_token }}
+        if: "${{ env.DO_ACCESS_TOKEN != '' }}"
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.do_access_token }}
 
-      - name: DigitalOcean - Configure Kubernetes Context
-        if: ${{ inputs.hosting_provider == 'DIGITAL_OCEAN' }}
-        run: |
-          if [ -z "${{ inputs.do_cluster_id }}" ]; then
-            echo "❌ Missing required do_cluster_id for DigitalOcean cleanup"
-            exit 1
-          fi
-          doctl kubernetes cluster kubeconfig save ${{ inputs.do_cluster_id }}
-
-      - name: DigitalOcean - Cleanup Notice
-        if: ${{ inputs.hosting_provider == 'DIGITAL_OCEAN' }}
-        run: echo "🧹 Cleaning DigitalOcean preview environment for branch ${{ steps.extract_branch.outputs.branch }}"
+      - name: DigitalOcean Kubernetes setup
+        shell: bash
+        env:
+          DO_CLUSTER_ID: ${{ inputs.do_cluster_id }}
+        if: "${{ env.DO_CLUSTER_ID != '' }}"
+        run: doctl kubernetes cluster kubeconfig save $DO_CLUSTER_ID
 
 
-      # ================================
-      # AWS CLEANUP SECTION
-      # ================================
-      - name: AWS - Configure Credentials
-        if: ${{ inputs.hosting_provider == 'AWS' }}
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: AWS setup
+        uses: aws-actions/configure-aws-credentials@v1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+        if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
         with:
           aws-access-key-id: ${{ secrets.aws_access_key_id }}
           aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
           aws-region: ${{ inputs.aws_region }}
           mask-aws-account-id: 'false'
 
-      - name: AWS - Configure Kubernetes Context
-        if: ${{ inputs.hosting_provider == 'AWS' }}
-        run: |
-          if [ -z "${{ inputs.aws_cluster_name }}" ]; then
-            echo "❌ Missing required aws_cluster_name for AWS cleanup"
-            exit 1
-          fi
-          aws eks update-kubeconfig --name ${{ inputs.aws_cluster_name }} --region ${{ inputs.aws_region }}
+      - name: AWS Kubernetes setup
+        shell: bash
+        env:
+          AWS_CLUSTER_NAME: ${{ inputs.aws_cluster_name }}
+          AWS_REGION: ${{ inputs.aws_region }}
+        if: "${{ env.AWS_CLUSTER_NAME != '' }}"
+        run: aws eks update-kubeconfig --name $AWS_CLUSTER_NAME --region $AWS_REGION
 
-      - name: AWS - Cleanup Notice
-        if: ${{ inputs.hosting_provider == 'AWS' }}
-        run: echo "🧹 Cleaning AWS EKS preview environment for branch ${{ steps.extract_branch.outputs.branch }}"
+      - name: Clean DigitalOcean resources
+        if: inputs.hosting_provider == 'DIGITAL_OCEAN'
+        run: echo "Cleaning DigitalOcean resources..."
 
+      - name: Clean AWS resources
+        if: inputs.hosting_provider == 'AWS'
+        run: echo "Cleaning AWS resources..."
 
-      # ================================
-      # KUBERNETES CLEAN (COMMON)
-      # ================================
-      - name: Kubernetes - Delete Resources
-        if: ${{ inputs.hosting_provider == 'AWS' || inputs.hosting_provider == 'DIGITAL_OCEAN' }}
+      - name: Kubernetes clean
         env:
           KUBE_ROOT: app/${{ inputs.deploy_root }}
           KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
           KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
           KUBE_ENV: ${{ inputs.app_env }}
         run: |
-          echo "Deleting K8s resources for app: $KUBE_APP (namespace: $KUBE_NS)"
           source platform/lib/kube/clean.sh
 
-
-      # ================================
-      # DOCKER CLEANUP SECTION
-      # ================================
-      - name: DockerHub - Authenticate
+      - name: Authenticate - DockerHub
         id: auth_docker_hub
-        if: ${{ inputs.docker_registry == 'registry.hub.docker.com' && inputs.docker_username != '' && secrets.docker_password != '' }}
+        env:
+          DOCKER_USERNAME: ${{ inputs.docker_username }}
+          DOCKER_PASSWORD: ${{ secrets.docker_password }}
+        if: env.DOCKER_USERNAME != '' && inputs.docker_registry == 'registry.hub.docker.com'
+        shell: bash
         run: |
-          response=$(curl --silent --location 'https://hub.docker.com/v2/users/login' \
+          response=$(curl --location 'https://hub.docker.com/v2/users/login' \
             --header 'Content-Type: application/json' \
             --data '{
-              "username": "'"${{ inputs.docker_username }}"'",
-              "password": "'"${{ secrets.docker_password }}"'"
+              "username": "'"$DOCKER_USERNAME"'",
+              "password": "'"$DOCKER_PASSWORD"'"
             }')
-          token=$(echo $response | jq -r '.token')
-          if [ "$token" == "null" ] || [ -z "$token" ]; then
-            echo "DockerHub authentication failed"
-            exit 1
-          fi
-          echo "token=$token" >> $GITHUB_OUTPUT
 
-      - name: DockerHub - Delete Branch Image
-        if: ${{ steps.auth_docker_hub.outputs.token != '' }}
+          echo "token=$(echo $response | jq -r '.token')" >> $GITHUB_OUTPUT
+
+      - name: Clean - DockerHub
+        env:
+          DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
+        if: env.DOCKER_TOKEN != ''
+        shell: bash
         run: |
-          echo "Deleting Docker tag ${{ steps.extract_branch.outputs.branch_hash }} for ${{ inputs.app_name }}"
-          curl --silent --location --request DELETE \
-            "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
-            --header "Authorization: Bearer ${{ steps.auth_docker_hub.outputs.token }}"
+          curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
+          --header "Authorization: Bearer $DOCKER_TOKEN"

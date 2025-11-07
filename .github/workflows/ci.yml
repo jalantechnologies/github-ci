@@ -209,10 +209,10 @@ jobs:
         uses: ./platform/.github/actions/build
         with:
           app_name: ${{ inputs.app_name }}
-          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
+          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           tag: ${{ steps.extract_branch.outputs.branch_hash }}
           build_args: ${{ inputs.build_args }}
           build_secrets: ${{ secrets.build_secrets }}
@@ -249,10 +249,10 @@ jobs:
           check: ${{ matrix.check }}
           image: ${{ needs.build.outputs.image_ref }}
           tag: ${{ inputs.app_name }}
-          hosting_provider: ${{ inputs.hosting_provider }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_region: ${{ inputs.aws_region }}
+          aws_use_ecr: ${{ inputs.aws_use_ecr }}
           docker_registry: ${{ inputs.docker_registry }}
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
@@ -261,7 +261,7 @@ jobs:
     needs: [build, checks]
     runs-on: ubuntu-latest
     outputs:
-      url: ${{ steps.set_url.outputs.url }}
+      url: ${{ steps.deploy.outputs.url }}
       temporal_dashboard_url: ${{ steps.temporal.outputs.temporal_dashboard_url }}
     steps:
       - name: Checkout (app)
@@ -275,11 +275,6 @@ jobs:
           repository: jalantechnologies/github-ci
           path: platform
           ref: ${{ needs.build.outputs.workflow_ci_version }}
-
-      - name: Debug Hosting Provider
-        run: |
-          echo "Workflow input hosting_provider: ${{ inputs.hosting_provider }}"
-          echo "Environment variable HOSTING_PROVIDER1: $HOSTING_PROVIDER1"
 
       - name: Deploy to DigitalOcean
         if: inputs.hosting_provider == 'DIGITAL_OCEAN'
@@ -300,7 +295,6 @@ jobs:
           do_access_token: ${{ secrets.do_access_token }}
           do_cluster_id: ${{ inputs.do_cluster_id }}
           doppler_token: ${{ secrets.doppler_token }}
-          hosting_provider: ${{ inputs.hosting_provider }}
 
       - name: Deploy to AWS
         if: inputs.hosting_provider == 'AWS'
@@ -323,29 +317,3 @@ jobs:
           docker_username: ${{ inputs.docker_username }}
           docker_password: ${{ secrets.docker_password }}
           doppler_token: ${{ secrets.doppler_token }}
-          hosting_provider: ${{ inputs.hosting_provider }}
-
-      - name: Set deployment URL
-        id: set_url
-        if: steps.deploy.outcome == 'success' || steps.deploy_aws.outcome == 'success'
-        run: |
-          if [ "${{ inputs.hosting_provider }}" == "AWS" ]; then
-            echo "url=${{ steps.deploy_aws.outputs.url }}" >> $GITHUB_OUTPUT
-          else
-            echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Extract and format Temporal Dashboard URL
-        id: temporal
-        if: steps.set_url.outputs.url != ''
-        run: |
-          full_url="${{ steps.set_url.outputs.url }}"
-          domain="${full_url#*://}"
-
-          first_label="${domain%%.*}"
-
-          rest="${domain#*.}"
-
-          temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-
-          echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
