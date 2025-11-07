@@ -162,6 +162,7 @@ if [ -d "$kube_env_dir" ]; then
     done
 fi
 
+
 # deployment post deploy hook
 if [ -f "$kube_post_deploy_script" ]; then
     echo "deploy :: running post deploy hook - $kube_post_deploy_script"
