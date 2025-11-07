@@ -85,8 +85,13 @@ runs:
         if [[ "$AWS_USE_ECR" == 'true' ]]; then
           TAG=${{ steps.aws_ecr_login.outputs.registry }}/${{ inputs.app_name }}
         else
-          TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
+          if [[ -z "${{ inputs.docker_registry }}" || "${{ inputs.docker_registry }}" == "registry.hub.docker.com" ]]; then
+            TAG=${{ inputs.docker_username }}/${{ inputs.app_name }}
+          else
+            TAG=${{ inputs.docker_registry }}/${{ inputs.docker_username }}/${{ inputs.app_name }}
+          fi
         fi
+
 
         echo "value=$(echo $TAG)" >> $GITHUB_OUTPUT
 
