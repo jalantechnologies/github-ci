@@ -178,7 +178,7 @@ jobs:
           
           echo "token=$(echo $response | jq -r '.token')" >> $GITHUB_OUTPUT
 
-      # Added step to get registry type so we can determine which registry cleanup to perform.        
+      # Step to get registry type so we can determine which registry cleanup to perform.        
       - name: Determine registry type
         id: registry_type
         shell: bash
@@ -205,7 +205,7 @@ jobs:
           curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
           --header "Authorization: Bearer $DOCKER_TOKEN"
       
-      # Added main step to clean AWS ECR and handle errors associated with e.g. WHat if image doesn't exist.
+      # Main step to clean AWS ECR and handle errors associated with e.g. WHat if image doesn't exist.
       - name: Clean - AWS ECR
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
