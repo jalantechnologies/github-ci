@@ -70,6 +70,9 @@ outputs:
   temporal_dashboard_url:
     description: 'URL for Temporal Dashboard'
     value: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+  branch_hash:
+    description: 'Short hash derived from the branch name, used for image tagging and cleanup'
+    value: ${{ steps.extract_branch.outputs.branch_hash }}
 
 runs:
   using: composite
@@ -137,6 +140,8 @@ runs:
         KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
         KUBE_ENV: ${{ inputs.app_env }}
         KUBE_DEPLOYMENT_IMAGE: ${{ inputs.deploy_image }}
+        KUBE_IMAGE_REPOSITORY: ${{ inputs.app_name }}
+        KUBE_IMAGE_TAG: ${{ steps.extract_branch.outputs.branch_hash }}
         KUBE_INGRESS_HOSTNAME: ${{ format(inputs.app_hostname, inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
         KUBE_LABELS: gh/actor=${{ steps.extract_branch.outputs.branch_actor }} gh/commit=${{ steps.extract_branch.outputs.branch_commit_hash }} ${{ inputs.deploy_labels }}
         KUBE_DEPLOY_ID: ${{ inputs.deploy_id }}

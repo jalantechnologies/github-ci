@@ -98,6 +98,23 @@ jobs:
 
           echo "branch=$(echo $BRANCH_NAME)" >> $GITHUB_OUTPUT
           echo "branch_hash=$(echo $BRANCH_HASH)" >> $GITHUB_OUTPUT
+      - name: Determine registry type
+        id: registry_type
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          registry="${{ inputs.docker_registry }}"
+          hosting="${{ inputs.hosting_provider }}"
+          normalized_registry="${registry,,}"
+
+          registry_type="dockerhub"
+          if [[ "$normalized_registry" == *"amazonaws.com"* ]] || [[ "$normalized_registry" == *"public.ecr.aws"* ]] || [[ "$normalized_registry" == *".ecr."* ]] || [[ "$hosting" == 'AWS' ]]; then
+            registry_type="ecr"
+          fi
+
+          echo "Detected container registry: ${registry:-registry.hub.docker.com} (type: $registry_type)"
+          echo "type=$registry_type" >> "$GITHUB_OUTPUT"
 
       - name: DigitalOcean setup
         env:
@@ -130,8 +147,8 @@ jobs:
       - name: AWS ECR login
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-        if: "${{ env.AWS_ACCESS_KEY_ID != '' }}"
-        uses: aws-actions/amazon-ecr-login@v1 
+        if: env.AWS_ACCESS_KEY_ID != '' && steps.registry_type.outputs.type == 'ecr'
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: AWS Kubernetes setup
         shell: bash
@@ -163,7 +180,7 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ inputs.docker_username }}
           DOCKER_PASSWORD: ${{ secrets.docker_password }}
-        if: env.DOCKER_USERNAME != '' && inputs.docker_registry == 'registry.hub.docker.com'
+        if: env.DOCKER_USERNAME != '' && steps.registry_type.outputs.type == 'dockerhub'
         shell: bash
         run: |
           response=$(curl --location 'https://hub.docker.com/v2/users/login' \
@@ -178,17 +195,6 @@ jobs:
           
           echo "token=$(echo $response | jq -r '.token')" >> $GITHUB_OUTPUT
 
-      # Step to get registry type so we can determine which registry cleanup to perform.        
-      - name: Determine registry type
-        id: registry_type
-        shell: bash
-        run: |
-          if [[ "${{ inputs.docker_registry }}" == *"ecr"* ]] || [[ "${{ inputs.hosting_provider }}" == "AWS" ]]; then
-            echo "##[set-output name=type;]ecr"
-          else
-            echo "##[set-output name=type;]dockerhub"  
-          fi
-
       - name: Clean - DockerHub
         env:
           DOCKER_TOKEN: ${{ steps.auth_docker_hub.outputs.token }}
@@ -201,9 +207,32 @@ jobs:
         if: env.DOCKER_TOKEN != '' && steps.registry_type.outputs.type == 'dockerhub'
         shell: bash
         run: |
-          echo "Cleaning DockerHub image: ${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}"
-          curl --location --request DELETE "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
-          --header "Authorization: Bearer $DOCKER_TOKEN"
+          set -euo pipefail
+
+          image_ref="${{ inputs.docker_username }}/${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}"
+          echo "Cleaning DockerHub image: $image_ref"
+
+          response_file=$(mktemp)
+          trap 'rm -f "$response_file"' EXIT
+          status_code=$(curl --silent --show-error --location --request DELETE \
+            "https://hub.docker.com/v2/repositories/${{ inputs.docker_username }}/${{ inputs.app_name }}/tags/${{ steps.extract_branch.outputs.branch_hash }}/" \
+            --header "Authorization: Bearer $DOCKER_TOKEN" \
+            --write-out "%{http_code}" \
+            --output "$response_file")
+
+          case "$status_code" in
+            204)
+              echo "DockerHub image deleted successfully."
+              ;;
+            404)
+              echo "DockerHub tag not found; it may have already been removed."
+              ;;
+            *)
+              echo "Failed to delete DockerHub image (status: $status_code). Response body:"
+              cat "$response_file"
+              exit 1
+              ;;
+          esac
       
       # Main step to clean AWS ECR and handle errors associated with e.g. WHat if image doesn't exist.
       - name: Clean - AWS ECR
@@ -213,21 +242,35 @@ jobs:
         if: env.AWS_ACCESS_KEY_ID != '' && steps.registry_type.outputs.type == 'ecr'
         shell: bash
         run: |
-          echo "Cleaning ECR image: ${{ inputs.app_name }}:${{ steps.extract_branch.outputs.branch_hash }}"
-          output=$(aws ecr batch-delete-image \
-            --repository-name ${{ inputs.app_name }} \
-            --region $AWS_REGION \
-            --image-ids imageTag=${{ steps.extract_branch.outputs.branch_hash }} \
-            --output json) || {
-              echo "AWS CLI command failed! Please check your credentials, region, or network connection."
-              exit 1
-          }
-          if echo "$output" | jq -e '.failures | length > 0' >/dev/null; then
-            echo "ECR cleanup encountered known issues:"
-            echo "1. Image might not have been pushed"
-            echo "2. Image might have been already deleted"
-            echo "3. Repository might not exist"
+          set -euo pipefail
+
+          image_tag="${{ steps.extract_branch.outputs.branch_hash }}"
+          repository="${{ inputs.app_name }}"
+
+          echo "Cleaning ECR image: ${repository}:${image_tag}"
+
+          if ! delete_output=$(aws ecr batch-delete-image \
+            --repository-name "$repository" \
+            --region "$AWS_REGION" \
+            --image-ids imageTag="$image_tag" \
+            --output json 2>&1); then
+            status=$?
+            echo "aws ecr batch-delete-image failed (exit code $status). Raw output:"
+            echo "$delete_output"
+
+            if grep -Eqi 'ImageNotFoundException|RepositoryNotFoundException|ImageNotFound' <<< "$delete_output"; then
+              echo "Image or repository not found; skipping without failing the workflow."
+            else
+              echo "ECR cleanup failed due to an unexpected error."
+              exit $status
+            fi
           else
-            echo "Image deleted successfully or no errors returned."
+            echo "$delete_output" | jq '.'
+            failure_count=$(echo "$delete_output" | jq '.failures | length')
+            if [[ "$failure_count" -gt 0 ]]; then
+              echo "ECR reported $failure_count failure(s) while attempting deletion. Details:"
+              echo "$delete_output" | jq '.failures'
+            else
+              echo "ECR image deleted successfully."
+            fi
           fi
-          echo "Continuing with cleanup..."
