@@ -48,6 +48,9 @@ outputs:
   image_name:
     description: 'Built docker image name'
     value: ${{ steps.tag.outputs.value }}
+  image_tag:
+    description: 'Built docker image name'
+    value: ${{ inputs.tag }}
 runs:
   using: composite
   steps:
