@@ -42,6 +42,15 @@ outputs:
   image_ref:
     description: 'Built docker image reference'
     value: ${{ steps.tag.outputs.value }}@${{ steps.build.outputs.digest }}
+  image_digest: 
+    description: 'Built docker image digest'
+    value: ${{ steps.build.ouputs.digest }}
+  image_name:
+    description: 'Built docker image name'
+    value: ${{ steps.tag.outputs.value }}
+  image_tag:
+    description: 'Built docker image name'
+    value: ${{ inputs.tag }}
 runs:
   using: composite
   steps:
