@@ -44,7 +44,7 @@ outputs:
     value: ${{ steps.tag.outputs.value }}@${{ steps.build.outputs.digest }}
   image_digest: 
     description: 'Built docker image digest'
-    value: ${{ steps.build.ouputs.digest }}
+    value: ${{ steps.build.outputs.digest }}
   image_name:
     description: 'Built docker image name'
     value: ${{ steps.tag.outputs.value }}
