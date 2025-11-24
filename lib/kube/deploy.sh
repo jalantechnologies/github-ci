@@ -13,8 +13,6 @@ echo "deploy :: kube namespace - $KUBE_NS"
 echo "deploy :: kube app - $KUBE_APP"
 echo "deploy :: kube env - $KUBE_ENV"
 echo "deploy :: kube deployment image - $KUBE_DEPLOYMENT_IMAGE"
-echo "deploy :: kube deployment tag - $KUBE_DEPLOYMENT_TAG"
-echo "deploy :: kube deployment digest - $KUBE_DEPLOYMENT_DIGEST"
 echo "deploy :: kube ingress hostname - $KUBE_INGRESS_HOSTNAME"
 
 # Mask secrets in any accidental output
