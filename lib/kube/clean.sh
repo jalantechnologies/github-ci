@@ -9,6 +9,38 @@ echo "clean :: kube namespace - $KUBE_NS"
 echo "clean :: kube app - $KUBE_APP"
 echo "clean :: kube env - $KUBE_ENV"
 
+# Default to DIGITAL_OCEAN for backward compatibility
+HOSTING_PROVIDER=${HOSTING_PROVIDER:-DIGITAL_OCEAN}
+
+export NODE_POOL_SELECTOR_KEY=""
+export NODE_POOL_VALUE=""
+
+case "$HOSTING_PROVIDER" in
+    "DIGITAL_OCEAN")
+        export NODE_POOL_SELECTOR_KEY="doks.digitalocean.com/node-pool"
+        if [[ "$KUBE_ENV" == "production" ]]; then
+            export NODE_POOL_VALUE="platform-cluster-01-production-pool"
+        else
+            export NODE_POOL_VALUE="platform-cluster-01-staging-pool"
+        fi
+        echo "clean :: using DigitalOcean node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
+        ;;
+    "AWS")
+        export NODE_POOL_SELECTOR_KEY="eks.amazonaws.com/nodegroup"
+        if [[ "$KUBE_ENV" == "production" ]]; then
+            export NODE_POOL_VALUE="aws-production-pool"
+        else
+            export NODE_POOL_VALUE="aws-preview-pool"
+        fi
+        echo "clean :: using AWS node selector - $NODE_POOL_SELECTOR_KEY=$NODE_POOL_VALUE"
+        ;;
+    *)
+        echo "clean :: error - unknown HOSTING_PROVIDER: $HOSTING_PROVIDER"
+        echo "clean :: valid values are [DIGITAL_OCEAN, AWS]"
+        exit 1
+        ;;
+esac
+
 kube_pre_clean_script="$KUBE_ROOT/scripts/pre-clean.sh"
 kube_post_clean_script="$KUBE_ROOT/scripts/post-clean.sh"
 
