@@ -68,6 +68,10 @@ inputs:
   deploy_annotate_pr:
     required: false
     description: 'Enable pull request annotation with deployment URL. Requires pull_request_number to work.'
+  enable_temporal:
+    required: false
+    description: 'Enable Temporal deployment and dashboard commenting'
+    default: 'false'
 
 outputs:
   url:
@@ -155,6 +159,7 @@ runs:
 
     - name: Extract and format Temporal Dashboard URL
       id: temporal
+      if: ${{ inputs.enable_temporal == 'true' }}
       shell: bash
       run: |
         full_url="${{ steps.deploy.outputs.url }}"
@@ -191,13 +196,24 @@ runs:
 
     - name: Comment deployment URLs on PR
       if: ${{ inputs.deploy_annotate_pr == 'true' && inputs.pull_request_number != '' }}
+      shell: bash
+      run: |
+        COMMENT="Deployment (${{ inputs.app_name }}) is available:
+        Web App: ${{ steps.deploy.outputs.url }}"
+        
+        if [ "${{ inputs.enable_temporal }}" == "true" ] && [ -n "${{ steps.temporal.outputs.temporal_dashboard_url }}" ]; then
+          COMMENT="${COMMENT}
+        Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}"
+        fi
+        
+        echo "$COMMENT" > /tmp/pr-comment.txt
+        
+    - name: Post PR comment
+      if: ${{ inputs.deploy_annotate_pr == 'true' && inputs.pull_request_number != '' }}
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: ${{ inputs.app_name }}
         hide_and_recreate: true
         hide_classify: "OUTDATED"
         number: ${{ inputs.pull_request_number }}
-        message: |
-          Deployment (${{ inputs.app_name }}) is available:
-          Web App: ${{ steps.deploy.outputs.url }}
-          Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+        path: /tmp/pr-comment.txt
