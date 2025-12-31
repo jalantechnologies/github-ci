@@ -155,19 +155,9 @@ runs:
       run: |
         source platform/lib/kube/deploy.sh
         echo "url=https://$KUBE_INGRESS_HOSTNAME" >> $GITHUB_OUTPUT
-        echo "temporal_dashboard_url=https://$KUBE_INGRESS_WORKER_HOSTNAME" >> $GITHUB_OUTPUT
-
-    - name: Extract and format Temporal Dashboard URL
-      id: temporal
-      if: ${{ inputs.enable_temporal == 'true' }}
-      shell: bash
-      run: |
-        full_url="${{ steps.deploy.outputs.url }}"
-        domain="${full_url#*://}"
-        first_label="${domain%%.*}"
-        rest="${domain#*.}"
-        temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
+        if [ "${{ inputs.enable_temporal }}" == "true" ]; then
+          echo "temporal_dashboard_url=https://$KUBE_INGRESS_WORKER_HOSTNAME" >> $GITHUB_OUTPUT
+        fi
 
     - name: Show diagnostics in logs
       if: failure()
@@ -201,9 +191,9 @@ runs:
         COMMENT="Deployment (${{ inputs.app_name }}) is available:
         Web App: ${{ steps.deploy.outputs.url }}"
         
-        if [ "${{ inputs.enable_temporal }}" == "true" ] && [ -n "${{ steps.temporal.outputs.temporal_dashboard_url }}" ]; then
+        if [ "${{ inputs.enable_temporal }}" == "true" ] && [ -n "${{ steps.deploy.outputs.temporal_dashboard_url }}" ]; then
           COMMENT="${COMMENT}
-        Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}"
+        Workers Dashboard: ${{ steps.deploy.outputs.temporal_dashboard_url }}"
         fi
         
         echo "$COMMENT" > /tmp/pr-comment.txt
