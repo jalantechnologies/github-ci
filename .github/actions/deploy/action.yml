@@ -76,6 +76,9 @@ outputs:
   temporal_dashboard_url:
     description: 'URL for Temporal Dashboard'
     value: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+  has_workers_dashboard:
+    description: 'Whether workers dashboard is configured in Ingress'
+    value: ${{ steps.temporal.outputs.has_workers_dashboard }}
 
 runs:
   using: composite
@@ -153,16 +156,30 @@ runs:
         echo "url=https://$KUBE_INGRESS_HOSTNAME" >> $GITHUB_OUTPUT
         echo "temporal_dashboard_url=https://$KUBE_INGRESS_WORKER_HOSTNAME" >> $GITHUB_OUTPUT
 
-    - name: Extract and format Temporal Dashboard URL
+    - name: Check if Workers Dashboard exists in Ingress
       id: temporal
       shell: bash
+      env:
+        KUBE_NS: ${{ format('foundation-{0}', inputs.app_env) }}
+        KUBE_APP: ${{ format('foundation-{0}-{1}', inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
       run: |
+        # Generate expected workers dashboard hostname
         full_url="${{ steps.deploy.outputs.url }}"
         domain="${full_url#*://}"
         first_label="${domain%%.*}"
         rest="${domain#*.}"
-        temporal_dashboard_url="https://${first_label}.workers-dashboard.${rest}"
-        echo "temporal_dashboard_url=${temporal_dashboard_url}" >> $GITHUB_OUTPUT
+        expected_workers_host="${first_label}.workers-dashboard.${rest}"
+
+        # Check if Ingress actually has this host configured
+        if kubectl get ingress "${KUBE_APP}-ingress" -n "$KUBE_NS" -o yaml 2>/dev/null | grep -q "host: $expected_workers_host"; then
+          echo "Workers dashboard host found in Ingress"
+          echo "temporal_dashboard_url=https://${expected_workers_host}" >> $GITHUB_OUTPUT
+          echo "has_workers_dashboard=true" >> $GITHUB_OUTPUT
+        else
+          echo "Workers dashboard host not found in Ingress - skipping"
+          echo "temporal_dashboard_url=" >> $GITHUB_OUTPUT
+          echo "has_workers_dashboard=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Show diagnostics in logs
       if: failure()
@@ -189,6 +206,25 @@ runs:
         hide_classify: "OUTDATED"
     
 
+    - name: Build deployment comment message
+      if: ${{ inputs.deploy_annotate_pr == 'true' && inputs.pull_request_number != '' }}
+      id: comment_message
+      shell: bash
+      run: |
+        message="Deployment (${{ inputs.app_name }}) is available:"
+        message+=$'\n'"Web App: ${{ steps.deploy.outputs.url }}"
+
+        if [[ "${{ steps.temporal.outputs.has_workers_dashboard }}" == "true" ]]; then
+          message+=$'\n'"Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}"
+        fi
+
+        # Use heredoc to handle multiline output
+        {
+          echo 'message<<EOF'
+          echo "$message"
+          echo EOF
+        } >> $GITHUB_OUTPUT
+
     - name: Comment deployment URLs on PR
       if: ${{ inputs.deploy_annotate_pr == 'true' && inputs.pull_request_number != '' }}
       uses: marocchino/sticky-pull-request-comment@v2
@@ -197,7 +233,4 @@ runs:
         hide_and_recreate: true
         hide_classify: "OUTDATED"
         number: ${{ inputs.pull_request_number }}
-        message: |
-          Deployment (${{ inputs.app_name }}) is available:
-          Web App: ${{ steps.deploy.outputs.url }}
-          Workers Dashboard: ${{ steps.temporal.outputs.temporal_dashboard_url }}
+        message: ${{ steps.comment_message.outputs.message }}
