@@ -160,8 +160,8 @@ runs:
       id: temporal
       shell: bash
       env:
-        KUBE_NS: ${{ format('foundation-{0}', inputs.app_env) }}
-        KUBE_APP: ${{ format('foundation-{0}-{1}', inputs.app_env, steps.extract_branch.outputs.branch_hash) }}
+        KUBE_NS: ${{ inputs.app_name }}-${{ inputs.app_env }}
+        KUBE_APP: ${{ inputs.app_name }}-${{ inputs.app_env }}-${{ steps.extract_branch.outputs.branch_hash }}
       run: |
         # Generate expected workers dashboard hostname
         full_url="${{ steps.deploy.outputs.url }}"
