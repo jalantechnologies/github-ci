@@ -30,7 +30,7 @@ if [ -d "$kube_shared_dir" ]; then
     for file in "$kube_shared_dir"/*; do
         [ -f "$file" ] || continue
         echo "clean :: deleting → $file"
-        envsubst < "$file" | kubectl delete -n "$KUBE_NS" --ignore-not-found=true -f - || true
+        envsubst < "$file" | kubectl delete -n "$KUBE_NS" --ignore-not-found=true --wait=false -f - || true
     done
 else
     echo "clean :: No shared config found."
@@ -42,7 +42,7 @@ if [ -d "$kube_env_dir" ]; then
     for file in "$kube_env_dir"/*; do
         [ -f "$file" ] || continue
         echo "clean :: deleting → $file"
-        envsubst < "$file" | kubectl delete -n "$KUBE_NS" --ignore-not-found=true -f - || true
+        envsubst < "$file" | kubectl delete -n "$KUBE_NS" --ignore-not-found=true --wait=false -f - || true
     done
 else
     echo "clean :: No environment config found."
