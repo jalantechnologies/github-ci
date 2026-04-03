@@ -48,6 +48,10 @@ else
     echo "clean :: No environment config found."
 fi
 
+# --- Wait for Resources to be Fully Deleted ---
+echo "clean :: Waiting for resources to be fully deleted..."
+kubectl wait --for=delete pod,deployment,statefulset,pvc -n "$KUBE_NS" -l app="$KUBE_APP" --timeout=300s 2>/dev/null || true
+
 # --- Run Post-Clean Hook ---
 if [ -f "$kube_post_clean_script" ]; then
     echo "clean :: Running post-clean hook → $kube_post_clean_script"
